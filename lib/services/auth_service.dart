@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:onecitizen/config/api_config.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/api_client.dart';
@@ -9,93 +7,83 @@ class AuthService {
   AuthService({
     required ApiClient apiClient,
     required StorageService storageService,
-    fb.FirebaseAuth? firebaseAuth,
   })  : _apiClient = apiClient,
-        _storageService = storageService,
-        _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance;
+        _storageService = storageService;
 
   final ApiClient _apiClient;
   final StorageService _storageService;
-  final fb.FirebaseAuth _firebaseAuth;
 
-  String? _verificationId;
-
-  Future<void> sendOtp(String phoneNumber) async {
-    await _firebaseAuth.verifyPhoneNumber(
-      phoneNumber: phoneNumber.startsWith('+') ? phoneNumber : '+88$phoneNumber',
-      verificationCompleted: (_) {},
-      verificationFailed: (e) {
-        throw Exception(e.message ?? 'Phone verification failed');
-      },
-      codeSent: (verificationId, _) {
-        _verificationId = verificationId;
-      },
-      codeAutoRetrievalTimeout: (_) {},
-      timeout: const Duration(seconds: 60),
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    if (_verificationId == null) {
-      throw Exception('Failed to send OTP. Please try again.');
-    }
-  }
-
-  Future<User> verifyOtpAndLogin(String otp) async {
-    if (_verificationId == null) {
-      throw Exception('No verification in progress. Request OTP first.');
-    }
-
-    final credential = fb.PhoneAuthProvider.credential(
-      verificationId: _verificationId!,
-      smsCode: otp,
-    );
-
-    final userCredential = await _firebaseAuth.signInWithCredential(credential);
-    final firebaseToken = await userCredential.user?.getIdToken();
-    if (firebaseToken == null) {
-      throw Exception('Failed to obtain Firebase token');
-    }
-
-    return exchangeFirebaseToken(firebaseToken);
-  }
-
-  Future<User> exchangeFirebaseToken(String firebaseToken) async {
+  Future<User> register({
+    required String nid,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
     final response = await _apiClient.dio.post(
-      ApiConfig.firebaseTokenExchange,
-      data: {'firebase_token': firebaseToken},
+      ApiConfig.register,
+      data: {
+        'nid': nid,
+        'first_name': firstName,
+        'last_name': lastName,
+        'email': email,
+        'phone': phone,
+        'password': password,
+      },
     );
-
     final data = response.data as Map<String, dynamic>;
-    await _storageService.saveTokens(
-      accessToken: data['access'] as String,
-      refreshToken: data['refresh'] as String?,
-    );
+    await _storageService.saveToken(data['access'] as String);
+    return User.fromJson(data['user'] as Map<String, dynamic>);
+  }
 
+  Future<User> login({
+    required UserRole role,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _apiClient.dio.post(
+      ApiConfig.login,
+      data: {
+        'role': roleToString(role),
+        'email': email,
+        'password': password,
+      },
+    );
+    final data = response.data as Map<String, dynamic>;
+    await _storageService.saveToken(data['access'] as String);
     return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   Future<User> fetchProfile() async {
-    final response = await _apiClient.dio.get(ApiConfig.me);
+    final response = await _apiClient.dio.get(ApiConfig.citizenProfile);
     return User.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<User> updateProfile(Map<String, dynamic> data) async {
-    final response = await _apiClient.dio.patch(ApiConfig.profile, data: data);
-    return User.fromJson(response.data as Map<String, dynamic>);
-  }
-
-  Future<User> uploadProfilePicture(String filePath) async {
-    final formData = FormData.fromMap({
-      'profile_picture': await MultipartFile.fromFile(filePath),
-    });
     final response = await _apiClient.dio.patch(
-      ApiConfig.profile,
-      data: formData,
+      ApiConfig.citizenProfile,
+      data: data,
     );
     return User.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _apiClient.dio.patch(
+      ApiConfig.changePassword,
+      data: {'old_password': oldPassword, 'new_password': newPassword},
+    );
+  }
+
   Future<void> logout() async {
-    await _firebaseAuth.signOut();
+    try {
+      await _apiClient.dio.post(ApiConfig.logout);
+    } catch (_) {
+      // best-effort — clear local session regardless
+    }
     await _storageService.clearTokens();
   }
 
