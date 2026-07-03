@@ -1,48 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/auth_service.dart';
-import 'package:onecitizen/services/storage_service.dart';
-
-const _devUsers = {
-  UserRole.citizen: User(
-    id: 'dev-citizen',
-    phoneNumber: '+8801700000001',
-    fullName: 'Dev Citizen',
-    nid: '1234567890',
-    role: UserRole.citizen,
-  ),
-  UserRole.officer: User(
-    id: 'dev-officer',
-    phoneNumber: '+8801700000002',
-    fullName: 'Dev Officer',
-    nid: '1234567891',
-    role: UserRole.officer,
-  ),
-  UserRole.admin: User(
-    id: 'dev-admin',
-    phoneNumber: '+8801700000003',
-    fullName: 'Dev Admin',
-    nid: '1234567892',
-    role: UserRole.admin,
-  ),
-};
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthProvider extends ChangeNotifier {
-  AuthProvider({
-    required AuthService authService,
-    required StorageService storageService,
-  })  : _authService = authService,
-        _storageService = storageService;
+  AuthProvider({required AuthService authService}) : _authService = authService;
 
   final AuthService _authService;
-  final StorageService _storageService;
 
   AuthStatus status = AuthStatus.initial;
   User? user;
   String? errorMessage;
-  String? phoneNumber;
 
   Future<void> checkSession() async {
     status = AuthStatus.loading;
@@ -62,34 +32,61 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendOtp(String phone) async {
-    status = AuthStatus.loading;
-    errorMessage = null;
-    phoneNumber = phone;
-    notifyListeners();
-
-    try {
-      await _authService.sendOtp(phone);
-      status = AuthStatus.unauthenticated;
-    } catch (e) {
-      errorMessage = e.toString();
-      status = AuthStatus.error;
-    }
-    notifyListeners();
-  }
-
-  Future<bool> verifyOtp(String otp) async {
+  Future<bool> register({
+    required String nid,
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
     status = AuthStatus.loading;
     errorMessage = null;
     notifyListeners();
 
     try {
-      user = await _authService.verifyOtpAndLogin(otp);
+      user = await _authService.register(
+        nid: nid,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: password,
+      );
       status = AuthStatus.authenticated;
       notifyListeners();
       return true;
     } catch (e) {
       errorMessage = e.toString();
+      status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> login({
+    required UserRole role,
+    required String email,
+    required String password,
+  }) async {
+    status = AuthStatus.loading;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      user = await _authService.login(role: role, email: email, password: password);
+      status = AuthStatus.authenticated;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      if (e is DioException) {
+        final data = e.response?.data;
+        errorMessage = (data is Map && data['detail'] != null)
+            ? data['detail'] as String
+            : 'Invalid email or password.';
+      } else {
+        errorMessage = e.toString();
+      }
       status = AuthStatus.error;
       notifyListeners();
       return false;
@@ -108,10 +105,15 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> uploadProfilePicture(String path) async {
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
     try {
-      user = await _authService.uploadProfilePicture(path);
-      notifyListeners();
+      await _authService.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
       return true;
     } catch (e) {
       errorMessage = e.toString();
@@ -127,19 +129,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void devLogin(UserRole role) {
-    assert(kDebugMode, 'devLogin only available in debug mode');
-    user = _devUsers[role]!;
-    status = AuthStatus.authenticated;
-    notifyListeners();
-  }
-
-  Future<void> completeOnboarding() async {
-    await _storageService.setOnboardingComplete(true);
-  }
-
-  Future<bool> needsProfileSetup() async {
+  bool needsProfileCompletion() {
     if (user == null) return false;
-    return user!.fullName == null || user!.nid == null;
+    return !user!.profileComplete;
   }
 }

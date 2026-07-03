@@ -14,7 +14,6 @@ void main() {
         apiClient: apiClient,
         storageService: storageService,
       ),
-      storageService: storageService,
     );
 
     await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));

@@ -1,70 +1,91 @@
+enum CardTypeCode { farmer, family, education }
+
+CardTypeCode cardTypeCodeFromString(String? value) {
+  switch (value?.toLowerCase()) {
+    case 'family':
+      return CardTypeCode.family;
+    case 'education':
+      return CardTypeCode.education;
+    default:
+      return CardTypeCode.farmer;
+  }
+}
+
+String cardTypeCodeToString(CardTypeCode code) {
+  switch (code) {
+    case CardTypeCode.farmer:
+      return 'farmer';
+    case CardTypeCode.family:
+      return 'family';
+    case CardTypeCode.education:
+      return 'education';
+  }
+}
+
 class CardType {
   const CardType({
     required this.id,
-    required this.name,
     required this.code,
-    this.description,
-    this.isActive = true,
+    required this.name,
+    required this.eligibilityCriteria,
     this.requiredDocuments = const [],
-    this.eligibilityRules = const {},
   });
 
   final String id;
+  final CardTypeCode code;
   final String name;
-  final String code;
-  final String? description;
-  final bool isActive;
+  final String eligibilityCriteria;
   final List<String> requiredDocuments;
-  final Map<String, dynamic> eligibilityRules;
 
   factory CardType.fromJson(Map<String, dynamic> json) {
     return CardType(
       id: json['id']?.toString() ?? '',
+      code: cardTypeCodeFromString(json['code'] as String?),
       name: json['name'] as String? ?? '',
-      code: json['code'] as String? ?? '',
-      description: json['description'] as String?,
-      isActive: json['is_active'] as bool? ?? true,
+      eligibilityCriteria: json['eligibility_criteria'] as String? ?? '',
       requiredDocuments: (json['required_documents'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      eligibilityRules:
-          (json['eligibility_rules'] as Map<String, dynamic>?) ?? {},
     );
   }
+}
 
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'code': code,
-        'description': description,
-        'is_active': isActive,
-        'required_documents': requiredDocuments,
-        'eligibility_rules': eligibilityRules,
-      };
+/// Per-card-type eligibility verdict, returned together for all three cards.
+class CardEligibility {
+  const CardEligibility({
+    required this.cardType,
+    required this.eligible,
+    required this.reason,
+  });
+
+  final CardType cardType;
+  final bool eligible;
+  final String reason;
+
+  factory CardEligibility.fromJson(Map<String, dynamic> json) {
+    return CardEligibility(
+      cardType: CardType.fromJson(json['card_type'] as Map<String, dynamic>),
+      eligible: json['eligible'] as bool? ?? false,
+      reason: json['reason'] as String? ?? '',
+    );
+  }
 }
 
 class EligibilityResult {
-  const EligibilityResult({
-    required this.eligibleCards,
-    this.recommendations = const [],
-    this.message,
-  });
+  const EligibilityResult({required this.results});
 
-  final List<CardType> eligibleCards;
-  final List<String> recommendations;
-  final String? message;
+  final List<CardEligibility> results;
 
   factory EligibilityResult.fromJson(Map<String, dynamic> json) {
     return EligibilityResult(
-      eligibleCards: (json['eligible_cards'] as List<dynamic>?)
-              ?.map((e) => CardType.fromJson(e as Map<String, dynamic>))
+      results: (json['results'] as List<dynamic>?)
+              ?.map((e) => CardEligibility.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      recommendations: (json['recommendations'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      message: json['message'] as String?,
     );
   }
+
+  List<CardEligibility> get eligibleCards =>
+      results.where((r) => r.eligible).toList();
 }

@@ -1,108 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:onecitizen/config/api_config.dart';
 import 'package:onecitizen/models/application.dart';
-import 'package:onecitizen/models/card.dart';
 import 'package:onecitizen/models/card_type.dart';
-import 'package:onecitizen/models/complaint.dart';
+import 'package:onecitizen/models/distribution.dart';
+import 'package:onecitizen/models/document.dart';
+import 'package:onecitizen/models/notification.dart';
 import 'package:onecitizen/services/api_client.dart';
-
-class CardService {
-  CardService({required ApiClient apiClient}) : _apiClient = apiClient;
-  final ApiClient _apiClient;
-
-  Future<List<CitizenCard>> getMyCards() async {
-    final response = await _apiClient.dio.get(ApiConfig.cards);
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => CitizenCard.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<CitizenCard> getCard(String id) async {
-    final response = await _apiClient.dio.get('${ApiConfig.cards}$id/');
-    return CitizenCard.fromJson(response.data as Map<String, dynamic>);
-  }
-}
-
-class ApplicationService {
-  ApplicationService({required ApiClient apiClient}) : _apiClient = apiClient;
-  final ApiClient _apiClient;
-
-  Future<List<Application>> getApplications() async {
-    final response = await _apiClient.dio.get(ApiConfig.applications);
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => Application.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<Application> getApplication(String id) async {
-    final response = await _apiClient.dio.get('${ApiConfig.applications}$id/');
-    return Application.fromJson(response.data as Map<String, dynamic>);
-  }
-
-  Future<Application> submitApplication({
-    required String cardTypeId,
-    required Map<String, String> documentPaths,
-  }) async {
-    final formMap = <String, dynamic>{'card_type': cardTypeId};
-    for (final entry in documentPaths.entries) {
-      formMap[entry.key] = await MultipartFile.fromFile(entry.value);
-    }
-    final response = await _apiClient.dio.post(
-      ApiConfig.applications,
-      data: FormData.fromMap(formMap),
-    );
-    return Application.fromJson(response.data as Map<String, dynamic>);
-  }
-}
-
-class EligibilityService {
-  EligibilityService({required ApiClient apiClient}) : _apiClient = apiClient;
-  final ApiClient _apiClient;
-
-  Future<EligibilityResult> checkEligibility({
-    required String occupation,
-    required double income,
-    required int age,
-    double? landHolding,
-  }) async {
-    final response = await _apiClient.dio.post(
-      ApiConfig.eligibilityCheck,
-      data: {
-        'occupation': occupation,
-        'income': income,
-        'age': age,
-        if (landHolding != null) 'land_holding': landHolding,
-      },
-    );
-    return EligibilityResult.fromJson(response.data as Map<String, dynamic>);
-  }
-}
-
-class ComplaintService {
-  ComplaintService({required ApiClient apiClient}) : _apiClient = apiClient;
-  final ApiClient _apiClient;
-
-  Future<List<Complaint>> getComplaints() async {
-    final response = await _apiClient.dio.get(ApiConfig.complaints);
-    final list = response.data as List<dynamic>;
-    return list
-        .map((e) => Complaint.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<Complaint> submitComplaint({
-    required String subject,
-    required String description,
-  }) async {
-    final response = await _apiClient.dio.post(
-      ApiConfig.complaints,
-      data: {'subject': subject, 'description': description},
-    );
-    return Complaint.fromJson(response.data as Map<String, dynamic>);
-  }
-}
 
 class CardTypeService {
   CardTypeService({required ApiClient apiClient}) : _apiClient = apiClient;
@@ -112,5 +15,105 @@ class CardTypeService {
     final response = await _apiClient.dio.get(ApiConfig.cardTypes);
     final list = response.data as List<dynamic>;
     return list.map((e) => CardType.fromJson(e as Map<String, dynamic>)).toList();
+  }
+}
+
+class EligibilityService {
+  EligibilityService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<EligibilityResult> checkEligibility() async {
+    final response = await _apiClient.dio.get(ApiConfig.citizenEligibility);
+    return EligibilityResult.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> submitEligibilityRequest(Map<String, dynamic> data) async {
+    final response = await _apiClient.dio.post(ApiConfig.citizenEligibility, data: data);
+    return response.data as Map<String, dynamic>;
+  }
+}
+
+class ApplicationService {
+  ApplicationService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<List<Application>> getApplications() async {
+    final response = await _apiClient.dio.get(ApiConfig.citizenApplications);
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => Application.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Application> getApplication(String id) async {
+    final response =
+        await _apiClient.dio.get('${ApiConfig.citizenApplications}/$id');
+    return Application.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<Application> submitApplication({required String cardTypeId}) async {
+    final response = await _apiClient.dio.post(
+      ApiConfig.citizenApplications,
+      data: {'card_type_id': cardTypeId},
+    );
+    return Application.fromJson(response.data as Map<String, dynamic>);
+  }
+}
+
+class DocumentService {
+  DocumentService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<List<CitizenDocument>> getDocuments() async {
+    final response = await _apiClient.dio.get(ApiConfig.citizenDocuments);
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => CitizenDocument.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CitizenDocument> uploadDocument({
+    required String docType,
+    required String filePath,
+  }) async {
+    final formData = FormData.fromMap({
+      'doc_type': docType,
+      'file': await MultipartFile.fromFile(filePath),
+    });
+    final response = await _apiClient.dio.post(
+      ApiConfig.citizenDocuments,
+      data: formData,
+    );
+    return CitizenDocument.fromJson(response.data as Map<String, dynamic>);
+  }
+}
+
+class DistributionService {
+  DistributionService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<List<Distribution>> getDistributions() async {
+    final response = await _apiClient.dio.get(ApiConfig.citizenDistributions);
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => Distribution.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+}
+
+class NotificationService {
+  NotificationService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<List<AppNotification>> getNotifications() async {
+    final response = await _apiClient.dio.get(ApiConfig.citizenNotifications);
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> markAsRead(String id) async {
+    await _apiClient.dio.patch('${ApiConfig.citizenNotifications}/$id/read');
   }
 }

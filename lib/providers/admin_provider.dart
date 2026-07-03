@@ -1,146 +1,200 @@
 import 'package:flutter/foundation.dart';
-import 'package:onecitizen/models/card_type.dart';
-import 'package:onecitizen/models/complaint.dart';
+import 'package:onecitizen/models/application.dart';
+import 'package:onecitizen/models/distribution.dart';
+import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/models/user.dart';
-import 'package:onecitizen/services/officer_admin_services.dart';
+import 'package:onecitizen/services/admin_services.dart';
 
 class AdminProvider extends ChangeNotifier {
-  AdminProvider({required AdminService adminService})
-      : _adminService = adminService;
+  AdminProvider({required AdminService adminService}) : _adminService = adminService;
 
   final AdminService _adminService;
 
-  List<User> users = [];
-  List<User> officers = [];
-  List<CardType> cardTypes = [];
-  List<Complaint> complaints = [];
-  List<Map<String, dynamic>> logs = [];
-  bool isLoading = false;
-  String? error;
+  // Applications
+  List<Application> applications = [];
+  Application? selectedApplication;
+  bool isLoadingApplications = false;
+  String? applicationsError;
 
-  Future<void> loadUsers() async {
-    isLoading = true;
+  Future<void> loadApplications({String? cardTypeId, ApplicationStatus? status}) async {
+    isLoadingApplications = true;
+    applicationsError = null;
     notifyListeners();
     try {
-      users = await _adminService.getUsers();
+      applications = await _adminService.getApplications(cardTypeId: cardTypeId, status: status);
     } catch (e) {
-      error = e.toString();
+      applicationsError = e.toString();
     } finally {
-      isLoading = false;
+      isLoadingApplications = false;
       notifyListeners();
     }
   }
 
-  Future<void> suspendUser(String id) async {
-    await _adminService.suspendUser(id);
-    await loadUsers();
-  }
-
-  Future<void> reactivateUser(String id) async {
-    await _adminService.reactivateUser(id);
-    await loadUsers();
-  }
-
-  Future<void> deleteUser(String id) async {
-    await _adminService.deleteUser(id);
-    await loadUsers();
-  }
-
-  Future<void> loadCardTypes() async {
-    isLoading = true;
+  Future<void> loadApplicationDetail(String id) async {
+    isLoadingApplications = true;
     notifyListeners();
     try {
-      cardTypes = await _adminService.getCardTypes();
+      selectedApplication = await _adminService.getApplication(id);
     } catch (e) {
-      error = e.toString();
+      applicationsError = e.toString();
     } finally {
-      isLoading = false;
+      isLoadingApplications = false;
       notifyListeners();
     }
   }
 
-  Future<void> deleteCardType(String id) async {
-    await _adminService.deleteCardType(id);
-    await loadCardTypes();
-  }
-
-  Future<bool> saveCardType(CardType cardType, {String? id}) async {
+  Future<bool> approveApplication(String id) async {
     try {
-      if (id != null) {
-        await _adminService.updateCardType(id, cardType);
-      } else {
-        await _adminService.createCardType(cardType);
-      }
-      await loadCardTypes();
+      selectedApplication = await _adminService.approveApplication(id);
+      _replaceApplication(selectedApplication!);
+      notifyListeners();
       return true;
     } catch (e) {
-      error = e.toString();
+      applicationsError = e.toString();
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> loadOfficers() async {
-    isLoading = true;
-    notifyListeners();
+  Future<bool> rejectApplication(String id, {required String reason}) async {
     try {
-      officers = await _adminService.getOfficers();
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
+      selectedApplication = await _adminService.rejectApplication(id, reason: reason);
+      _replaceApplication(selectedApplication!);
       notifyListeners();
-    }
-  }
-
-  Future<bool> createOfficer(String phone, String name) async {
-    try {
-      await _adminService.createOfficer(phoneNumber: phone, fullName: name);
-      await loadOfficers();
       return true;
     } catch (e) {
-      error = e.toString();
+      applicationsError = e.toString();
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> removeOfficer(String id) async {
-    await _adminService.removeOfficer(id);
-    await loadOfficers();
+  void _replaceApplication(Application app) {
+    final idx = applications.indexWhere((a) => a.id == app.id);
+    if (idx >= 0) applications[idx] = app;
   }
 
-  Future<void> loadComplaints() async {
-    isLoading = true;
+  // Document validation
+  List<CitizenDocument> pendingDocuments = [];
+  bool isLoadingDocuments = false;
+  String? documentsError;
+
+  Future<void> loadPendingDocuments() async {
+    isLoadingDocuments = true;
+    documentsError = null;
     notifyListeners();
     try {
-      complaints = await _adminService.getAllComplaints();
+      pendingDocuments = await _adminService.getPendingDocuments();
     } catch (e) {
-      error = e.toString();
+      documentsError = e.toString();
     } finally {
-      isLoading = false;
+      isLoadingDocuments = false;
       notifyListeners();
     }
   }
 
-  Future<bool> resolveComplaint(String id, String resolution) async {
+  Future<bool> validateDocument(String id, {required bool isValid, String? remark}) async {
     try {
-      await _adminService.resolveComplaint(id: id, resolution: resolution);
-      await loadComplaints();
+      final doc = await _adminService.validateDocument(id, isValid: isValid, remark: remark);
+      final idx = pendingDocuments.indexWhere((d) => d.id == id);
+      if (idx >= 0) pendingDocuments[idx] = doc;
+      notifyListeners();
       return true;
     } catch (e) {
-      error = e.toString();
+      documentsError = e.toString();
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> loadLogs() async {
+  // Fund distribution
+  List<Distribution> distributions = [];
+  bool isLoadingDistributions = false;
+  String? distributionsError;
+
+  Future<void> loadDistributions({String? cardTypeId, DistributionMethod? method}) async {
+    isLoadingDistributions = true;
+    distributionsError = null;
+    notifyListeners();
     try {
-      logs = await _adminService.getSystemLogs();
-      notifyListeners();
+      distributions = await _adminService.getDistributions(cardTypeId: cardTypeId, method: method);
     } catch (e) {
-      error = e.toString();
+      distributionsError = e.toString();
+    } finally {
+      isLoadingDistributions = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> createDistribution({
+    required String applicationId,
+    required DistributionMethod method,
+    required double amount,
+    String? note,
+  }) async {
+    try {
+      final dist = await _adminService.createDistribution(
+        applicationId: applicationId,
+        method: method,
+        amount: amount,
+        note: note,
+      );
+      distributions.insert(0, dist);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      distributionsError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Citizen accounts
+  List<User> citizens = [];
+  bool isLoadingCitizens = false;
+  String? citizensError;
+
+  Future<void> loadCitizens({String? search}) async {
+    isLoadingCitizens = true;
+    citizensError = null;
+    notifyListeners();
+    try {
+      citizens = await _adminService.getCitizens(search: search);
+    } catch (e) {
+      citizensError = e.toString();
+    } finally {
+      isLoadingCitizens = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deactivateCitizen(String id) async {
+    try {
+      await _adminService.deactivateCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Analytics
+  Map<String, dynamic>? analytics;
+  bool isLoadingAnalytics = false;
+  String? analyticsError;
+
+  Future<void> loadAnalytics() async {
+    isLoadingAnalytics = true;
+    analyticsError = null;
+    notifyListeners();
+    try {
+      analytics = await _adminService.getAnalytics();
+    } catch (e) {
+      analyticsError = e.toString();
+    } finally {
+      isLoadingAnalytics = false;
       notifyListeners();
     }
   }
