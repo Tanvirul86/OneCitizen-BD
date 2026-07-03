@@ -1,10 +1,4 @@
-enum ApplicationStatus {
-  submitted,
-  underReview,
-  approved,
-  rejected,
-  documentRequested,
-}
+enum ApplicationStatus { submitted, underReview, approved, rejected }
 
 ApplicationStatus applicationStatusFromString(String? value) {
   switch (value?.toLowerCase()) {
@@ -14,8 +8,6 @@ ApplicationStatus applicationStatusFromString(String? value) {
       return ApplicationStatus.approved;
     case 'rejected':
       return ApplicationStatus.rejected;
-    case 'document_requested':
-      return ApplicationStatus.documentRequested;
     default:
       return ApplicationStatus.submitted;
   }
@@ -31,111 +23,49 @@ String applicationStatusToString(ApplicationStatus status) {
       return 'approved';
     case ApplicationStatus.rejected:
       return 'rejected';
-    case ApplicationStatus.documentRequested:
-      return 'document_requested';
-  }
-}
-
-class ApplicationTimelineEntry {
-  const ApplicationTimelineEntry({
-    required this.status,
-    required this.timestamp,
-    this.remarks,
-    this.officerName,
-  });
-
-  final ApplicationStatus status;
-  final DateTime timestamp;
-  final String? remarks;
-  final String? officerName;
-
-  factory ApplicationTimelineEntry.fromJson(Map<String, dynamic> json) {
-    return ApplicationTimelineEntry(
-      status: applicationStatusFromString(json['status'] as String?),
-      timestamp: DateTime.tryParse(json['timestamp'] as String? ?? '') ??
-          DateTime.now(),
-      remarks: json['remarks'] as String?,
-      officerName: json['officer_name'] as String?,
-    );
-  }
-}
-
-class ApplicationDocument {
-  const ApplicationDocument({
-    required this.id,
-    required this.name,
-    required this.url,
-    this.documentType,
-  });
-
-  final String id;
-  final String name;
-  final String url;
-  final String? documentType;
-
-  factory ApplicationDocument.fromJson(Map<String, dynamic> json) {
-    return ApplicationDocument(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] as String? ?? 'Document',
-      url: json['url'] as String? ?? '',
-      documentType: json['document_type'] as String?,
-    );
   }
 }
 
 class Application {
   const Application({
     required this.id,
-    required this.cardType,
+    required this.cardTypeId,
     required this.cardTypeName,
     required this.status,
-    required this.createdAt,
+    required this.submittedAt,
     this.updatedAt,
-    this.remarks,
-    this.documents = const [],
-    this.timeline = const [],
+    this.adminRemark,
     this.applicantName,
     this.applicantNid,
-    this.applicantPhone,
+    this.applicantEmail,
   });
 
   final String id;
-  final String cardType;
+  final String cardTypeId;
   final String cardTypeName;
   final ApplicationStatus status;
-  final DateTime createdAt;
+  final DateTime submittedAt;
   final DateTime? updatedAt;
-  final String? remarks;
-  final List<ApplicationDocument> documents;
-  final List<ApplicationTimelineEntry> timeline;
+  final String? adminRemark;
   final String? applicantName;
   final String? applicantNid;
-  final String? applicantPhone;
+  final String? applicantEmail;
 
   factory Application.fromJson(Map<String, dynamic> json) {
     return Application(
       id: json['id']?.toString() ?? '',
-      cardType: json['card_type']?.toString() ?? '',
+      cardTypeId: json['card_type_id']?.toString() ?? '',
       cardTypeName: json['card_type_name'] as String? ?? '',
       status: applicationStatusFromString(json['status'] as String?),
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ??
+      submittedAt: DateTime.tryParse(json['submitted_at'] as String? ?? '') ??
           DateTime.now(),
       updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'] as String)
           : null,
-      remarks: json['remarks'] as String?,
-      documents: (json['documents'] as List<dynamic>?)
-              ?.map((e) => ApplicationDocument.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      timeline: (json['timeline'] as List<dynamic>?)
-              ?.map((e) =>
-                  ApplicationTimelineEntry.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      adminRemark: json['admin_remark'] as String?,
       applicantName: json['applicant_name'] as String?,
       applicantNid: json['applicant_nid'] as String?,
-      applicantPhone: json['applicant_phone'] as String?,
+      applicantEmail: json['applicant_email'] as String?,
     );
   }
 }
