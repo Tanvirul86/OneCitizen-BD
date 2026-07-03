@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/providers/application_provider.dart';
-import 'package:onecitizen/widgets/document_picker.dart';
 import 'package:provider/provider.dart';
 
 class ApplyCardScreen extends StatefulWidget {
@@ -16,7 +16,6 @@ class ApplyCardScreen extends StatefulWidget {
 
 class _ApplyCardScreenState extends State<ApplyCardScreen> {
   String? _selectedCardTypeId;
-  final Map<String, String> _pickedDocuments = {};
   bool _isLoading = false;
 
   @override
@@ -28,183 +27,175 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     });
   }
 
-  void _onDocumentPicked(String documentType, String? filePath) {
-    if (filePath != null) {
-      _pickedDocuments[documentType] = filePath;
-    } else {
-      _pickedDocuments.remove(documentType);
+  ({IconData icon, Color color}) _styleFor(CardTypeCode code) {
+    switch (code) {
+      case CardTypeCode.farmer:
+        return (icon: Icons.agriculture_rounded, color: const Color(0xFF059669));
+      case CardTypeCode.family:
+        return (icon: Icons.family_restroom_rounded, color: const Color(0xFF2563EB));
+      case CardTypeCode.education:
+        return (icon: Icons.school_rounded, color: const Color(0xFF7C3AED));
     }
   }
 
-  Future<void> _submitApplication() async {
+  Future<void> _submit() async {
     if (_selectedCardTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a card type'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final cardType = context
-        .read<ApplicationProvider>()
-        .cardTypes
-        .firstWhere((element) => element.id == _selectedCardTypeId);
-
-    if (cardType.requiredDocuments.any(
-      (docType) => !_pickedDocuments.containsKey(docType),
-    )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please upload all required documents'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Please select a card type'), backgroundColor: AppTheme.errorRed),
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    final success = await context.read<ApplicationProvider>().submitApplication(
-          cardTypeId: _selectedCardTypeId!,
-          documents: _pickedDocuments,
-        );
+    final appProvider = context.read<ApplicationProvider>();
+    final success = await appProvider.submitApplication(cardTypeId: _selectedCardTypeId!);
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Application submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        context.go('/citizen/tracker');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.read<ApplicationProvider>().error ??
-                  'Failed to submit application',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Application submitted successfully!'), backgroundColor: AppTheme.successGreen),
+      );
+      context.go('/citizen/applications');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(appProvider.error ?? 'Failed to submit application'), backgroundColor: AppTheme.errorRed),
+      );
     }
-    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final appProvider = context.watch<ApplicationProvider>();
-    final selectedType = appProvider.cardTypes
-        .where((element) => element.id == _selectedCardTypeId)
-        .firstOrNull;
+    final selectedType = appProvider.cardTypes.where((c) => c.id == _selectedCardTypeId).firstOrNull;
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(
-        title: const Text('Apply for New Card'),
-      ),
-      body: appProvider.isLoading
+      appBar: AppBar(title: const Text('Apply for a Card')),
+      body: appProvider.isLoading && appProvider.cardTypes.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                Text(
+                  'Select Card Type',
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                ),
+                const SizedBox(height: 14),
+                ...appProvider.cardTypes.map((c) {
+                  final style = _styleFor(c.code);
+                  final selected = c.id == _selectedCardTypeId;
+                  return _CardTypeTile(
+                    cardType: c,
+                    icon: style.icon,
+                    color: style.color,
+                    selected: selected,
+                    onTap: () => setState(() => _selectedCardTypeId = c.id),
+                  );
+                }),
+                if (selectedType != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.infoBlue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.infoBlue.withValues(alpha: 0.25)),
+                    ),
+                    child: const Row(
                       children: [
-                        const Text(
-                          'Select Card Type',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
+                        Icon(Icons.info_outline_rounded, color: AppTheme.infoBlue, size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'You can submit only one application per card type at a time. '
+                            'Make sure your supporting documents are uploaded on the Document Upload page.',
+                            style: TextStyle(fontSize: 13, color: AppTheme.infoBlue, height: 1.4),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedCardTypeId,
-                          decoration: const InputDecoration(
-                            labelText: 'Card Type',
-                            border: OutlineInputBorder(),
-                          ),
-                          hint: const Text('Choose a card type'),
-                          items: appProvider.cardTypes
-                              .map(
-                                (cardType) => DropdownMenuItem(
-                                  value: cardType.id,
-                                  child: Text(cardType.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedCardTypeId = value;
-                              _pickedDocuments.clear();
-                            });
-                          },
-                          validator: (value) => value == null
-                              ? 'Please select a card type'
-                              : null,
-                        ),
-                        if (selectedType != null) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            selectedType.description ?? '',
-                            style: TextStyle(color: AppTheme.textSecondary),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Required Documents:',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          if (selectedType.requiredDocuments.isEmpty)
-                            const Text('No documents required.')
-                          else
-                            ...selectedType.requiredDocuments.map(
-                              (docType) => Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: DocumentPicker(
-                                  documentType: docType,
-                                  onFilePicked: (documentType, filePath) =>
-                                      _onDocumentPicked(documentType, filePath),
-                                ),
-                              ),
-                            ),
-                        ],
                       ],
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submitApplication,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                    child: _isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Submit Application', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Submit Application',
-                          style: TextStyle(fontSize: 16),
-                        ),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _CardTypeTile extends StatelessWidget {
+  const _CardTypeTile({
+    required this.cardType,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final CardType cardType;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.06) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: selected ? color : AppTheme.divider, width: selected ? 1.5 : 1),
+          boxShadow: selected ? null : AppTheme.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    cardType.name,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  ),
+                ),
+                Icon(
+                  selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                  color: selected ? color : AppTheme.textTertiary,
+                  size: 22,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              cardType.eligibilityCriteria,
+              style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary, height: 1.4),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -9,7 +9,13 @@ class CitizenShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final location = GoRouterState.of(context).matchedLocation;
+    return PopScope(
+      canPop: location == '/citizen',
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) context.go('/citizen');
+      },
+      child: Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _calculateSelectedIndex(context),
@@ -18,32 +24,23 @@ class CitizenShell extends StatelessWidget {
         selectedItemColor: AppTheme.primaryGreen,
         unselectedItemColor: AppTheme.textSecondary,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.credit_card),
-            label: 'My Cards',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.track_changes),
-            label: 'Tracker',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Applications'),
+          BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Funds'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
+      ),
       ),
     );
   }
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/citizen/cards')) return 1;
-    if (location.startsWith('/citizen/tracker')) return 2;
-    if (location.startsWith('/citizen/profile')) return 3;
+    if (location.startsWith('/citizen/applications')) return 1;
+    if (location.startsWith('/citizen/distributions')) return 2;
+    if (location.startsWith('/citizen/notifications')) return 3;
+    if (location.startsWith('/citizen/profile')) return 4;
     return 0;
   }
 
@@ -53,12 +50,15 @@ class CitizenShell extends StatelessWidget {
         context.go('/citizen');
         break;
       case 1:
-        context.go('/citizen/cards');
+        context.go('/citizen/applications');
         break;
       case 2:
-        context.go('/citizen/tracker');
+        context.go('/citizen/distributions');
         break;
       case 3:
+        context.go('/citizen/notifications');
+        break;
+      case 4:
         context.go('/citizen/profile');
         break;
     }
