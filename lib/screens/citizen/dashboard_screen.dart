@@ -60,7 +60,9 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
     final appProvider = context.watch<ApplicationProvider>();
     final notifProvider = context.watch<NotificationProvider>();
 
-    final invalidDocs = appProvider.documents.where((d) => d.isValid == false).length;
+    final invalidDocs = appProvider.documents
+        .where((d) => d.isValid == false)
+        .length;
     final recentApps = appProvider.applications.take(3).toList();
     final greeting = _greeting();
 
@@ -85,7 +87,9 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
               flexibleSpace: FlexibleSpaceBar(
                 collapseMode: CollapseMode.pin,
                 background: Container(
-                  decoration: const BoxDecoration(gradient: AppTheme.heroGradient),
+                  decoration: const BoxDecoration(
+                    gradient: AppTheme.heroGradient,
+                  ),
                   child: Stack(
                     children: [
                       Positioned(
@@ -192,18 +196,22 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     _AlertCard(
                       icon: Icons.person_add_alt_1_rounded,
                       title: 'Complete Your Profile',
-                      subtitle: 'Profile completion is required to check eligibility for welfare cards.',
+                      subtitle:
+                          'Profile completion is required to check eligibility for welfare cards.',
                       color: AppTheme.warningAmber,
                       actionLabel: 'Complete Now',
-                      onAction: () => context.push('/citizen/profile-completion'),
+                      onAction: () =>
+                          context.push('/citizen/profile-completion'),
                     ),
                     const SizedBox(height: 12),
                   ],
                   if (invalidDocs > 0) ...[
                     _AlertCard(
                       icon: Icons.warning_amber_rounded,
-                      title: '$invalidDocs Document${invalidDocs > 1 ? 's' : ''} Need Re-upload',
-                      subtitle: 'Some of your documents were marked invalid by the admin.',
+                      title:
+                          '$invalidDocs Document${invalidDocs > 1 ? 's' : ''} Need Re-upload',
+                      subtitle:
+                          'Some of your documents were marked invalid by the admin.',
                       color: AppTheme.errorRed,
                       actionLabel: 'Fix Now',
                       onAction: () => context.push('/citizen/documents'),
@@ -221,60 +229,87 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.05,
-                    children: [
-                      _ActionCard(
-                        icon: Icons.check_circle_outline_rounded,
-                        title: 'Check Eligibility',
-                        subtitle: 'Submit for admin review',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0369A1), Color(0xFF0EA5E9)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => context.push('/citizen/eligibility'),
-                      ),
-                      _ActionCard(
-                        icon: Icons.add_card_rounded,
-                        title: 'Apply for Card',
-                        subtitle: 'New application',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFBE185D), Color(0xFFEC4899)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => context.push('/citizen/apply'),
-                      ),
-                      _ActionCard(
-                        icon: Icons.upload_file_rounded,
-                        title: 'Upload Docs',
-                        subtitle: 'Manage documents',
-                        gradient: const LinearGradient(
-                          colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        badge: invalidDocs > 0 ? invalidDocs : null,
-                        onTap: () => context.push('/citizen/documents'),
-                      ),
-                      _ActionCard(
-                        icon: Icons.payments_rounded,
-                        title: 'Fund History',
-                        subtitle: 'Distribution records',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF5B21B6), Color(0xFF8B5CF6)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () => context.go('/citizen/distributions'),
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompact = constraints.maxWidth < 360;
+                      final isWide = constraints.maxWidth >= 700;
+                      final cardWidth = isCompact
+                          ? constraints.maxWidth
+                          : isWide
+                          ? 220.0
+                          : (constraints.maxWidth - 12) / 2;
+
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          SizedBox(
+                            width: cardWidth,
+                            height: 104,
+                            child: _ActionCard(
+                              icon: Icons.check_circle_outline_rounded,
+                              title: 'Check Eligibility',
+                              subtitle: 'Submit for admin review',
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0369A1), Color(0xFF0EA5E9)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => context.push('/citizen/eligibility'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: cardWidth,
+                            height: 104,
+                            child: _ActionCard(
+                              icon: Icons.add_card_rounded,
+                              title: 'Apply for Card',
+                              subtitle: 'New application',
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFBE185D), Color(0xFFEC4899)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => context.push('/citizen/apply'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: cardWidth,
+                            height: 104,
+                            child: _ActionCard(
+                              icon: Icons.upload_file_rounded,
+                              title: 'Upload Docs',
+                              subtitle: 'Manage documents',
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppTheme.primaryGreenDark,
+                                  AppTheme.primaryGreenLight,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              badge: invalidDocs > 0 ? invalidDocs : null,
+                              onTap: () => context.push('/citizen/documents'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: cardWidth,
+                            height: 104,
+                            child: _ActionCard(
+                              icon: Icons.payments_rounded,
+                              title: 'Fund History',
+                              subtitle: 'Distribution records',
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF5B21B6), Color(0xFF8B5CF6)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onTap: () => context.go('/citizen/distributions'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 28),
 
@@ -311,17 +346,21 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     _EmptyBox(
                       icon: Icons.assignment_outlined,
                       title: 'No applications yet',
-                      subtitle: 'Check your eligibility first, then apply for a welfare card.',
+                      subtitle:
+                          'Check your eligibility first, then apply for a welfare card.',
                       actionLabel: 'Check Eligibility',
                       onAction: () => context.push('/citizen/eligibility'),
                     )
                   else
-                    ...recentApps.map((app) => _AppCard(
-                          app: app,
-                          statusColor: _statusColor(app.status),
-                          statusLabel: _statusLabel(app.status),
-                          onTap: () => context.push('/citizen/applications/${app.id}'),
-                        )),
+                    ...recentApps.map(
+                      (app) => _AppCard(
+                        app: app,
+                        statusColor: _statusColor(app.status),
+                        statusLabel: _statusLabel(app.status),
+                        onTap: () =>
+                            context.push('/citizen/applications/${app.id}'),
+                      ),
+                    ),
                   const SizedBox(height: 16),
                 ]),
               ),
@@ -457,7 +496,7 @@ class _ActionCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -465,17 +504,20 @@ class _ActionCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 20),
+                  child: Icon(icon, color: Colors.white, size: 18),
                 ),
                 if (badge != null) ...[
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -500,7 +542,7 @@ class _ActionCard extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -508,7 +550,7 @@ class _ActionCard extends StatelessWidget {
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 11,
+                    fontSize: 10.5,
                   ),
                 ),
               ],
@@ -553,7 +595,11 @@ class _AppCard extends StatelessWidget {
                 color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.assignment_rounded, color: statusColor, size: 22),
+              child: Icon(
+                Icons.assignment_rounded,
+                color: statusColor,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -633,7 +679,11 @@ class _EmptyBox extends StatelessWidget {
               color: AppTheme.primaryGreen.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 28, color: AppTheme.primaryGreen.withValues(alpha: 0.6)),
+            child: Icon(
+              icon,
+              size: 28,
+              color: AppTheme.primaryGreen.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(height: 14),
           Text(
@@ -659,7 +709,9 @@ class _EmptyBox extends StatelessWidget {
             onPressed: onAction,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: Text(actionLabel),
           ),
