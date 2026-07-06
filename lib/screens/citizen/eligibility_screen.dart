@@ -268,6 +268,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           const SizedBox(height: 12),
           DropdownButtonFormField<_EligibilityCardOption>(
             initialValue: _selectedCard,
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Card Type',
               hintText: 'Choose Farmer, Education, or Worker card',
@@ -277,7 +278,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                 .map(
                   (option) => DropdownMenuItem(
                     value: option,
-                    child: Text(option.title),
+                    child: Text(option.title, overflow: TextOverflow.ellipsis),
                   ),
                 )
                 .toList(),
@@ -558,6 +559,7 @@ class _WorkerOccupationField extends StatelessWidget {
       children: [
         DropdownButtonFormField<String>(
           initialValue: value,
+          isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Occupation',
             hintText: 'Please select your occupation',
@@ -569,7 +571,7 @@ class _WorkerOccupationField extends StatelessWidget {
                 : occupation;
             return DropdownMenuItem<String>(
               value: itemValue,
-              child: Text(occupation),
+              child: Text(occupation, overflow: TextOverflow.ellipsis),
             );
           }).toList(),
           onChanged: onChanged,
