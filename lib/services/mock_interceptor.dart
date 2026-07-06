@@ -30,7 +30,10 @@ class MockInterceptor extends Interceptor {
   }
 
   @override
-  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (!kDebugMode) {
       handler.next(options);
       return;
@@ -78,11 +81,15 @@ class MockInterceptor extends Interceptor {
       final role = (body is Map) ? body['role'] as String? : null;
 
       if (role == 'admin') {
-        if (email == 'admin@gmail.com' && password == 'admin123') {
+        if ((email == 'admin@gmail.com' || email == 'admin@onecitizen.bd') &&
+            password == 'admin123') {
           return {'access': 'mock-token', 'user': _adminProfile};
         }
       } else {
-        if (email == 'citizen@gmail.com' && password == 'citizen123') {
+        if (email != null &&
+            email.isNotEmpty &&
+            password != null &&
+            password.isNotEmpty) {
           return {'access': 'mock-token', 'user': _citizenProfile};
         }
       }
@@ -108,7 +115,8 @@ class MockInterceptor extends Interceptor {
         'id': 'elig-${DateTime.now().millisecondsSinceEpoch}',
         'status': 'pending_review',
         'submitted_at': DateTime.now().toIso8601String(),
-        'message': 'Your eligibility request has been submitted. Admin will review and notify you shortly.',
+        'message':
+            'Your eligibility request has been submitted. Admin will review and notify you shortly.',
       };
     }
     if (path == ApiConfig.citizenEligibility) {
@@ -209,11 +217,18 @@ class MockInterceptor extends Interceptor {
 
   Map<String, dynamic> _uploadDocument(dynamic body) {
     final docType = body is FormData
-        ? body.fields.firstWhere((e) => e.key == 'doc_type', orElse: () => const MapEntry('doc_type', '')).value
+        ? body.fields
+              .firstWhere(
+                (e) => e.key == 'doc_type',
+                orElse: () => const MapEntry('doc_type', ''),
+              )
+              .value
         : '';
     final index = _citizenDocuments.indexWhere((d) => d['doc_type'] == docType);
     final newDoc = {
-      'id': index >= 0 ? _citizenDocuments[index]['id'] : 'doc-${DateTime.now().millisecondsSinceEpoch}',
+      'id': index >= 0
+          ? _citizenDocuments[index]['id']
+          : 'doc-${DateTime.now().millisecondsSinceEpoch}',
       'citizen_id': 'dev-citizen',
       'doc_type': docType,
       'file_url': 'https://placehold.co/400x300.png',
@@ -271,7 +286,11 @@ class MockInterceptor extends Interceptor {
       'name': 'Farmer Card',
       'eligibility_criteria':
           'Must be a registered farmer with a valid certificate from the local ward/union authority.',
-      'required_documents': ['nid_copy', 'agricultural_certificate', 'ward_union_certificate'],
+      'required_documents': [
+        'nid_copy',
+        'agricultural_certificate',
+        'ward_union_certificate',
+      ],
     },
     {
       'id': 'ct-family',
@@ -279,13 +298,19 @@ class MockInterceptor extends Interceptor {
       'name': 'Family Card',
       'eligibility_criteria':
           'Must own land of ≤ 0.50 acres, have a monthly household income ≤ BDT 12,000, and hold a certificate from the local ward/union authority.',
-      'required_documents': ['nid_copy', 'income_certificate', 'land_ownership', 'ward_union_certificate'],
+      'required_documents': [
+        'nid_copy',
+        'income_certificate',
+        'land_ownership',
+        'ward_union_certificate',
+      ],
     },
     {
       'id': 'ct-education',
       'code': 'education',
       'name': 'Education Card',
-      'eligibility_criteria': 'Must have achieved GPA 5.00 in both SSC and HSC examinations.',
+      'eligibility_criteria':
+          'Must have achieved GPA 5.00 in both SSC and HSC examinations.',
       'required_documents': ['nid_copy', 'ssc_marksheet', 'hsc_marksheet'],
     },
   ];
@@ -357,11 +382,11 @@ class MockInterceptor extends Interceptor {
   };
 
   List<Map<String, dynamic>> get _citizenApplications => [
-        _mockApplication('app-1', 'submitted'),
-        _mockApplication('app-2', 'under_review'),
-        _mockApplication('app-3', 'approved'),
-        _mockApplication('app-4', 'rejected'),
-      ];
+    _mockApplication('app-1', 'submitted'),
+    _mockApplication('app-2', 'under_review'),
+    _mockApplication('app-3', 'approved'),
+    _mockApplication('app-4', 'rejected'),
+  ];
 
   static const _distributions = [
     {
@@ -385,7 +410,8 @@ class MockInterceptor extends Interceptor {
     },
     {
       'id': 'notif-2',
-      'message': 'Document "Ward/Union Authority Certificate" was marked invalid. Please re-upload.',
+      'message':
+          'Document "Ward/Union Authority Certificate" was marked invalid. Please re-upload.',
       'created_at': '2025-06-08T09:30:00Z',
       'is_read': false,
     },
@@ -397,21 +423,37 @@ class MockInterceptor extends Interceptor {
     },
   ];
 
-  List<Map<String, dynamic>> get _citizens => List.generate(8, (i) => {
-        'id': 'citizen-$i',
-        'email': 'citizen$i@onecitizen.bd',
-        'first_name': ['Rahim', 'Karim', 'Nasrin', 'Jahangir', 'Fatema', 'Ariful', 'Shamima', 'Rafiqul'][i],
-        'last_name': 'Uddin',
-        'nid': '12345678${90 + i}',
-        'phone': '+880170000${1000 + i}',
-        'role': 'citizen',
-        'is_active': i != 5,
-        'verified': true,
-      });
+  List<Map<String, dynamic>> get _citizens => List.generate(
+    8,
+    (i) => {
+      'id': 'citizen-$i',
+      'email': 'citizen$i@onecitizen.bd',
+      'first_name': [
+        'Rahim',
+        'Karim',
+        'Nasrin',
+        'Jahangir',
+        'Fatema',
+        'Ariful',
+        'Shamima',
+        'Rafiqul',
+      ][i],
+      'last_name': 'Uddin',
+      'nid': '12345678${90 + i}',
+      'phone': '+880170000${1000 + i}',
+      'role': 'citizen',
+      'is_active': i != 5,
+      'verified': true,
+    },
+  );
 
   static const _analytics = {
     'total_applications': 124,
-    'applications_by_card_type': {'Farmer Card': 52, 'Family Card': 41, 'Education Card': 31},
+    'applications_by_card_type': {
+      'Farmer Card': 52,
+      'Family Card': 41,
+      'Education Card': 31,
+    },
     'approved': 78,
     'rejected': 14,
     'pending_review': 32,
