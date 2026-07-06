@@ -1,4 +1,4 @@
-enum CardTypeCode { farmer, family, education }
+enum CardTypeCode { farmer, family, education, worker }
 
 CardTypeCode cardTypeCodeFromString(String? value) {
   switch (value?.toLowerCase()) {
@@ -6,6 +6,8 @@ CardTypeCode cardTypeCodeFromString(String? value) {
       return CardTypeCode.family;
     case 'education':
       return CardTypeCode.education;
+    case 'worker':
+      return CardTypeCode.worker;
     default:
       return CardTypeCode.farmer;
   }
@@ -19,6 +21,8 @@ String cardTypeCodeToString(CardTypeCode code) {
       return 'family';
     case CardTypeCode.education:
       return 'education';
+    case CardTypeCode.worker:
+      return 'worker';
   }
 }
 
@@ -43,7 +47,8 @@ class CardType {
       code: cardTypeCodeFromString(json['code'] as String?),
       name: json['name'] as String? ?? '',
       eligibilityCriteria: json['eligibility_criteria'] as String? ?? '',
-      requiredDocuments: (json['required_documents'] as List<dynamic>?)
+      requiredDocuments:
+          (json['required_documents'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -79,7 +84,8 @@ class EligibilityResult {
 
   factory EligibilityResult.fromJson(Map<String, dynamic> json) {
     return EligibilityResult(
-      results: (json['results'] as List<dynamic>?)
+      results:
+          (json['results'] as List<dynamic>?)
               ?.map((e) => CardEligibility.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

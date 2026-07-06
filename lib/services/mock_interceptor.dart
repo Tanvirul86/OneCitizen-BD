@@ -131,7 +131,12 @@ class MockInterceptor extends Interceptor {
 
     // ── Citizen applications ─────────────────────────────────────────────
     if (path == ApiConfig.citizenApplications) {
-      if (method == 'POST') return _mockApplication('app-new', 'submitted');
+      if (method == 'POST') {
+        final cardTypeId = body is Map
+            ? body['card_type_id']?.toString()
+            : null;
+        return _mockApplication('app-new', 'submitted', cardTypeId: cardTypeId);
+      }
       return _citizenApplications;
     }
     if (RegExp(r'^/citizen/applications/[^/]+$').hasMatch(path)) {
@@ -313,6 +318,19 @@ class MockInterceptor extends Interceptor {
           'Must have achieved GPA 5.00 in both SSC and HSC examinations.',
       'required_documents': ['nid_copy', 'ssc_marksheet', 'hsc_marksheet'],
     },
+    {
+      'id': 'ct-worker',
+      'code': 'worker',
+      'name': 'Worker Card',
+      'eligibility_criteria':
+          'Must be a low-income registered worker with employment or labor registration proof.',
+      'required_documents': [
+        'nid_copy',
+        'worker_certificate',
+        'labor_registration',
+        'income_certificate',
+      ],
+    },
   ];
 
   static final _eligibilityResult = {
@@ -331,6 +349,11 @@ class MockInterceptor extends Interceptor {
         'card_type': _cardTypes[2],
         'eligible': true,
         'reason': 'GPA 5.00 achieved in both SSC and HSC.',
+      },
+      {
+        'card_type': _cardTypes[3],
+        'eligible': true,
+        'reason': 'Worker certificate and labor registration are available.',
       },
     ],
   };
@@ -368,24 +391,41 @@ class MockInterceptor extends Interceptor {
     },
   ];
 
-  Map<String, dynamic> _mockApplication(String id, String status) => {
-    'id': id,
-    'card_type_id': 'ct-farmer',
-    'card_type_name': 'Farmer Card',
-    'applicant_name': 'Tanvirul Islam',
-    'applicant_nid': '1234567890',
-    'applicant_email': 'citizen@onecitizen.bd',
-    'status': status,
-    'submitted_at': '2025-06-01T08:00:00Z',
-    'updated_at': '2025-06-10T12:00:00Z',
-    'admin_remark': status == 'rejected' ? 'Documents were incomplete.' : null,
-  };
+  Map<String, dynamic> _mockApplication(
+    String id,
+    String status, {
+    String? cardTypeId,
+  }) {
+    final cardType = _cardTypeById(cardTypeId) ?? _cardTypes[0];
+    return {
+      'id': id,
+      'card_type_id': cardType['id'],
+      'card_type_name': cardType['name'],
+      'applicant_name': 'Tanvirul Islam',
+      'applicant_nid': '1234567890',
+      'applicant_email': 'citizen@onecitizen.bd',
+      'status': status,
+      'submitted_at': '2025-06-01T08:00:00Z',
+      'updated_at': '2025-06-10T12:00:00Z',
+      'admin_remark': status == 'rejected'
+          ? 'Documents were incomplete.'
+          : null,
+    };
+  }
+
+  Map<String, dynamic>? _cardTypeById(String? cardTypeId) {
+    if (cardTypeId == null || cardTypeId.isEmpty) return null;
+    for (final cardType in _cardTypes) {
+      if (cardType['id'] == cardTypeId) return cardType;
+    }
+    return null;
+  }
 
   List<Map<String, dynamic>> get _citizenApplications => [
     _mockApplication('app-1', 'submitted'),
-    _mockApplication('app-2', 'under_review'),
-    _mockApplication('app-3', 'approved'),
-    _mockApplication('app-4', 'rejected'),
+    _mockApplication('app-2', 'under_review', cardTypeId: 'ct-family'),
+    _mockApplication('app-3', 'approved', cardTypeId: 'ct-education'),
+    _mockApplication('app-4', 'rejected', cardTypeId: 'ct-worker'),
   ];
 
   static const _distributions = [
