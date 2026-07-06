@@ -85,7 +85,10 @@ class AppRouter {
           builder: (context, state, child) => AdminShell(child: child),
           routes: [
             GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardScreen()),
-            GoRoute(path: '/admin/applications', builder: (context, state) => const NewApplicationsScreen()),
+            GoRoute(
+              path: '/admin/applications',
+              builder: (context, state) => NewApplicationsScreen(initialCardTypeName: state.extra as String?),
+            ),
             GoRoute(path: '/admin/documents', builder: (context, state) => const DocumentValidationScreen()),
             GoRoute(path: '/admin/approved-cards', builder: (context, state) => const ApprovedCardsScreen()),
             GoRoute(path: '/admin/distributions/new', builder: (context, state) => const FundDistributionScreen()),
