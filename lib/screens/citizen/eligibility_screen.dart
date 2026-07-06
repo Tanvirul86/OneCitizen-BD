@@ -32,6 +32,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
   bool _hasLaborRegistration = false;
 
   bool get _isFarmer => _selectedCard == _EligibilityCardOption.farmer;
+  bool get _isFamily => _selectedCard == _EligibilityCardOption.family;
   bool get _isEducation => _selectedCard == _EligibilityCardOption.education;
   bool get _isWorker => _selectedCard == _EligibilityCardOption.worker;
 
@@ -69,16 +70,16 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           : _isWorker
           ? _workerOccupationValue
           : null,
-      'income': _isFarmer || _isWorker
+      'income': _isFarmer || _isFamily || _isWorker
           ? double.tryParse(_incomeController.text) ?? 0
           : null,
-      'land_acres': _isFarmer
+      'land_acres': _isFarmer || _isFamily
           ? double.tryParse(_landController.text) ?? 0
           : null,
       'ssc_gpa': _isEducation ? double.tryParse(_sscController.text) : null,
       'hsc_gpa': _isEducation ? double.tryParse(_hscController.text) : null,
       'has_farmer_cert': _isFarmer && _hasFarmerCert,
-      'has_ward_cert': _isFarmer && _hasWardCert,
+      'has_ward_cert': (_isFarmer || _isFamily) && _hasWardCert,
       'has_worker_certificate': _isWorker && _hasWorkerCertificate,
       'has_labor_registration': _isWorker && _hasLaborRegistration,
     };
@@ -270,7 +271,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             initialValue: _selectedCard,
             decoration: const InputDecoration(
               labelText: 'Card Type',
-              hintText: 'Choose Farmer, Education, or Worker card',
+              hintText: 'Choose Farmer, Family, Education, or Worker card',
               prefixIcon: Icon(Icons.credit_card_rounded),
             ),
             items: _EligibilityCardOption.values
@@ -373,6 +374,43 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             _CheckCard(
               title: 'I have a Ward/Union Certificate',
               subtitle: 'Confirming land holding and residence',
+              value: _hasWardCert,
+              onChanged: (v) => setState(() => _hasWardCert = v ?? false),
+            ),
+          ],
+        );
+      case _EligibilityCardOption.family:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionHeader(
+              title: 'Family Card',
+              icon: Icons.family_restroom_rounded,
+              subtitle:
+                  'Must be <= 0.50 acres land, monthly income <= BDT 12,000',
+            ),
+            const SizedBox(height: 12),
+            _IncomeField(controller: _incomeController),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _landController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Land Owned (Acres)',
+                hintText: 'e.g. 0.50 (enter 0 if none)',
+                prefixIcon: Icon(Icons.terrain_outlined),
+                suffixText: 'acres',
+              ),
+              validator: _requiredNumberValidator(
+                'Land information is required',
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CheckCard(
+              title: 'I have a Ward/Union Certificate',
+              subtitle: 'Confirming household income, land, and residence',
               value: _hasWardCert,
               onChanged: (v) => setState(() => _hasWardCert = v ?? false),
             ),
@@ -510,6 +548,7 @@ const _workerOccupationOptions = [
 
 enum _EligibilityCardOption {
   farmer('farmer', 'Farmer Card'),
+  family('family', 'Family Card'),
   education('education', 'Education Card'),
   worker('worker', 'Worker Card');
 
