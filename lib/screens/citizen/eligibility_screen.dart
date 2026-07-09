@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +21,8 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
   final _landController = TextEditingController();
   final _sscController = TextEditingController();
   final _hscController = TextEditingController();
-  final _occupationController = TextEditingController();
 
+  Occupation? _occupation;
   bool _hasFarmerCert = false;
   bool _hasWardCert = false;
 
@@ -34,8 +35,23 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
       _landController.text = user.landAcres?.toString() ?? '';
       _sscController.text = user.sscGpa?.toString() ?? '';
       _hscController.text = user.hscGpa?.toString() ?? '';
-      _occupationController.text = user.occupation ?? '';
+      _occupation = occupationFromString(user.occupation);
     }
+  }
+
+  void _onOccupationChanged(Occupation? value) {
+    setState(() {
+      _occupation = value;
+      if (value != Occupation.farmer) {
+        _landController.clear();
+        _hasFarmerCert = false;
+        _hasWardCert = false;
+      }
+      if (value != Occupation.student) {
+        _sscController.clear();
+        _hscController.clear();
+      }
+    });
   }
 
   @override
@@ -44,7 +60,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     _landController.dispose();
     _sscController.dispose();
     _hscController.dispose();
-    _occupationController.dispose();
     super.dispose();
   }
 
@@ -52,7 +67,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final data = {
-      'occupation': _occupationController.text.trim(),
+      'occupation': _occupation != null ? occupationToString(_occupation!) : '',
       'income': double.tryParse(_incomeController.text) ?? 0,
       'land_acres': double.tryParse(_landController.text) ?? 0,
       'ssc_gpa': double.tryParse(_sscController.text),
@@ -216,14 +231,17 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           // Section: General Info
           _SectionHeader(title: 'General Information', icon: Icons.person_outline),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: _occupationController,
+          DropdownButtonFormField<Occupation>(
+            initialValue: _occupation,
             decoration: const InputDecoration(
               labelText: 'Occupation',
-              hintText: 'e.g. Farmer, Student, Employee',
               prefixIcon: Icon(Icons.work_outline),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Occupation is required' : null,
+            items: Occupation.values
+                .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))
+                .toList(),
+            onChanged: _onOccupationChanged,
+            validator: (v) => v == null ? 'Occupation is required' : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -241,87 +259,92 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               return null;
             },
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _landController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Land Owned (Acres)',
-              hintText: 'e.g. 0.50 (enter 0 if none)',
-              prefixIcon: Icon(Icons.terrain_outlined),
-              suffixText: 'acres',
-            ),
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Land information is required';
-              if (double.tryParse(v) == null) return 'Enter a valid number';
-              return null;
-            },
-          ),
           const SizedBox(height: 24),
 
-          // Section: Farmer Card
-          _SectionHeader(
-            title: 'Farmer Card',
-            icon: Icons.agriculture_rounded,
-            subtitle: 'Must be ≤ 0.50 acres land, monthly income ≤ BDT 12,000',
-          ),
-          const SizedBox(height: 12),
-          _CheckCard(
-            title: 'I have an Agricultural Farmer Certificate',
-            subtitle: 'Issued by local union/ward parishad',
-            value: _hasFarmerCert,
-            onChanged: (v) => setState(() => _hasFarmerCert = v ?? false),
-          ),
-          const SizedBox(height: 8),
-          _CheckCard(
-            title: 'I have a Ward/Union Certificate',
-            subtitle: 'Confirming land holding and residence',
-            value: _hasWardCert,
-            onChanged: (v) => setState(() => _hasWardCert = v ?? false),
-          ),
-          const SizedBox(height: 24),
+          if (_occupation == Occupation.farmer) ...[
+            // Section: Farmer Card
+            _SectionHeader(
+              title: 'Farmer Card',
+              icon: Icons.agriculture_rounded,
+              subtitle: 'Must be ≤ 0.50 acres land, monthly income ≤ BDT 12,000',
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _landController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Land Owned (Acres)',
+                hintText: 'e.g. 0.50 (enter 0 if none)',
+                prefixIcon: Icon(Icons.terrain_outlined),
+                suffixText: 'acres',
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Land information is required';
+                if (double.tryParse(v) == null) return 'Enter a valid number';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _CheckCard(
+              title: 'I have an Agricultural Farmer Certificate',
+              subtitle: 'Issued by local union/ward parishad',
+              value: _hasFarmerCert,
+              onChanged: (v) => setState(() => _hasFarmerCert = v ?? false),
+            ),
+            const SizedBox(height: 8),
+            _CheckCard(
+              title: 'I have a Ward/Union Certificate',
+              subtitle: 'Confirming land holding and residence',
+              value: _hasWardCert,
+              onChanged: (v) => setState(() => _hasWardCert = v ?? false),
+            ),
+            const SizedBox(height: 24),
+          ],
 
-          // Section: Education Card
-          _SectionHeader(
-            title: 'Education Card',
-            icon: Icons.school_rounded,
-            subtitle: 'Requires GPA 5.00 in both SSC and HSC',
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _sscController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'SSC GPA (leave blank if not applicable)',
-              hintText: 'e.g. 5.00',
-              prefixIcon: Icon(Icons.school_outlined),
+          if (_occupation == Occupation.student) ...[
+            // Section: Education Card
+            _SectionHeader(
+              title: 'Education Card',
+              icon: Icons.school_rounded,
+              subtitle: 'Requires GPA 5.00 in both SSC and HSC',
             ),
-            validator: (v) {
-              if (v != null && v.isNotEmpty) {
-                final gpa = double.tryParse(v);
-                if (gpa == null || gpa < 0 || gpa > 5) return 'Enter GPA between 0.00 and 5.00';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _hscController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'HSC GPA (leave blank if not applicable)',
-              hintText: 'e.g. 5.00',
-              prefixIcon: Icon(Icons.school_rounded),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _sscController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'SSC GPA (leave blank if not applicable)',
+                hintText: 'e.g. 5.00',
+                prefixIcon: Icon(Icons.school_outlined),
+              ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty) {
+                  final gpa = double.tryParse(v);
+                  if (gpa == null || gpa < 0 || gpa > 5) return 'Enter GPA between 0.00 and 5.00';
+                }
+                return null;
+              },
             ),
-            validator: (v) {
-              if (v != null && v.isNotEmpty) {
-                final gpa = double.tryParse(v);
-                if (gpa == null || gpa < 0 || gpa > 5) return 'Enter GPA between 0.00 and 5.00';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 36),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _hscController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'HSC GPA (leave blank if not applicable)',
+                hintText: 'e.g. 5.00',
+                prefixIcon: Icon(Icons.school_rounded),
+              ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty) {
+                  final gpa = double.tryParse(v);
+                  if (gpa == null || gpa < 0 || gpa > 5) return 'Enter GPA between 0.00 and 5.00';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 24),
 
           // Submit button
           ElevatedButton.icon(
