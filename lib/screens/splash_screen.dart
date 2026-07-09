@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
-import 'package:onecitizen/config/routes.dart';
-import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
-import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -33,14 +30,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _ctrl.forward();
 
+    // Always land on the public landing page first — the user picks
+    // Sign In / Create Account from there rather than being auto-dropped
+    // into their dashboard just because a session is still valid.
     Future.delayed(const Duration(milliseconds: 2400), () {
       if (!mounted) return;
-      final auth = context.read<AuthProvider>();
-      if (auth.status == AuthStatus.authenticated && auth.user != null) {
-        context.go(AppRouter.homeForRole(auth.user!.role));
-      } else {
-        context.go('/home');
-      }
+      context.go('/home');
     });
   }
 
