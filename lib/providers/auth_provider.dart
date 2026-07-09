@@ -45,7 +45,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      user = await _authService.register(
+      await _authService.register(
         nid: nid,
         firstName: firstName,
         lastName: lastName,
@@ -53,7 +53,8 @@ class AuthProvider extends ChangeNotifier {
         phone: phone,
         password: password,
       );
-      status = AuthStatus.authenticated;
+      // Account created but not signed in — the user must log in manually.
+      status = AuthStatus.unauthenticated;
       notifyListeners();
       return true;
     } catch (e) {

@@ -146,9 +146,10 @@ class MockInterceptor extends Interceptor {
       };
       _registeredUsers[key] = {...profile, 'password': password};
       _persistUsers();
-      _currentUserEmail = key;
-      _persistSession();
-      return {'access': 'mock-token', 'user': profile};
+      // Deliberately not setting _currentUserEmail here — registering
+      // creates the account but does not sign the user in; they must
+      // log in with their new credentials afterward.
+      return {'success': true};
     }
     if (path == '/auth/login' && method == 'POST') {
       final email = (body is Map) ? (body['email'] as String?)?.trim() : null;

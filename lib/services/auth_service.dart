@@ -13,7 +13,9 @@ class AuthService {
   final ApiClient _apiClient;
   final StorageService _storageService;
 
-  Future<User> register({
+  /// Creates the account only — does not sign the user in. They must call
+  /// [login] afterward with the credentials they just registered.
+  Future<void> register({
     required String nid,
     required String firstName,
     required String lastName,
@@ -21,7 +23,7 @@ class AuthService {
     required String phone,
     required String password,
   }) async {
-    final response = await _apiClient.dio.post(
+    await _apiClient.dio.post(
       ApiConfig.register,
       data: {
         'nid': nid,
@@ -32,9 +34,6 @@ class AuthService {
         'password': password,
       },
     );
-    final data = response.data as Map<String, dynamic>;
-    await _storageService.saveToken(data['access'] as String);
-    return User.fromJson(data['user'] as Map<String, dynamic>);
   }
 
   Future<User> login({
