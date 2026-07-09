@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
@@ -20,7 +21,7 @@ class AboutScreen extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    const AppLogo(size: 64),
+                    AppLogo(size: 64, onTap: () => context.go('/home')),
                     const SizedBox(height: 12),
                     Text(
                       'OneCitizen BD',
