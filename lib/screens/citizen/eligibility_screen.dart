@@ -16,8 +16,6 @@ class EligibilityScreen extends StatefulWidget {
 class _EligibilityScreenState extends State<EligibilityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  _EligibilityCardOption? _selectedCard;
-
   final _incomeController = TextEditingController();
   final _landController = TextEditingController();
   final _sscController = TextEditingController();
@@ -26,13 +24,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
   Occupation? _occupation;
   bool _hasFarmerCert = false;
   bool _hasWardCert = false;
-  bool _hasWorkerCertificate = false;
-  bool _hasLaborRegistration = false;
-
-  bool get _isFarmer => _selectedCard == _EligibilityCardOption.farmer;
-  bool get _isFamily => _selectedCard == _EligibilityCardOption.family;
-  bool get _isEducation => _selectedCard == _EligibilityCardOption.education;
-  bool get _isWorker => _selectedCard == _EligibilityCardOption.worker;
 
   @override
   void initState() {
