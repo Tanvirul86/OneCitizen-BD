@@ -52,7 +52,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      context.go('/citizen/profile-completion');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created! Please sign in to continue.')),
+      );
+      context.go('/login');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
