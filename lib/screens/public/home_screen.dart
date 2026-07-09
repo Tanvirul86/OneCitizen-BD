@@ -47,7 +47,7 @@ class PublicHomeScreen extends StatelessWidget {
             scrolledUnderElevation: 0,
             title: Row(
               children: [
-                const AppLogo(size: 30, onDark: true),
+                AppLogo(size: 30, onDark: true, onTap: () => context.go('/home')),
                 const SizedBox(width: 10),
                 Text(
                   'OneCitizen BD',
@@ -363,7 +363,7 @@ class PublicHomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      const AppLogo(size: 44, onDark: true),
+                      AppLogo(size: 44, onDark: true, onTap: () => context.go('/home')),
                       const SizedBox(height: 12),
                       Text(
                         'OneCitizen BD',

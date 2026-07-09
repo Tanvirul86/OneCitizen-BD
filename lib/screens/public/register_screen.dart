@@ -96,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                         ),
                         const Spacer(),
-                        const AppLogo(size: 40, onDark: true),
+                        AppLogo(size: 40, onDark: true, onTap: () => context.go('/home')),
                       ],
                     ),
                     const SizedBox(height: 12),
