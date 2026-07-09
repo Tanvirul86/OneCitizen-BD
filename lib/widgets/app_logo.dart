@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 /// Renders the OneCitizen BD mark — agriculture, family and education
 /// pillars framed in a hexagon.
@@ -9,25 +12,32 @@ class AppLogo extends StatelessWidget {
     this.size = 80,
     this.showLabel = false,
     this.onDark = false,
-    this.onTap,
+    this.linkToLanding = false,
   });
 
   final double size;
   final bool showLabel;
   final bool onDark;
 
-  /// If set, the logo becomes tappable (e.g. to navigate to the landing page).
-  final VoidCallback? onTap;
+  /// If true, tapping the logo signs the user out (if a session is active)
+  /// and returns to the public landing page, so getting back into the
+  /// citizen/admin area requires logging in again.
+  final bool linkToLanding;
 
   @override
   Widget build(BuildContext context) {
     final logo = _buildLogo();
-    if (onTap == null) return logo;
+    if (!linkToLanding) return logo;
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => _goToLanding(context),
       behavior: HitTestBehavior.opaque,
       child: logo,
     );
+  }
+
+  Future<void> _goToLanding(BuildContext context) async {
+    await context.read<AuthProvider>().logout();
+    if (context.mounted) context.go('/home');
   }
 
   Widget _buildLogo() {
