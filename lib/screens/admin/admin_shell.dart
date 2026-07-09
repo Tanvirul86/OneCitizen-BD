@@ -40,7 +40,7 @@ class AdminShell extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            AppLogo(size: 28, onDark: true, onTap: () => context.go('/home')),
+            const AppLogo(size: 28, onDark: true, linkToLanding: true),
             const SizedBox(width: 8),
             Text(currentTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ],
@@ -67,7 +67,7 @@ class AdminShell extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppLogo(size: 52, onDark: true, onTap: () => context.go('/home')),
+                  const AppLogo(size: 52, onDark: true, linkToLanding: true),
                   const SizedBox(height: 16),
                   const Text(
                     'OneCitizen BD',
