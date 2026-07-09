@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -15,12 +16,12 @@ class ProfileCompletionScreen extends StatefulWidget {
 class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
-  final _occupationController = TextEditingController();
   final _incomeController = TextEditingController();
   final _landController = TextEditingController();
   final _sscController = TextEditingController();
   final _hscController = TextEditingController();
   String? _gender;
+  Occupation? _occupation;
   DateTime? _dateOfBirth;
   bool _isLoading = false;
 
@@ -30,7 +31,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     final user = context.read<AuthProvider>().user;
     if (user != null) {
       _addressController.text = user.address ?? '';
-      _occupationController.text = user.occupation ?? '';
+      _occupation = occupationFromString(user.occupation);
       _incomeController.text = user.income?.toString() ?? '';
       _landController.text = user.landAcres?.toString() ?? '';
       _sscController.text = user.sscGpa?.toString() ?? '';
@@ -40,10 +41,20 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     }
   }
 
+  void _onOccupationChanged(Occupation? value) {
+    setState(() {
+      _occupation = value;
+      if (value != Occupation.farmer) _landController.clear();
+      if (value != Occupation.student) {
+        _sscController.clear();
+        _hscController.clear();
+      }
+    });
+  }
+
   @override
   void dispose() {
     _addressController.dispose();
-    _occupationController.dispose();
     _incomeController.dispose();
     _landController.dispose();
     _sscController.dispose();
@@ -76,7 +87,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       'date_of_birth': DateFormat('yyyy-MM-dd').format(_dateOfBirth!),
       'gender': _gender,
       'address': _addressController.text.trim(),
-      'occupation': _occupationController.text.trim(),
+      'occupation': occupationToString(_occupation!),
       if (_incomeController.text.isNotEmpty) 'income': double.tryParse(_incomeController.text),
       if (_landController.text.isNotEmpty) 'land_acres': double.tryParse(_landController.text),
       if (_sscController.text.isNotEmpty) 'ssc_gpa': double.tryParse(_sscController.text),
@@ -157,10 +168,14 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                 validator: (v) => (v == null || v.isEmpty) ? 'Address is required' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _occupationController,
+              DropdownButtonFormField<Occupation>(
+                initialValue: _occupation,
                 decoration: const InputDecoration(labelText: 'Occupation', prefixIcon: Icon(Icons.work)),
-                validator: (v) => (v == null || v.isEmpty) ? 'Occupation is required' : null,
+                items: Occupation.values
+                    .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))
+                    .toList(),
+                onChanged: _onOccupationChanged,
+                validator: (v) => v == null ? 'Occupation is required' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -168,24 +183,28 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Monthly Household Income (BDT)', prefixIcon: Icon(Icons.money)),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _landController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Land Owned (Acres)', prefixIcon: Icon(Icons.terrain)),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _sscController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'SSC GPA', prefixIcon: Icon(Icons.school)),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _hscController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'HSC GPA', prefixIcon: Icon(Icons.school_outlined)),
-              ),
+              if (_occupation == Occupation.farmer) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _landController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Land Owned (Acres)', prefixIcon: Icon(Icons.terrain)),
+                ),
+              ],
+              if (_occupation == Occupation.student) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _sscController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'SSC GPA', prefixIcon: Icon(Icons.school)),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _hscController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'HSC GPA', prefixIcon: Icon(Icons.school_outlined)),
+                ),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 height: 52,
