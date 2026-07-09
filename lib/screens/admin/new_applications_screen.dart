@@ -10,7 +10,9 @@ import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
 class NewApplicationsScreen extends StatefulWidget {
-  const NewApplicationsScreen({super.key});
+  const NewApplicationsScreen({super.key, this.initialCardTypeName});
+
+  final String? initialCardTypeName;
 
   @override
   State<NewApplicationsScreen> createState() => _NewApplicationsScreenState();
@@ -18,11 +20,13 @@ class NewApplicationsScreen extends StatefulWidget {
 
 class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
   ApplicationStatus? _filter;
+  String? _cardTypeFilter;
   bool _isNavigating = false;
 
   @override
   void initState() {
     super.initState();
+    _cardTypeFilter = widget.initialCardTypeName;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminProvider>().loadApplications();
     });
@@ -38,14 +42,34 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
-    final filtered = _filter == null
-        ? provider.applications
-        : provider.applications.where((a) => a.status == _filter).toList();
+    final filtered = provider.applications
+        .where((a) => _filter == null || a.status == _filter)
+        .where((a) => _cardTypeFilter == null || a.cardTypeName == _cardTypeFilter)
+        .toList();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
       body: Column(
         children: [
+          if (_cardTypeFilter != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Showing "$_cardTypeFilter" applications',
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => setState(() => _cardTypeFilter = null),
+                    icon: const Icon(Icons.close_rounded, size: 16),
+                    label: const Text('Clear'),
+                  ),
+                ],
+              ),
+            ),
           SizedBox(
             height: 52,
             child: ListView(

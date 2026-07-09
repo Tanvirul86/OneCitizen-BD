@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:provider/provider.dart';
@@ -56,7 +57,11 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                   Card(
                     child: Column(
                       children: byCardType.entries
-                          .map((e) => ListTile(title: Text(e.key.toString()), trailing: Text('${e.value}', style: const TextStyle(fontWeight: FontWeight.bold))))
+                          .map((e) => ListTile(
+                                title: Text(e.key.toString()),
+                                trailing: Text('${e.value}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                onTap: () => context.push('/admin/applications', extra: e.key.toString()),
+                              ))
                           .toList(),
                     ),
                   ),
