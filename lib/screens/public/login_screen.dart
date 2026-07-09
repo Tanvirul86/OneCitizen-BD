@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const AppLogo(size: 56, onDark: true),
+                          AppLogo(size: 56, onDark: true, onTap: () => context.go('/home')),
                           const SizedBox(height: 20),
                           Text(
                             'Welcome back',

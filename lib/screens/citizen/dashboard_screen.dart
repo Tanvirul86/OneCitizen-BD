@@ -141,7 +141,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
               ),
               title: Row(
                 children: [
-                  const AppLogo(size: 26, onDark: true),
+                  AppLogo(size: 26, onDark: true, onTap: () => context.go('/home')),
                   const SizedBox(width: 8),
                   Text(
                     'OneCitizen BD',
