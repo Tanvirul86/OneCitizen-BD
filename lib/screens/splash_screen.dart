@@ -81,7 +81,12 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const AppLogo(size: 110, onDark: true, showLabel: false),
+                    AppLogo(
+                      size: 110,
+                      onDark: true,
+                      showLabel: false,
+                      onTap: () => context.go('/home'),
+                    ),
                     const SizedBox(height: 28),
                     Text(
                       'OneCitizen BD',

@@ -9,14 +9,28 @@ class AppLogo extends StatelessWidget {
     this.size = 80,
     this.showLabel = false,
     this.onDark = false,
+    this.onTap,
   });
 
   final double size;
   final bool showLabel;
   final bool onDark;
 
+  /// If set, the logo becomes tappable (e.g. to navigate to the landing page).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
+    final logo = _buildLogo();
+    if (onTap == null) return logo;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: logo,
+    );
+  }
+
+  Widget _buildLogo() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
