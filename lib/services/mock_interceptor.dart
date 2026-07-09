@@ -10,23 +10,60 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// persisted to local storage so it survives app restarts during testing.
 class MockInterceptor extends Interceptor {
   static const _documentsPrefsKey = 'mock_citizen_documents';
+  static const _usersPrefsKey = 'mock_registered_users';
+  static const _sessionPrefsKey = 'mock_current_user_email';
   bool _loaded = false;
+
+  /// Accounts created via `/auth/register`, keyed by lowercased email.
+  /// Each entry is a citizen profile map plus a `password` field.
+  final Map<String, Map<String, dynamic>> _registeredUsers = {};
+
+  /// Email of whichever mock account is currently "signed in", so
+  /// GET/PATCH citizen-profile can operate on the right identity instead
+  /// of always returning the static seed profile.
+  String? _currentUserEmail;
 
   Future<void> _ensureLoaded() async {
     if (_loaded) return;
     _loaded = true;
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_documentsPrefsKey);
-    if (raw == null) return;
-    final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-    _citizenDocuments
-      ..clear()
-      ..addAll(list);
+
+    final rawDocs = prefs.getString(_documentsPrefsKey);
+    if (rawDocs != null) {
+      final list = (jsonDecode(rawDocs) as List).cast<Map<String, dynamic>>();
+      _citizenDocuments
+        ..clear()
+        ..addAll(list);
+    }
+
+    final rawUsers = prefs.getString(_usersPrefsKey);
+    if (rawUsers != null) {
+      final map = jsonDecode(rawUsers) as Map<String, dynamic>;
+      _registeredUsers
+        ..clear()
+        ..addAll(map.map((k, v) => MapEntry(k, (v as Map).cast<String, dynamic>())));
+    }
+
+    _currentUserEmail = prefs.getString(_sessionPrefsKey);
   }
 
   Future<void> _persistDocuments() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_documentsPrefsKey, jsonEncode(_citizenDocuments));
+  }
+
+  Future<void> _persistUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_usersPrefsKey, jsonEncode(_registeredUsers));
+  }
+
+  Future<void> _persistSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_currentUserEmail == null) {
+      await prefs.remove(_sessionPrefsKey);
+    } else {
+      await prefs.setString(_sessionPrefsKey, _currentUserEmail!);
+    }
   }
 
   @override
@@ -73,10 +110,48 @@ class MockInterceptor extends Interceptor {
   dynamic _mockResponse(String method, String path, dynamic body) {
     // ── Auth ──────────────────────────────────────────────────────────────
     if (path == '/auth/register' && method == 'POST') {
-      return {'access': 'mock-token', 'user': _citizenProfile};
+      final data = (body is Map) ? body : const <String, dynamic>{};
+      final email = (data['email'] as String?)?.trim() ?? '';
+      final password = data['password'] as String? ?? '';
+      final key = email.toLowerCase();
+      final seedEmail = (_citizenProfile['email'] as String).toLowerCase();
+
+      if (email.isEmpty || password.isEmpty) {
+        return _MockError(400, {'detail': 'Email and password are required.'});
+      }
+      if (key == seedEmail || _registeredUsers.containsKey(key)) {
+        return _MockError(400, {'detail': 'An account with this email already exists.'});
+      }
+
+      final profile = <String, dynamic>{
+        'id': 'citizen-${DateTime.now().millisecondsSinceEpoch}',
+        'email': email,
+        'username': null,
+        'nid': data['nid'],
+        'first_name': data['first_name'],
+        'last_name': data['last_name'],
+        'phone': data['phone'],
+        'date_of_birth': null,
+        'gender': null,
+        'address': null,
+        'occupation': null,
+        'income': null,
+        'land_acres': null,
+        'ssc_gpa': null,
+        'hsc_gpa': null,
+        'role': 'citizen',
+        'verified': false,
+        'is_active': true,
+        'profile_picture': null,
+      };
+      _registeredUsers[key] = {...profile, 'password': password};
+      _persistUsers();
+      _currentUserEmail = key;
+      _persistSession();
+      return {'access': 'mock-token', 'user': profile};
     }
     if (path == '/auth/login' && method == 'POST') {
-      final email = (body is Map) ? body['email'] as String? : null;
+      final email = (body is Map) ? (body['email'] as String?)?.trim() : null;
       final password = (body is Map) ? body['password'] as String? : null;
       final role = (body is Map) ? body['role'] as String? : null;
 
@@ -85,22 +160,47 @@ class MockInterceptor extends Interceptor {
             password == 'admin123') {
           return {'access': 'mock-token', 'user': _adminProfile};
         }
-      } else {
-        if (email != null &&
-            email.isNotEmpty &&
-            password != null &&
-            password.isNotEmpty) {
-          return {'access': 'mock-token', 'user': _citizenProfile};
-        }
+        return _MockError(401, {'detail': 'Invalid email or password.'});
+      }
+
+      if (email == null || email.isEmpty || password == null || password.isEmpty) {
+        return _MockError(401, {'detail': 'Invalid email or password.'});
+      }
+      final key = email.toLowerCase();
+      final seedEmail = (_citizenProfile['email'] as String).toLowerCase();
+
+      if (key == seedEmail) {
+        _currentUserEmail = key;
+        _persistSession();
+        return {'access': 'mock-token', 'user': _citizenProfile};
+      }
+
+      final stored = _registeredUsers[key];
+      if (stored != null && stored['password'] == password) {
+        _currentUserEmail = key;
+        _persistSession();
+        final profile = Map<String, dynamic>.from(stored)..remove('password');
+        return {'access': 'mock-token', 'user': profile};
       }
       return _MockError(401, {'detail': 'Invalid email or password.'});
     }
     if (path == '/auth/logout') {
+      _currentUserEmail = null;
+      _persistSession();
       return {'success': true};
     }
 
     // ── Citizen profile ──────────────────────────────────────────────────
     if (path == ApiConfig.citizenProfile) {
+      final key = _currentUserEmail;
+      if (key != null && _registeredUsers.containsKey(key)) {
+        if (method == 'PATCH' && body is Map) {
+          _registeredUsers[key] = {..._registeredUsers[key]!, ...body};
+          _persistUsers();
+        }
+        final profile = Map<String, dynamic>.from(_registeredUsers[key]!)..remove('password');
+        return profile;
+      }
       return _citizenProfile;
     }
 
