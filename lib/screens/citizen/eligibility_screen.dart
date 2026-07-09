@@ -16,7 +16,8 @@ class EligibilityScreen extends StatefulWidget {
 class _EligibilityScreenState extends State<EligibilityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers pre-populated from user profile
+  _EligibilityCardOption? _selectedCard;
+
   final _incomeController = TextEditingController();
   final _landController = TextEditingController();
   final _sscController = TextEditingController();
@@ -25,6 +26,13 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
   Occupation? _occupation;
   bool _hasFarmerCert = false;
   bool _hasWardCert = false;
+  bool _hasWorkerCertificate = false;
+  bool _hasLaborRegistration = false;
+
+  bool get _isFarmer => _selectedCard == _EligibilityCardOption.farmer;
+  bool get _isFamily => _selectedCard == _EligibilityCardOption.family;
+  bool get _isEducation => _selectedCard == _EligibilityCardOption.education;
+  bool get _isWorker => _selectedCard == _EligibilityCardOption.worker;
 
   @override
   void initState() {
@@ -83,7 +91,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(appProvider.eligibilitySubmitError ?? 'Submission failed. Please try again.'),
+          content: Text(
+            appProvider.eligibilitySubmitError ??
+                'Submission failed. Please try again.',
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -99,7 +110,9 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
       appBar: AppBar(title: const Text('Check Eligibility')),
-      body: submitted ? _buildPendingView(appProvider) : _buildForm(appProvider),
+      body: submitted
+          ? _buildPendingView(appProvider)
+          : _buildForm(appProvider),
     );
   }
 
@@ -111,23 +124,23 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     final color = isApproved
         ? Colors.green
         : isPending
-            ? Colors.orange
-            : Colors.red;
+        ? Colors.orange
+        : Colors.red;
     final icon = isApproved
         ? Icons.check_circle_rounded
         : isPending
-            ? Icons.hourglass_top_rounded
-            : Icons.cancel_rounded;
+        ? Icons.hourglass_top_rounded
+        : Icons.cancel_rounded;
     final title = isApproved
         ? 'Eligibility Approved'
         : isPending
-            ? 'Request Submitted'
-            : 'Request Rejected';
+        ? 'Request Submitted'
+        : 'Request Rejected';
     final message = isApproved
         ? 'Your eligibility has been confirmed by the admin. You can now apply for the cards you are eligible for.'
         : isPending
-            ? 'Your eligibility request has been submitted successfully. An admin will review your details and notify you of the decision.'
-            : 'Your eligibility request was not approved. Please contact your local authority for assistance.';
+        ? 'Your eligibility request has been submitted successfully. An admin will review your details and notify you of the decision.'
+        : 'Your eligibility request was not approved. Please contact your local authority for assistance.';
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -146,13 +159,21 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           const SizedBox(height: 24),
           Text(
             title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary, height: 1.6),
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppTheme.textSecondary,
+              height: 1.6,
+            ),
           ),
           if (isPending) ...[
             const SizedBox(height: 32),
@@ -165,7 +186,11 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.notifications_outlined, color: Colors.orange, size: 20),
+                  Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -184,13 +209,17 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               icon: const Icon(Icons.add_card),
               label: const Text('Apply for a Card'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 14,
+                ),
               ),
             ),
           ],
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () => context.read<ApplicationProvider>().resetEligibilityRequest(),
+            onPressed: () =>
+                context.read<ApplicationProvider>().resetEligibilityRequest(),
             child: const Text('Edit & Resubmit'),
           ),
         ],
@@ -204,32 +233,39 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Info banner
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppTheme.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.25)),
+              border: Border.all(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+              ),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, color: AppTheme.primaryGreen, size: 20),
+                Icon(
+                  Icons.info_outline,
+                  color: AppTheme.primaryGreen,
+                  size: 20,
+                ),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Fill in your details below and submit for admin review. You will receive a notification once your eligibility is confirmed.',
-                    style: TextStyle(fontSize: 13, color: AppTheme.primaryGreen, height: 1.5),
+                    'Choose one card type, then fill only the fields required for that card.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.primaryGreen,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-
-          // Section: General Info
-          _SectionHeader(title: 'General Information', icon: Icons.person_outline),
+          _SectionHeader(title: 'Select Card Type', icon: Icons.badge_outlined),
           const SizedBox(height: 12),
           DropdownButtonFormField<Occupation>(
             initialValue: _occupation,
@@ -378,7 +414,11 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.icon, this.subtitle});
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+    this.subtitle,
+  });
   final String title;
   final IconData icon;
   final String? subtitle;
@@ -415,7 +455,10 @@ class _SectionHeader extends StatelessWidget {
             padding: const EdgeInsets.only(left: 38),
             child: Text(
               subtitle!,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
             ),
           ),
         ],
@@ -445,7 +488,9 @@ class _CheckCard extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: value ? AppTheme.primaryGreen.withValues(alpha: 0.06) : Colors.white,
+          color: value
+              ? AppTheme.primaryGreen.withValues(alpha: 0.06)
+              : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: value ? AppTheme.primaryGreen : AppTheme.divider,
@@ -458,7 +503,9 @@ class _CheckCard extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               activeColor: AppTheme.primaryGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(width: 8),
@@ -468,11 +515,18 @@ class _CheckCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
