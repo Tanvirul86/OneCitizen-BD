@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/chatbot_widget.dart';
 
 class PublicHomeScreen extends StatelessWidget {
   const PublicHomeScreen({super.key});
@@ -35,6 +36,7 @@ class PublicHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
+      floatingActionButton: const ChatbotFab(),
       body: CustomScrollView(
         slivers: [
           // Transparent AppBar that overlays the hero
