@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/config/routes.dart';
+import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
@@ -28,6 +29,7 @@ class OneCitizenApp extends StatelessWidget {
     final distributionService = DistributionService(apiClient: apiClient);
     final notificationService = NotificationService(apiClient: apiClient);
     final adminService = AdminService(apiClient: apiClient);
+    final adminNotificationService = AdminNotificationService(apiClient: apiClient);
 
     return MultiProvider(
       providers: [
@@ -48,6 +50,9 @@ class OneCitizenApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => AdminProvider(adminService: adminService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AdminNotificationProvider(notificationService: adminNotificationService),
         ),
       ],
       child: MaterialApp.router(
