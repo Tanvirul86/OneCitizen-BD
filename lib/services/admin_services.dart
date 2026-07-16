@@ -2,6 +2,7 @@ import 'package:onecitizen/config/api_config.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/models/document.dart';
+import 'package:onecitizen/models/notification.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/api_client.dart';
 
@@ -126,5 +127,22 @@ class AdminService {
   Future<Map<String, dynamic>> getAnalytics() async {
     final response = await _apiClient.dio.get(ApiConfig.adminAnalytics);
     return response.data as Map<String, dynamic>;
+  }
+}
+
+class AdminNotificationService {
+  AdminNotificationService({required ApiClient apiClient}) : _apiClient = apiClient;
+  final ApiClient _apiClient;
+
+  Future<List<AppNotification>> getNotifications() async {
+    final response = await _apiClient.dio.get(ApiConfig.adminNotifications);
+    final list = response.data as List<dynamic>;
+    return list
+        .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> markAsRead(String id) async {
+    await _apiClient.dio.patch('${ApiConfig.adminNotifications}/$id/read');
   }
 }

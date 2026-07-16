@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/widgets/admin_quick_search.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
@@ -26,6 +27,7 @@ class AdminShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     final user = context.watch<AuthProvider>().user;
+    final notifProvider = context.watch<AdminNotificationProvider>();
 
     final currentTitle = _items.firstWhere(
       (item) => item.path == location,
@@ -48,6 +50,37 @@ class AdminShell extends StatelessWidget {
         ),
         actions: [
           const AdminQuickSearchButton(),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                tooltip: 'Notifications',
+                onPressed: () => context.go('/admin/notifications'),
+              ),
+              if (notifProvider.unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.accentRed,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${notifProvider.unreadCount}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
