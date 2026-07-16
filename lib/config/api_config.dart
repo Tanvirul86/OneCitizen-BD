@@ -35,6 +35,9 @@ class ApiConfig {
   static const String adminCitizens = '/admin/citizens';
   static const String adminAnalytics = '/admin/analytics';
 
+  // Admin — notifications
+  static const String adminNotifications = '/admin/notifications';
+
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 }

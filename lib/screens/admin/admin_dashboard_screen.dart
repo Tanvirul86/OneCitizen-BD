@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/models/application.dart';
+import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/screens/admin/new_applications_screen.dart';
@@ -21,6 +22,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminProvider>().loadAnalytics();
+      context.read<AdminNotificationProvider>().loadNotifications();
     });
   }
 
