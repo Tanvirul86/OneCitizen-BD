@@ -318,6 +318,14 @@ class MockInterceptor extends Interceptor {
       return _analytics;
     }
 
+    // ── Admin: notifications ─────────────────────────────────────────────
+    if (path == ApiConfig.adminNotifications) {
+      return _adminNotifications;
+    }
+    if (RegExp(r'^/admin/notifications/[^/]+/read$').hasMatch(path)) {
+      return {'success': true};
+    }
+
     return null;
   }
 
@@ -560,6 +568,34 @@ class MockInterceptor extends Interceptor {
       'id': 'notif-3',
       'message': 'BDT 5,000 has been disbursed to your account via bKash.',
       'created_at': '2025-06-15T10:00:00Z',
+      'is_read': true,
+    },
+  ];
+
+  static const _adminNotifications = [
+    {
+      'id': 'admin-notif-1',
+      'message': 'New Farmer Card application submitted by Rahim Uddin.',
+      'created_at': '2025-06-16T09:15:00Z',
+      'is_read': false,
+    },
+    {
+      'id': 'admin-notif-2',
+      'message':
+          'Document mismatch: NID photo on application app-2 does not match the applicant name.',
+      'created_at': '2025-06-16T08:40:00Z',
+      'is_read': false,
+    },
+    {
+      'id': 'admin-notif-3',
+      'message': '9 documents are pending review.',
+      'created_at': '2025-06-15T18:00:00Z',
+      'is_read': false,
+    },
+    {
+      'id': 'admin-notif-4',
+      'message': 'Fund distribution of BDT 5,000 for app-3 completed successfully.',
+      'created_at': '2025-06-15T10:05:00Z',
       'is_read': true,
     },
   ];

@@ -3,6 +3,7 @@ import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/screens/admin/admin_analytics_screen.dart';
 import 'package:onecitizen/screens/admin/admin_dashboard_screen.dart';
+import 'package:onecitizen/screens/admin/admin_notifications_screen.dart';
 import 'package:onecitizen/screens/admin/admin_shell.dart';
 import 'package:onecitizen/screens/admin/application_review_screen.dart';
 import 'package:onecitizen/screens/admin/approved_cards_screen.dart';
@@ -105,6 +106,7 @@ class AppRouter {
             GoRoute(path: '/admin/distributions', builder: (context, state) => const DistributionRecordsScreen()),
             GoRoute(path: '/admin/citizens', builder: (context, state) => const CitizenAccountsScreen()),
             GoRoute(path: '/admin/analytics', builder: (context, state) => const AdminAnalyticsScreen()),
+            GoRoute(path: '/admin/notifications', builder: (context, state) => const AdminNotificationsScreen()),
           ],
         ),
         // Admin detail outside shell so it gets its own back button
