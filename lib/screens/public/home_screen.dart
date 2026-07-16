@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/chatbot_widget.dart';
+import 'package:onecitizen/widgets/language_toggle.dart';
 
 class PublicHomeScreen extends StatelessWidget {
   const PublicHomeScreen({super.key});
@@ -11,22 +13,22 @@ class PublicHomeScreen extends StatelessWidget {
   static const _cards = [
     (
       icon: Icons.agriculture_rounded,
-      title: 'Farmer Card',
-      subtitle: 'For registered farmers with a valid ward/union certificate.',
+      titleKey: 'card_farmer_title',
+      subtitleKey: 'card_farmer_subtitle',
       color: Color(0xFF059669),
       bgColor: Color(0xFFECFDF5),
     ),
     (
       icon: Icons.family_restroom_rounded,
-      title: 'Family Card',
-      subtitle: 'For low-income families within land and income limits.',
+      titleKey: 'card_family_title',
+      subtitleKey: 'card_family_subtitle',
       color: Color(0xFF2563EB),
       bgColor: Color(0xFFEFF6FF),
     ),
     (
       icon: Icons.school_rounded,
-      title: 'Education Card',
-      subtitle: 'For students achieving GPA 5.00 in both SSC and HSC.',
+      titleKey: 'card_education_title',
+      subtitleKey: 'card_education_subtitle',
       color: Color(0xFF7C3AED),
       bgColor: Color(0xFFF5F3FF),
     ),
@@ -62,10 +64,12 @@ class PublicHomeScreen extends StatelessWidget {
               ],
             ),
             actions: [
+              const LanguageToggle(onDark: true),
+              const SizedBox(width: 4),
               TextButton(
                 onPressed: () => context.push('/about'),
                 child: Text(
-                  'About',
+                  context.tr('about'),
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w600,
@@ -134,7 +138,7 @@ class PublicHomeScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 7),
                                   Text(
-                                    'Government of Bangladesh  •  Official Platform',
+                                    context.tr('gov_badge'),
                                     style: GoogleFonts.plusJakartaSans(
                                       color: Colors.white,
                                       fontSize: 11,
@@ -147,7 +151,7 @@ class PublicHomeScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 24),
                             Text(
-                              'Your Welfare,\nSimplified.',
+                              context.tr('hero_title'),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 38,
@@ -158,7 +162,7 @@ class PublicHomeScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 14),
                             Text(
-                              'Check eligibility, apply for welfare cards, upload documents, and track your application — all from your phone.',
+                              context.tr('hero_subtitle'),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white.withValues(alpha: 0.82),
                                 fontSize: 14,
@@ -184,7 +188,7 @@ class PublicHomeScreen extends StatelessWidget {
                                         fontSize: 15,
                                       ),
                                     ),
-                                    child: const Text('Sign In'),
+                                    child: Text(context.tr('sign_in')),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -206,7 +210,7 @@ class PublicHomeScreen extends StatelessWidget {
                                         fontSize: 15,
                                       ),
                                     ),
-                                    child: const Text('Create Account'),
+                                    child: Text(context.tr('create_account')),
                                   ),
                                 ),
                               ],
@@ -224,11 +228,11 @@ class PublicHomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                   child: Row(
                     children: [
-                      _StatItem(value: '3', label: 'Card Types', icon: Icons.credit_card_rounded),
+                      _StatItem(value: '3', label: context.tr('stat_card_types'), icon: Icons.credit_card_rounded),
                       _vDivider(),
-                      _StatItem(value: '100%', label: 'Digital', icon: Icons.phone_android_rounded),
+                      _StatItem(value: '100%', label: context.tr('stat_digital'), icon: Icons.phone_android_rounded),
                       _vDivider(),
-                      _StatItem(value: 'Free', label: 'Service', icon: Icons.verified_rounded),
+                      _StatItem(value: context.tr('stat_free'), label: context.tr('stat_service'), icon: Icons.verified_rounded),
                     ],
                   ),
                 ),
@@ -240,7 +244,7 @@ class PublicHomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Available Welfare Cards',
+                        context.tr('available_cards_title'),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -250,7 +254,7 @@ class PublicHomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Check if you qualify for any of these benefits',
+                        context.tr('available_cards_subtitle'),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           color: AppTheme.textSecondary,
@@ -286,7 +290,7 @@ class PublicHomeScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                card.title,
+                                context.tr(card.titleKey),
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,
@@ -295,7 +299,7 @@ class PublicHomeScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                card.subtitle,
+                                context.tr(card.subtitleKey),
                                 style: GoogleFonts.plusJakartaSans(
                                   color: AppTheme.textSecondary,
                                   fontSize: 13,
@@ -327,7 +331,7 @@ class PublicHomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'How It Works',
+                        context.tr('how_it_works_title'),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -337,7 +341,7 @@ class PublicHomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Four simple steps to get your welfare card',
+                        context.tr('how_it_works_subtitle'),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           color: AppTheme.textSecondary,
@@ -350,10 +354,10 @@ class PublicHomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                   child: Column(
                     children: [
-                      _StepRow(number: '01', title: 'Register & Set Up', subtitle: 'Create your account and complete your profile details.', isLast: false),
-                      _StepRow(number: '02', title: 'Check Eligibility', subtitle: 'Submit your details for admin review and confirmation.', isLast: false),
-                      _StepRow(number: '03', title: 'Apply & Upload', subtitle: 'Submit your card application and upload required documents.', isLast: false),
-                      _StepRow(number: '04', title: 'Get Approved', subtitle: 'Admin reviews your application and you receive your benefit.', isLast: true),
+                      _StepRow(number: '01', title: context.tr('step1_title'), subtitle: context.tr('step1_subtitle'), isLast: false),
+                      _StepRow(number: '02', title: context.tr('step2_title'), subtitle: context.tr('step2_subtitle'), isLast: false),
+                      _StepRow(number: '03', title: context.tr('step3_title'), subtitle: context.tr('step3_subtitle'), isLast: false),
+                      _StepRow(number: '04', title: context.tr('step4_title'), subtitle: context.tr('step4_subtitle'), isLast: true),
                     ],
                   ),
                 ),
@@ -377,7 +381,7 @@ class PublicHomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'A unified welfare card management platform\nfor the People\'s Republic of Bangladesh.',
+                        context.tr('footer_tagline'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.plusJakartaSans(
                           color: Colors.white.withValues(alpha: 0.6),
@@ -389,7 +393,7 @@ class PublicHomeScreen extends StatelessWidget {
                       Divider(color: Colors.white.withValues(alpha: 0.15)),
                       const SizedBox(height: 12),
                       Text(
-                        '© 2025 Government of Bangladesh. All rights reserved.',
+                        context.tr('footer_copyright'),
                         style: GoogleFonts.plusJakartaSans(
                           color: Colors.white.withValues(alpha: 0.4),
                           fontSize: 11,

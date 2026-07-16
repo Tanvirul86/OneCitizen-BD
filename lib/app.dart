@@ -6,6 +6,7 @@ import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/distribution_provider.dart';
+import 'package:onecitizen/providers/locale_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/services/admin_services.dart';
 import 'package:onecitizen/services/api_client.dart';
@@ -54,6 +55,7 @@ class OneCitizenApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AdminNotificationProvider(notificationService: adminNotificationService),
         ),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..load()),
       ],
       child: MaterialApp.router(
         title: 'OneCitizen BD',
