@@ -87,7 +87,17 @@ class AppRouter {
             GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardScreen()),
             GoRoute(
               path: '/admin/applications',
-              builder: (context, state) => NewApplicationsScreen(initialCardTypeName: state.extra as String?),
+              builder: (context, state) {
+                final extra = state.extra;
+                if (extra is ApplicationsFilterArgs) {
+                  return NewApplicationsScreen(
+                    initialCardTypeName: extra.cardTypeName,
+                    initialStatuses: extra.statuses,
+                    statusScopeLabel: extra.scopeLabel,
+                  );
+                }
+                return NewApplicationsScreen(initialCardTypeName: extra as String?);
+              },
             ),
             GoRoute(path: '/admin/documents', builder: (context, state) => const DocumentValidationScreen()),
             GoRoute(path: '/admin/approved-cards', builder: (context, state) => const ApprovedCardsScreen()),
