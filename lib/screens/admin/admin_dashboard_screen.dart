@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/screens/admin/new_applications_screen.dart';
 import 'package:provider/provider.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -128,24 +130,40 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               value: '${analytics['total_applications'] ?? 0}',
                               icon: Icons.assignment_rounded,
                               color: AppTheme.primaryGreen,
+                              onTap: () => context.go('/admin/applications'),
                             ),
                             _StatCard(
                               label: 'Approved',
                               value: '${analytics['approved'] ?? 0}',
                               icon: Icons.check_circle_rounded,
                               color: AppTheme.successGreen,
+                              onTap: () => context.go(
+                                '/admin/applications',
+                                extra: const ApplicationsFilterArgs(
+                                  statuses: [ApplicationStatus.approved],
+                                  scopeLabel: 'Approved',
+                                ),
+                              ),
                             ),
                             _StatCard(
                               label: 'Pending Review',
                               value: '${analytics['pending_review'] ?? 0}',
                               icon: Icons.hourglass_empty_rounded,
                               color: AppTheme.warningAmber,
+                              onTap: () => context.go(
+                                '/admin/applications',
+                                extra: const ApplicationsFilterArgs(
+                                  statuses: [ApplicationStatus.submitted, ApplicationStatus.underReview],
+                                  scopeLabel: 'Pending Review',
+                                ),
+                              ),
                             ),
                             _StatCard(
                               label: 'Total Disbursed',
                               value: '৳${analytics['total_disbursed'] ?? 0}',
                               icon: Icons.payments_rounded,
                               color: AppTheme.infoBlue,
+                              onTap: () => context.go('/admin/distributions'),
                             ),
                           ],
                         ),
@@ -290,43 +308,57 @@ class _HeroStat extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.icon, required this.color});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.onTap,
+  });
 
   final String label;
   final String value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppTheme.cardShadow,
           ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(height: 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+              ),
+              Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
           ),
-          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-        ],
+        ),
       ),
     );
   }

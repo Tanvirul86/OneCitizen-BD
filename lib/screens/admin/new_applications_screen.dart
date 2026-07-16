@@ -9,10 +9,28 @@ import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
+/// Navigation payload for `/admin/applications` — lets callers (e.g. the
+/// dashboard stat cards) pre-scope the list to a card type and/or a set of
+/// statuses (e.g. "Pending Review" covers both submitted and under_review).
+class ApplicationsFilterArgs {
+  const ApplicationsFilterArgs({this.cardTypeName, this.statuses, this.scopeLabel});
+
+  final String? cardTypeName;
+  final List<ApplicationStatus>? statuses;
+  final String? scopeLabel;
+}
+
 class NewApplicationsScreen extends StatefulWidget {
-  const NewApplicationsScreen({super.key, this.initialCardTypeName});
+  const NewApplicationsScreen({
+    super.key,
+    this.initialCardTypeName,
+    this.initialStatuses,
+    this.statusScopeLabel,
+  });
 
   final String? initialCardTypeName;
+  final List<ApplicationStatus>? initialStatuses;
+  final String? statusScopeLabel;
 
   @override
   State<NewApplicationsScreen> createState() => _NewApplicationsScreenState();
@@ -21,12 +39,14 @@ class NewApplicationsScreen extends StatefulWidget {
 class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
   ApplicationStatus? _filter;
   String? _cardTypeFilter;
+  List<ApplicationStatus>? _statusScope;
   bool _isNavigating = false;
 
   @override
   void initState() {
     super.initState();
     _cardTypeFilter = widget.initialCardTypeName;
+    _statusScope = widget.initialStatuses;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminProvider>().loadApplications();
     });
@@ -45,6 +65,7 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
     final filtered = provider.applications
         .where((a) => _filter == null || a.status == _filter)
         .where((a) => _cardTypeFilter == null || a.cardTypeName == _cardTypeFilter)
+        .where((a) => _statusScope == null || _statusScope!.contains(a.status))
         .toList();
 
     return Scaffold(
@@ -64,6 +85,25 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                   ),
                   TextButton.icon(
                     onPressed: () => setState(() => _cardTypeFilter = null),
+                    icon: const Icon(Icons.close_rounded, size: 16),
+                    label: const Text('Clear'),
+                  ),
+                ],
+              ),
+            ),
+          if (_statusScope != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Showing "${widget.statusScopeLabel ?? 'filtered'}" applications',
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => setState(() => _statusScope = null),
                     icon: const Icon(Icons.close_rounded, size: 16),
                     label: const Text('Clear'),
                   ),
