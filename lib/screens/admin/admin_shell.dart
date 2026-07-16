@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/widgets/admin_quick_search.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:provider/provider.dart';
 
@@ -46,6 +47,7 @@ class AdminShell extends StatelessWidget {
           ],
         ),
         actions: [
+          const AdminQuickSearchButton(),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
