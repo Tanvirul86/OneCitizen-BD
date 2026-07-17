@@ -90,6 +90,126 @@ class AppStrings {
       AppLanguage.en: '© 2025 Government of Bangladesh. All rights reserved.',
       AppLanguage.bn: '© ২০২৫ বাংলাদেশ সরকার। সর্বস্বত্ব সংরক্ষিত।',
     },
+
+    // ── About page ────────────────────────────────────────────────────────
+    'about_intro': {
+      AppLanguage.en:
+          'OneCitizen BD digitizes and centralizes Bangladesh\'s welfare card '
+              'management system into a single, transparent, and accessible platform. '
+              'Millions of eligible citizens — farmers, low-income families, and '
+              'high-achieving students — are entitled to government welfare support '
+              'through card-based subsidy programs, but the existing process is '
+              'manual, paper-based, and fragmented across disconnected offices.',
+      AppLanguage.bn:
+          'OneCitizen BD বাংলাদেশের কল্যাণ কার্ড ব্যবস্থাপনা ব্যবস্থাকে ডিজিটালাইজ করে '
+              'একটি একক, স্বচ্ছ ও সহজলভ্য প্ল্যাটফর্মে নিয়ে এসেছে। লক্ষ লক্ষ যোগ্য নাগরিক '
+              '— কৃষক, স্বল্প আয়ের পরিবার এবং কৃতিত্বপূর্ণ ফলাফলধারী শিক্ষার্থীরা — কার্ড-ভিত্তিক '
+              'ভর্তুকি কর্মসূচির মাধ্যমে সরকারি কল্যাণ সহায়তা পাওয়ার যোগ্য, কিন্তু বিদ্যমান প্রক্রিয়াটি '
+              'ম্যানুয়াল, কাগজ-নির্ভর এবং বিচ্ছিন্ন অফিসগুলোতে খণ্ডিত অবস্থায় রয়েছে।',
+    },
+    'about_citizens_title': {
+      AppLanguage.en: 'What citizens can do',
+      AppLanguage.bn: 'নাগরিকরা যা করতে পারবেন',
+    },
+    'about_citizens_item1': {
+      AppLanguage.en: 'Register, complete a profile, and run a smart eligibility check',
+      AppLanguage.bn: 'রেজিস্ট্রেশন করুন, প্রোফাইল পূরণ করুন, এবং স্মার্ট যোগ্যতা যাচাই করুন',
+    },
+    'about_citizens_item2': {
+      AppLanguage.en: 'Apply online for the Farmer, Family, or Education Card',
+      AppLanguage.bn: 'কৃষক, পারিবারিক বা শিক্ষা কার্ডের জন্য অনলাইনে আবেদন করুন',
+    },
+    'about_citizens_item3': {
+      AppLanguage.en: 'Track application status in real time',
+      AppLanguage.bn: 'রিয়েল টাইমে আবেদনের অবস্থা ট্র্যাক করুন',
+    },
+    'about_citizens_item4': {
+      AppLanguage.en: 'Receive in-app notifications on review, validation, and disbursement',
+      AppLanguage.bn: 'পর্যালোচনা, যাচাই ও অর্থ বিতরণ সংক্রান্ত নোটিফিকেশন অ্যাপেই পান',
+    },
+    'about_admins_title': {
+      AppLanguage.en: 'What admins can do',
+      AppLanguage.bn: 'অ্যাডমিনরা যা করতে পারবেন',
+    },
+    'about_admins_item1': {
+      AppLanguage.en: 'Review applications and validate uploaded documents',
+      AppLanguage.bn: 'আবেদন পর্যালোচনা করুন এবং আপলোড করা ডকুমেন্ট যাচাই করুন',
+    },
+    'about_admins_item2': {
+      AppLanguage.en: 'Approve or reject applications with a reason',
+      AppLanguage.bn: 'কারণ উল্লেখ করে আবেদন অনুমোদন বা প্রত্যাখ্যান করুন',
+    },
+    'about_admins_item3': {
+      AppLanguage.en: 'Disburse welfare funds online or offline and keep an auditable record',
+      AppLanguage.bn: 'অনলাইন বা অফলাইনে কল্যাণ তহবিল বিতরণ করুন এবং নিরীক্ষাযোগ্য রেকর্ড রাখুন',
+    },
+    'about_admins_item4': {
+      AppLanguage.en: 'Monitor platform-wide analytics',
+      AppLanguage.bn: 'পুরো প্ল্যাটফর্মের অ্যানালিটিক্স পর্যবেক্ষণ করুন',
+    },
+
+    // ── Login page ────────────────────────────────────────────────────────
+    'welcome_back': {AppLanguage.en: 'Welcome back', AppLanguage.bn: 'আবার স্বাগতম'},
+    'login_subtitle': {
+      AppLanguage.en: 'Sign in to access your welfare account',
+      AppLanguage.bn: 'আপনার কল্যাণ অ্যাকাউন্টে প্রবেশ করতে সাইন ইন করুন',
+    },
+    'role_citizen': {AppLanguage.en: 'Citizen', AppLanguage.bn: 'নাগরিক'},
+    'role_admin': {AppLanguage.en: 'Admin', AppLanguage.bn: 'অ্যাডমিন'},
+    'email_label': {AppLanguage.en: 'Email address', AppLanguage.bn: 'ইমেইল ঠিকানা'},
+    'email_required_login': {
+      AppLanguage.en: 'Please enter your email',
+      AppLanguage.bn: 'অনুগ্রহ করে আপনার ইমেইল দিন',
+    },
+    'password_label': {AppLanguage.en: 'Password', AppLanguage.bn: 'পাসওয়ার্ড'},
+    'password_required': {
+      AppLanguage.en: 'Please enter your password',
+      AppLanguage.bn: 'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন',
+    },
+    'login_failed': {
+      AppLanguage.en: 'Login failed. Please try again.',
+      AppLanguage.bn: 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+    },
+    'no_account': {AppLanguage.en: "Don't have an account? ", AppLanguage.bn: 'অ্যাকাউন্ট নেই? '},
+    'register_link': {AppLanguage.en: 'Register', AppLanguage.bn: 'রেজিস্টার করুন'},
+    'back_to_home': {AppLanguage.en: 'Back to Home', AppLanguage.bn: 'হোমে ফিরে যান'},
+
+    // ── Register page ────────────────────────────────────────────────────
+    'create_account_title': {
+      AppLanguage.en: 'Create your account',
+      AppLanguage.bn: 'আপনার অ্যাকাউন্ট তৈরি করুন',
+    },
+    'register_subtitle': {
+      AppLanguage.en: 'Register to apply for welfare cards and track benefits',
+      AppLanguage.bn: 'কল্যাণ কার্ডের জন্য আবেদন করতে ও সুবিধা ট্র্যাক করতে রেজিস্ট্রেশন করুন',
+    },
+    'nid_label': {AppLanguage.en: 'NID Number', AppLanguage.bn: 'জাতীয় পরিচয়পত্র নম্বর'},
+    'nid_required': {AppLanguage.en: 'NID is required', AppLanguage.bn: 'জাতীয় পরিচয়পত্র নম্বর আবশ্যক'},
+    'first_name_label': {AppLanguage.en: 'First Name', AppLanguage.bn: 'নামের প্রথম অংশ'},
+    'last_name_label': {AppLanguage.en: 'Last Name', AppLanguage.bn: 'নামের শেষ অংশ'},
+    'field_required': {AppLanguage.en: 'Required', AppLanguage.bn: 'আবশ্যক'},
+    'email_required_register': {
+      AppLanguage.en: 'Email is required',
+      AppLanguage.bn: 'ইমেইল আবশ্যক',
+    },
+    'phone_label': {AppLanguage.en: 'Phone Number', AppLanguage.bn: 'ফোন নম্বর'},
+    'phone_required': {AppLanguage.en: 'Phone number is required', AppLanguage.bn: 'ফোন নম্বর আবশ্যক'},
+    'password_min_length': {
+      AppLanguage.en: 'Password must be at least 6 characters',
+      AppLanguage.bn: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে',
+    },
+    'account_created_snackbar': {
+      AppLanguage.en: 'Account created! Please sign in to continue.',
+      AppLanguage.bn: 'অ্যাকাউন্ট তৈরি হয়েছে! চালিয়ে যেতে সাইন ইন করুন।',
+    },
+    'registration_failed': {
+      AppLanguage.en: 'Registration failed',
+      AppLanguage.bn: 'রেজিস্ট্রেশন ব্যর্থ হয়েছে',
+    },
+    'already_have_account': {
+      AppLanguage.en: 'Already have an account? ',
+      AppLanguage.bn: 'অ্যাকাউন্ট আছে? ',
+    },
   };
 
   static String of(String key, AppLanguage language) {
@@ -101,6 +221,12 @@ class AppStrings {
 
 extension AppLocalization on BuildContext {
   /// Translated string for [key] in the currently selected app language.
-  /// Rebuilds automatically when the language toggle changes.
+  /// Rebuilds automatically when the language toggle changes. Call this
+  /// only from build() — Provider's `watch` requires it.
   String tr(String key) => AppStrings.of(key, watch<LocaleProvider>().language);
+
+  /// Same lookup but non-reactive (`read`) — safe from callbacks, event
+  /// handlers, or anywhere outside build() (e.g. a SnackBar fallback
+  /// message built inside an onPressed handler).
+  String trs(String key) => AppStrings.of(key, read<LocaleProvider>().language);
 }

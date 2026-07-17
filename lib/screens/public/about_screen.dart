@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/language_toggle.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -10,7 +12,10 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('About')),
+      appBar: AppBar(
+        title: Text(context.tr('about')),
+        actions: const [Padding(padding: EdgeInsets.only(right: 12), child: LanguageToggle())],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -36,12 +41,7 @@ class AboutScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _InfoCard(
                 child: Text(
-                  'OneCitizen BD digitizes and centralizes Bangladesh\'s welfare card '
-                  'management system into a single, transparent, and accessible platform. '
-                  'Millions of eligible citizens — farmers, low-income families, and '
-                  'high-achieving students — are entitled to government welfare support '
-                  'through card-based subsidy programs, but the existing process is '
-                  'manual, paper-based, and fragmented across disconnected offices.',
+                  context.tr('about_intro'),
                   style: GoogleFonts.plusJakartaSans(fontSize: 14, height: 1.6, color: AppTheme.textSecondary),
                 ),
               ),
@@ -49,24 +49,24 @@ class AboutScreen extends StatelessWidget {
               _SectionCard(
                 icon: Icons.person_rounded,
                 color: AppTheme.primaryGreen,
-                title: 'What citizens can do',
-                items: const [
-                  'Register, complete a profile, and run a smart eligibility check',
-                  'Apply online for the Farmer, Family, or Education Card',
-                  'Track application status in real time',
-                  'Receive in-app notifications on review, validation, and disbursement',
+                title: context.tr('about_citizens_title'),
+                items: [
+                  context.tr('about_citizens_item1'),
+                  context.tr('about_citizens_item2'),
+                  context.tr('about_citizens_item3'),
+                  context.tr('about_citizens_item4'),
                 ],
               ),
               const SizedBox(height: 16),
               _SectionCard(
                 icon: Icons.admin_panel_settings_rounded,
                 color: AppTheme.infoBlue,
-                title: 'What admins can do',
-                items: const [
-                  'Review applications and validate uploaded documents',
-                  'Approve or reject applications with a reason',
-                  'Disburse welfare funds online or offline and keep an auditable record',
-                  'Monitor platform-wide analytics',
+                title: context.tr('about_admins_title'),
+                items: [
+                  context.tr('about_admins_item1'),
+                  context.tr('about_admins_item2'),
+                  context.tr('about_admins_item3'),
+                  context.tr('about_admins_item4'),
                 ],
               ),
             ],
