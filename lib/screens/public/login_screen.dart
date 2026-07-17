@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/config/routes.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -62,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.errorMessage ?? 'Login failed. Please try again.'),
+          content: Text(auth.errorMessage ?? context.trs('login_failed')),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -96,10 +98,16 @@ class _LoginScreenState extends State<LoginScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const AppLogo(size: 56, onDark: true, linkToLanding: true),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const AppLogo(size: 56, onDark: true, linkToLanding: true),
+                              const LanguageToggle(onDark: true),
+                            ],
+                          ),
                           const SizedBox(height: 20),
                           Text(
-                            'Welcome back',
+                            context.tr('welcome_back'),
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 28,
@@ -109,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Sign in to access your welfare account',
+                            context.tr('login_subtitle'),
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white.withValues(alpha: 0.75),
                               fontSize: 14,
@@ -137,13 +145,13 @@ class _LoginScreenState extends State<LoginScreen>
                                 children: [
                                   _RoleButton(
                                     icon: Icons.person_rounded,
-                                    label: 'Citizen',
+                                    label: context.tr('role_citizen'),
                                     selected: _role == UserRole.citizen,
                                     onTap: () => setState(() => _role = UserRole.citizen),
                                   ),
                                   _RoleButton(
                                     icon: Icons.admin_panel_settings_rounded,
-                                    label: 'Admin',
+                                    label: context.tr('role_admin'),
                                     selected: _role == UserRole.admin,
                                     onTap: () => setState(() => _role = UserRole.admin),
                                   ),
@@ -159,19 +167,19 @@ class _LoginScreenState extends State<LoginScreen>
                                   TextFormField(
                                     controller: _emailController,
                                     keyboardType: TextInputType.emailAddress,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Email address',
-                                      prefixIcon: Icon(Icons.email_outlined),
+                                    decoration: InputDecoration(
+                                      labelText: context.tr('email_label'),
+                                      prefixIcon: const Icon(Icons.email_outlined),
                                     ),
                                     validator: (v) =>
-                                        (v == null || v.isEmpty) ? 'Please enter your email' : null,
+                                        (v == null || v.isEmpty) ? context.trs('email_required_login') : null,
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscure,
                                     decoration: InputDecoration(
-                                      labelText: 'Password',
+                                      labelText: context.tr('password_label'),
                                       prefixIcon: const Icon(Icons.lock_outline_rounded),
                                       suffixIcon: IconButton(
                                         icon: Icon(
@@ -184,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                     ),
                                     validator: (v) =>
-                                        (v == null || v.isEmpty) ? 'Please enter your password' : null,
+                                        (v == null || v.isEmpty) ? context.trs('password_required') : null,
                                   ),
                                 ],
                               ),
@@ -211,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       )
                                     : Text(
-                                        'Sign In',
+                                        context.tr('sign_in'),
                                         style: GoogleFonts.plusJakartaSans(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 16,
@@ -226,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Don't have an account? ",
+                                    context.tr('no_account'),
                                     style: GoogleFonts.plusJakartaSans(
                                       color: AppTheme.textSecondary,
                                       fontSize: 14,
@@ -235,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   GestureDetector(
                                     onTap: () => context.push('/register'),
                                     child: Text(
-                                      'Register',
+                                      context.tr('register_link'),
                                       style: GoogleFonts.plusJakartaSans(
                                         color: AppTheme.primaryGreen,
                                         fontWeight: FontWeight.w700,
@@ -260,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Back to Home',
+                                    context.tr('back_to_home'),
                                     style: GoogleFonts.plusJakartaSans(
                                       color: AppTheme.textTertiary,
                                       fontSize: 13,
