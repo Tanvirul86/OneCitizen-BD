@@ -64,7 +64,6 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
         .where((d) => d.isValid == false)
         .length;
     final recentApps = appProvider.applications.take(3).toList();
-    final greeting = _greeting();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
@@ -79,7 +78,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
             // ── App Bar ─────────────────────────────────────────────────
             SliverAppBar(
               pinned: true,
-              expandedHeight: 180,
+              expandedHeight: 128,
               backgroundColor: AppTheme.primaryGreenDark,
               foregroundColor: Colors.white,
               elevation: 0,
@@ -93,11 +92,11 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                        top: -40,
-                        right: -40,
+                        top: -30,
+                        right: -30,
                         child: Container(
-                          width: 180,
-                          height: 180,
+                          width: 140,
+                          height: 140,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white.withValues(alpha: 0.06),
@@ -106,29 +105,46 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       ),
                       SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
+                          padding: const EdgeInsets.fromLTRB(20, 52, 20, 16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Text(
-                                greeting,
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user?.fullName.isNotEmpty == true
-                                    ? user!.fullName
-                                    : 'Citizen',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
+                              InkWell(
+                                onTap: () => context.push('/citizen/profile'),
+                                borderRadius: BorderRadius.circular(24),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 34,
+                                      height: 34,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.18,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Icon(
+                                        Icons.person_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      user?.fullName.isNotEmpty == true
+                                          ? user!.fullName
+                                          : 'Citizen',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.4,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -371,12 +387,6 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
     );
   }
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning 👋';
-    if (hour < 17) return 'Good afternoon 👋';
-    return 'Good evening 👋';
-  }
 }
 
 class _AlertCard extends StatelessWidget {

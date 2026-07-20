@@ -1,11 +1,11 @@
-# Launches the Pixel_6 Android emulator (if not already running) and runs the app on it.
+# Launches the Pixel_7_API_34 Android emulator (if not already running) and runs the app on it.
 
 $emulator = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"
 $device = & adb devices | Select-String "emulator-\d+\s+device$"
 
 if (-not $device) {
-    Write-Host "Starting Pixel_6 emulator..."
-    Start-Process -FilePath $emulator -ArgumentList "-avd", "Pixel_6", "-gpu", "swiftshader_indirect" -WindowStyle Hidden
+    Write-Host "Starting Pixel_7_API_34 emulator..."
+    Start-Process -FilePath $emulator -ArgumentList "-avd", "Pixel_7_API_34", "-gpu", "swiftshader_indirect" -WindowStyle Hidden
 
     Write-Host "Waiting for emulator to come online..."
     & adb wait-for-device
