@@ -12,6 +12,7 @@ class MockInterceptor extends Interceptor {
   static const _documentsPrefsKey = 'mock_citizen_documents';
   static const _usersPrefsKey = 'mock_registered_users';
   static const _sessionPrefsKey = 'mock_current_user_email';
+  static const _citizensPrefsKey = 'mock_admin_citizens';
   bool _loaded = false;
 
   /// Accounts created via `/auth/register`, keyed by lowercased email.
@@ -45,11 +46,24 @@ class MockInterceptor extends Interceptor {
     }
 
     _currentUserEmail = prefs.getString(_sessionPrefsKey);
+
+    final rawCitizens = prefs.getString(_citizensPrefsKey);
+    if (rawCitizens != null) {
+      final list = (jsonDecode(rawCitizens) as List).cast<Map<String, dynamic>>();
+      _citizens
+        ..clear()
+        ..addAll(list);
+    }
   }
 
   Future<void> _persistDocuments() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_documentsPrefsKey, jsonEncode(_citizenDocuments));
+  }
+
+  Future<void> _persistCitizens() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_citizensPrefsKey, jsonEncode(_citizens));
   }
 
   Future<void> _persistUsers() async {
@@ -307,6 +321,19 @@ class MockInterceptor extends Interceptor {
       return _citizens;
     }
     if (RegExp(r'^/admin/citizens/[^/]+/deactivate$').hasMatch(path)) {
+      _updateCitizen(path.split('/')[3], {'is_active': false});
+      return {'success': true};
+    }
+    if (RegExp(r'^/admin/citizens/[^/]+/activate$').hasMatch(path)) {
+      _updateCitizen(path.split('/')[3], {'is_active': true});
+      return {'success': true};
+    }
+    if (RegExp(r'^/admin/citizens/[^/]+/freeze$').hasMatch(path)) {
+      _updateCitizen(path.split('/')[3], {'is_frozen': true});
+      return {'success': true};
+    }
+    if (RegExp(r'^/admin/citizens/[^/]+/unfreeze$').hasMatch(path)) {
+      _updateCitizen(path.split('/')[3], {'is_frozen': false});
       return {'success': true};
     }
     if (RegExp(r'^/admin/citizens/[^/]+$').hasMatch(path)) {
@@ -600,7 +627,7 @@ class MockInterceptor extends Interceptor {
     },
   ];
 
-  List<Map<String, dynamic>> get _citizens => List.generate(
+  final List<Map<String, dynamic>> _citizens = List.generate(
     8,
     (i) => {
       'id': 'citizen-$i',
@@ -620,9 +647,17 @@ class MockInterceptor extends Interceptor {
       'phone': '+880170000${1000 + i}',
       'role': 'citizen',
       'is_active': i != 5,
+      'is_frozen': false,
       'verified': true,
     },
   );
+
+  void _updateCitizen(String id, Map<String, dynamic> patch) {
+    final index = _citizens.indexWhere((c) => c['id'] == id);
+    if (index == -1) return;
+    _citizens[index] = {..._citizens[index], ...patch};
+    _persistCitizens();
+  }
 
   static const _analytics = {
     'total_applications': 124,
