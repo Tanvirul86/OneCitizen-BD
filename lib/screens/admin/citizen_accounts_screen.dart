@@ -41,6 +41,52 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
     }
   }
 
+  Future<void> _confirmFreeze(String id, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Freeze Account'),
+        content: Text('Freeze $name\'s account? They will be temporarily blocked until you unfreeze it.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: const Text('Freeze'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<AdminProvider>().freezeCitizen(id);
+    }
+  }
+
+  Future<void> _unfreeze(String id) async {
+    await context.read<AdminProvider>().unfreezeCitizen(id);
+  }
+
+  Future<void> _confirmActivate(String id, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Activate Account'),
+        content: Text('Activate $name\'s account? They will be able to log in again.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+            child: const Text('Activate'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<AdminProvider>().activateCitizen(id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
@@ -73,21 +119,56 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
                               itemCount: provider.citizens.length,
                               itemBuilder: (context, index) {
                                 final citizen = provider.citizens[index];
+                                final statusColor = !citizen.isActive
+                                    ? Colors.red
+                                    : citizen.isFrozen
+                                        ? Colors.blue
+                                        : AppTheme.primaryGreen;
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      backgroundColor: citizen.isActive ? AppTheme.primaryGreen.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                                      child: Icon(Icons.person, color: citizen.isActive ? AppTheme.primaryGreen : Colors.red),
+                                      backgroundColor: statusColor.withValues(alpha: 0.1),
+                                      child: Icon(Icons.person, color: statusColor),
                                     ),
                                     title: Text(citizen.fullName.isNotEmpty ? citizen.fullName : citizen.email, style: const TextStyle(fontWeight: FontWeight.w700)),
                                     subtitle: Text('NID: ${citizen.nid ?? '-'} • ${citizen.email}'),
-                                    trailing: citizen.isActive
-                                        ? TextButton(
-                                            onPressed: () => _confirmDeactivate(citizen.id, citizen.fullName),
-                                            child: const Text('Deactivate', style: TextStyle(color: Colors.red)),
-                                          )
-                                        : const Text('Inactive', style: TextStyle(color: Colors.red)),
+                                    trailing: PopupMenuButton<String>(
+                                      onSelected: (action) {
+                                        switch (action) {
+                                          case 'activate':
+                                            _confirmActivate(citizen.id, citizen.fullName);
+                                          case 'freeze':
+                                            _confirmFreeze(citizen.id, citizen.fullName);
+                                          case 'unfreeze':
+                                            _unfreeze(citizen.id);
+                                          case 'deactivate':
+                                            _confirmDeactivate(citizen.id, citizen.fullName);
+                                        }
+                                      },
+                                      itemBuilder: (context) => !citizen.isActive
+                                          ? [const PopupMenuItem(value: 'activate', child: Text('Activate'))]
+                                          : [
+                                              if (citizen.isFrozen)
+                                                const PopupMenuItem(value: 'unfreeze', child: Text('Unfreeze'))
+                                              else
+                                                const PopupMenuItem(value: 'freeze', child: Text('Freeze')),
+                                              const PopupMenuItem(
+                                                value: 'deactivate',
+                                                child: Text('Deactivate', style: TextStyle(color: Colors.red)),
+                                              ),
+                                            ],
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (!citizen.isActive)
+                                            const _StatusBadge(label: 'Inactive', color: Colors.red)
+                                          else if (citizen.isFrozen)
+                                            const _StatusBadge(label: 'Frozen', color: Colors.blue),
+                                          const Icon(Icons.more_vert, color: AppTheme.textSecondary),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
@@ -95,6 +176,29 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
