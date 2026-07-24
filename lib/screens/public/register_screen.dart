@@ -17,7 +17,6 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nidController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -28,7 +27,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nidController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
@@ -43,7 +41,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
     final success = await auth.register(
-      nid: _nidController.text.trim(),
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
       email: _emailController.text.trim(),
@@ -133,13 +130,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      TextFormField(
-                        controller: _nidController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(labelText: context.tr('nid_label'), prefixIcon: const Icon(Icons.badge_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? context.trs('nid_required') : null,
-                      ),
-                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
