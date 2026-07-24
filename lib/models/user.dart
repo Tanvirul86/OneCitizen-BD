@@ -42,6 +42,7 @@ class User {
     this.role = UserRole.citizen,
     this.verified = false,
     this.isActive = true,
+    this.isFrozen = false,
   });
 
   final String id;
@@ -63,6 +64,7 @@ class User {
   final UserRole role;
   final bool verified;
   final bool isActive;
+  final bool isFrozen;
 
   String get fullName => [firstName, lastName].where((s) => s != null && s.isNotEmpty).join(' ');
 
@@ -93,6 +95,7 @@ class User {
       role: roleFromString(json['role'] as String?),
       verified: json['verified'] as bool? ?? false,
       isActive: json['is_active'] as bool? ?? true,
+      isFrozen: json['is_frozen'] as bool? ?? false,
     );
   }
 
@@ -144,6 +147,7 @@ class User {
       role: role,
       verified: verified,
       isActive: isActive,
+      isFrozen: isFrozen,
     );
   }
 }

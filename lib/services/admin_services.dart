@@ -123,6 +123,18 @@ class AdminService {
     await _apiClient.dio.patch('${ApiConfig.adminCitizens}/$id/deactivate');
   }
 
+  Future<void> activateCitizen(String id) async {
+    await _apiClient.dio.patch('${ApiConfig.adminCitizens}/$id/activate');
+  }
+
+  Future<void> freezeCitizen(String id) async {
+    await _apiClient.dio.patch('${ApiConfig.adminCitizens}/$id/freeze');
+  }
+
+  Future<void> unfreezeCitizen(String id) async {
+    await _apiClient.dio.patch('${ApiConfig.adminCitizens}/$id/unfreeze');
+  }
+
   // ── Analytics ────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> getAnalytics() async {
     final response = await _apiClient.dio.get(ApiConfig.adminAnalytics);
