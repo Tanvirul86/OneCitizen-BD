@@ -16,7 +16,6 @@ class AuthService {
   /// Creates the account only — does not sign the user in. They must call
   /// [login] afterward with the credentials they just registered.
   Future<void> register({
-    required String nid,
     required String firstName,
     required String lastName,
     required String email,
@@ -26,7 +25,6 @@ class AuthService {
     await _apiClient.dio.post(
       ApiConfig.register,
       data: {
-        'nid': nid,
         'first_name': firstName,
         'last_name': lastName,
         'email': email,

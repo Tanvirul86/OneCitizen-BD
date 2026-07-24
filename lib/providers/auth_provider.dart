@@ -33,7 +33,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> register({
-    required String nid,
     required String firstName,
     required String lastName,
     required String email,
@@ -46,7 +45,6 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _authService.register(
-        nid: nid,
         firstName: firstName,
         lastName: lastName,
         email: email,
