@@ -180,6 +180,42 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> activateCitizen(String id) async {
+    try {
+      await _adminService.activateCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> freezeCitizen(String id) async {
+    try {
+      await _adminService.freezeCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> unfreezeCitizen(String id) async {
+    try {
+      await _adminService.unfreezeCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Analytics
   Map<String, dynamic>? analytics;
   bool isLoadingAnalytics = false;
