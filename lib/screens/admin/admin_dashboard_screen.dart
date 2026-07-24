@@ -169,6 +169,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.5,
+                            child: AspectRatio(
+                              aspectRatio: 1.1,
+                              child: _StatCard(
+                                label: 'Rejected',
+                                value: '${analytics['rejected'] ?? 0}',
+                                icon: Icons.cancel_rounded,
+                                color: AppTheme.errorRed,
+                                onTap: () => context.go(
+                                  '/admin/applications',
+                                  extra: const ApplicationsFilterArgs(
+                                    statuses: [ApplicationStatus.rejected],
+                                    scopeLabel: 'Rejected',
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 28),
 
                         // ── Quick actions ────────────────────────────────
