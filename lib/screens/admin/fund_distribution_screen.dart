@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
@@ -40,7 +41,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     if (!_formKey.currentState!.validate() || _selectedApplicationId == null) {
       if (_selectedApplicationId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select an approved card holder'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.trs('select_card_holder_error')), backgroundColor: Colors.red),
         );
       }
       return;
@@ -59,7 +60,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Funds disbursed successfully'), backgroundColor: Colors.green),
+        SnackBar(content: Text(context.trs('funds_disbursed_success')), backgroundColor: Colors.green),
       );
       _formKey.currentState!.reset();
       _amountController.clear();
@@ -70,7 +71,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.distributionsError ?? 'Failed to disburse funds'), backgroundColor: Colors.red),
+        SnackBar(content: Text(provider.distributionsError ?? context.trs('disburse_failed')), backgroundColor: Colors.red),
       );
     }
   }
@@ -92,7 +93,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
               DropdownButtonFormField<String>(
                 key: ValueKey(_formResetCount),
                 initialValue: _selectedApplicationId,
-                decoration: const InputDecoration(labelText: 'Approved Card Holder', prefixIcon: Icon(Icons.person)),
+                decoration: InputDecoration(labelText: context.tr('approved_card_holder_label'), prefixIcon: const Icon(Icons.person)),
                 items: approved
                     .map((a) => DropdownMenuItem(value: a.id, child: Text('${a.applicantName ?? a.id} — ${a.cardTypeName}')))
                     .toList(),
@@ -100,9 +101,9 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
               ),
               const SizedBox(height: 16),
               SegmentedButton<DistributionMethod>(
-                segments: const [
-                  ButtonSegment(value: DistributionMethod.online, label: Text('Online (bKash/Nagad/Bank)'), icon: Icon(Icons.account_balance_wallet)),
-                  ButtonSegment(value: DistributionMethod.offline, label: Text('Offline'), icon: Icon(Icons.storefront)),
+                segments: [
+                  ButtonSegment(value: DistributionMethod.online, label: Text(context.tr('online_method_full')), icon: const Icon(Icons.account_balance_wallet)),
+                  ButtonSegment(value: DistributionMethod.offline, label: Text(context.tr('offline')), icon: const Icon(Icons.storefront)),
                 ],
                 selected: {_method},
                 onSelectionChanged: (s) => setState(() => _method = s.first),
@@ -111,13 +112,13 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount (BDT)', prefixIcon: Icon(Icons.money)),
-                validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter a valid amount' : null,
+                decoration: InputDecoration(labelText: context.tr('amount_bdt_label'), prefixIcon: const Icon(Icons.money)),
+                validator: (v) => (v == null || double.tryParse(v) == null) ? context.trs('amount_invalid') : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(labelText: 'Note (optional)', prefixIcon: Icon(Icons.note)),
+                decoration: InputDecoration(labelText: context.tr('note_optional_label'), prefixIcon: const Icon(Icons.note)),
                 maxLines: 2,
               ),
               const SizedBox(height: 24),
@@ -126,7 +127,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                 child: _isSubmitting
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Disburse Funds', style: TextStyle(fontSize: 16)),
+                    : Text(context.tr('disburse_funds_action'), style: const TextStyle(fontSize: 16)),
               ),
             ],
           ),
