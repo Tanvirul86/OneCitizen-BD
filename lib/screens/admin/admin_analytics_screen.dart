@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -43,16 +44,16 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                     crossAxisSpacing: 12,
                     childAspectRatio: 1.3,
                     children: [
-                      _StatTile(label: 'Total Applications', value: '${analytics['total_applications'] ?? 0}', icon: Icons.assignment_rounded, color: AppTheme.primaryGreen),
-                      _StatTile(label: 'Approved', value: '${analytics['approved'] ?? 0}', icon: Icons.check_circle_rounded, color: AppTheme.successGreen),
-                      _StatTile(label: 'Rejected', value: '${analytics['rejected'] ?? 0}', icon: Icons.cancel_rounded, color: AppTheme.errorRed),
-                      _StatTile(label: 'Pending Review', value: '${analytics['pending_review'] ?? 0}', icon: Icons.hourglass_empty_rounded, color: AppTheme.warningAmber),
-                      _StatTile(label: 'Pending Documents', value: '${analytics['pending_document_reviews'] ?? 0}', icon: Icons.fact_check_rounded, color: AppTheme.infoBlue),
-                      _StatTile(label: 'Total Disbursed', value: '৳${analytics['total_disbursed'] ?? 0}', icon: Icons.payments_rounded, color: AppTheme.primaryGreen),
+                      _StatTile(label: context.tr('stat_total_applications'), value: '${analytics['total_applications'] ?? 0}', icon: Icons.assignment_rounded, color: AppTheme.primaryGreen),
+                      _StatTile(label: context.tr('stat_approved'), value: '${analytics['approved'] ?? 0}', icon: Icons.check_circle_rounded, color: AppTheme.successGreen),
+                      _StatTile(label: context.tr('stat_rejected'), value: '${analytics['rejected'] ?? 0}', icon: Icons.cancel_rounded, color: AppTheme.errorRed),
+                      _StatTile(label: context.tr('stat_pending_review'), value: '${analytics['pending_review'] ?? 0}', icon: Icons.hourglass_empty_rounded, color: AppTheme.warningAmber),
+                      _StatTile(label: context.tr('pending_documents'), value: '${analytics['pending_document_reviews'] ?? 0}', icon: Icons.fact_check_rounded, color: AppTheme.infoBlue),
+                      _StatTile(label: context.tr('stat_total_disbursed'), value: '৳${analytics['total_disbursed'] ?? 0}', icon: Icons.payments_rounded, color: AppTheme.primaryGreen),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text('Applications by Card Type', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                  Text(context.tr('applications_by_card_type'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                   const SizedBox(height: 12),
                   Card(
                     child: Column(

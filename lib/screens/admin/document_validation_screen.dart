@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
@@ -41,25 +42,25 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
     final formKey = GlobalKey<FormState>();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Mark Document Invalid'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.trs('mark_document_invalid_title')),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: remarkController,
-            decoration: const InputDecoration(labelText: 'Remark'),
+            decoration: InputDecoration(labelText: context.trs('remark_label')),
             maxLines: 2,
-            validator: (v) => (v == null || v.isEmpty) ? 'A remark is required' : null,
+            validator: (v) => (v == null || v.isEmpty) ? context.trs('remark_required') : null,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
           ElevatedButton(
             onPressed: () {
-              if (formKey.currentState!.validate()) Navigator.pop(context, true);
+              if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Mark Invalid'),
+            child: Text(context.trs('mark_invalid_action')),
           ),
         ],
       ),
@@ -87,7 +88,7 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
             : provider.documentsError != null
                 ? ErrorMessage(message: provider.documentsError!, onRetry: () => provider.loadPendingDocuments())
                 : provider.pendingDocuments.isEmpty
-                    ? const EmptyListMessage(message: 'No documents to review.', icon: Icons.fact_check_outlined)
+                    ? EmptyListMessage(message: context.tr('no_documents_to_review'), icon: Icons.fact_check_outlined)
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: provider.pendingDocuments.length,
@@ -124,8 +125,8 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('Citizen: ${doc.citizenName ?? doc.citizenId}', style: TextStyle(color: AppTheme.textSecondary)),
-                                  if (doc.remark != null) Text('Remark: ${doc.remark}', style: const TextStyle(fontStyle: FontStyle.italic)),
+                                  Text(context.trp('citizen_prefix', {'name': doc.citizenName ?? doc.citizenId}), style: TextStyle(color: AppTheme.textSecondary)),
+                                  if (doc.remark != null) Text(context.trp('remark_prefix', {'remark': doc.remark!}), style: const TextStyle(fontStyle: FontStyle.italic)),
                                   const SizedBox(height: 12),
                                   GestureDetector(
                                     onTap: () => _viewDocument(doc),
@@ -159,12 +160,12 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                               color: Colors.black.withValues(alpha: 0.55),
                                               borderRadius: BorderRadius.circular(20),
                                             ),
-                                            child: const Row(
+                                            child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.zoom_in, color: Colors.white, size: 16),
-                                                SizedBox(width: 4),
-                                                Text('View document', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                                const Icon(Icons.zoom_in, color: Colors.white, size: 16),
+                                                const SizedBox(width: 4),
+                                                Text(context.tr('view_document'), style: const TextStyle(color: Colors.white, fontSize: 12)),
                                               ],
                                             ),
                                           ),
@@ -179,7 +180,7 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                         child: OutlinedButton.icon(
                                           onPressed: () => _markInvalid(doc),
                                           icon: const Icon(Icons.close, size: 18),
-                                          label: const Text('Invalid'),
+                                          label: Text(context.tr('invalid_action')),
                                           style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
                                         ),
                                       ),
@@ -188,7 +189,7 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                         child: ElevatedButton.icon(
                                           onPressed: () => _markValid(doc),
                                           icon: const Icon(Icons.check, size: 18),
-                                          label: const Text('Valid'),
+                                          label: Text(context.tr('valid_action')),
                                           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                                         ),
                                       ),
@@ -247,7 +248,7 @@ class _DocumentViewerScreenState extends State<_DocumentViewerScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'Citizen: ${doc.citizenName ?? doc.citizenId}',
+                    context.trp('citizen_prefix', {'name': doc.citizenName ?? doc.citizenId}),
                     style: const TextStyle(color: Colors.white70),
                   ),
                 ),
@@ -283,7 +284,7 @@ class _DocumentViewerScreenState extends State<_DocumentViewerScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _submitting ? null : () => _handle(widget.onMarkInvalid),
                       icon: const Icon(Icons.close, size: 18),
-                      label: const Text('Invalid'),
+                      label: Text(context.tr('invalid_action')),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
@@ -295,7 +296,7 @@ class _DocumentViewerScreenState extends State<_DocumentViewerScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _submitting ? null : () => _handle(widget.onMarkValid),
                       icon: const Icon(Icons.check, size: 18),
-                      label: const Text('Valid'),
+                      label: Text(context.tr('valid_action')),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     ),
                   ),

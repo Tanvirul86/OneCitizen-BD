@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
@@ -44,7 +45,7 @@ class _ApprovedCardsScreenState extends State<ApprovedCardsScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
-              decoration: const InputDecoration(labelText: 'Search by citizen name', prefixIcon: Icon(Icons.search)),
+              decoration: InputDecoration(labelText: context.tr('search_by_citizen_name'), prefixIcon: const Icon(Icons.search)),
               onChanged: (v) => setState(() => _search = v),
             ),
           ),
@@ -52,7 +53,7 @@ class _ApprovedCardsScreenState extends State<ApprovedCardsScreen> {
             child: provider.isLoadingApplications
                 ? const Center(child: CircularProgressIndicator())
                 : approved.isEmpty
-                    ? const EmptyListMessage(message: 'No approved cards yet.', icon: Icons.credit_card_off)
+                    ? EmptyListMessage(message: context.tr('no_approved_cards'), icon: Icons.credit_card_off)
                     : ListView(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         children: byCardType.entries.map((entry) {
@@ -75,7 +76,10 @@ class _ApprovedCardsScreenState extends State<ApprovedCardsScreen> {
                                       child: const Icon(Icons.check_rounded, color: AppTheme.successGreen),
                                     ),
                                     title: Text(app.applicantName ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.w700)),
-                                    subtitle: Text('NID: ${app.applicantNid ?? '-'} • Approved: ${DateFormat('dd MMM yyyy').format(app.updatedAt ?? app.submittedAt)}'),
+                                    subtitle: Text(context.trp('nid_approved_date', {
+                                      'nid': app.applicantNid ?? '-',
+                                      'date': DateFormat('dd MMM yyyy').format(app.updatedAt ?? app.submittedAt),
+                                    })),
                                   ),
                                 ),
                               ),

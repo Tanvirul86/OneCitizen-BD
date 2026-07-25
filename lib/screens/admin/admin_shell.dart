@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/widgets/admin_quick_search.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
 
 class AdminShell extends StatelessWidget {
@@ -13,14 +15,14 @@ class AdminShell extends StatelessWidget {
   final Widget child;
 
   static const _items = [
-    (path: '/admin', icon: Icons.dashboard_rounded, label: 'Dashboard'),
-    (path: '/admin/applications', icon: Icons.assignment_rounded, label: 'New Applications'),
-    (path: '/admin/documents', icon: Icons.fact_check_rounded, label: 'Document Validation'),
-    (path: '/admin/approved-cards', icon: Icons.credit_card_rounded, label: 'Approved Cards'),
-    (path: '/admin/distributions/new', icon: Icons.payments_rounded, label: 'Fund Distribution'),
-    (path: '/admin/distributions', icon: Icons.receipt_long_rounded, label: 'Distribution Records'),
-    (path: '/admin/citizens', icon: Icons.people_rounded, label: 'Citizen Accounts'),
-    (path: '/admin/analytics', icon: Icons.bar_chart_rounded, label: 'Analytics'),
+    (path: '/admin', icon: Icons.dashboard_rounded, labelKey: 'admin_nav_dashboard'),
+    (path: '/admin/applications', icon: Icons.assignment_rounded, labelKey: 'admin_nav_new_applications'),
+    (path: '/admin/documents', icon: Icons.fact_check_rounded, labelKey: 'admin_nav_document_validation'),
+    (path: '/admin/approved-cards', icon: Icons.credit_card_rounded, labelKey: 'admin_nav_approved_cards'),
+    (path: '/admin/distributions/new', icon: Icons.payments_rounded, labelKey: 'admin_nav_fund_distribution'),
+    (path: '/admin/distributions', icon: Icons.receipt_long_rounded, labelKey: 'admin_nav_distribution_records'),
+    (path: '/admin/citizens', icon: Icons.people_rounded, labelKey: 'admin_nav_citizen_accounts'),
+    (path: '/admin/analytics', icon: Icons.bar_chart_rounded, labelKey: 'admin_nav_analytics'),
   ];
 
   @override
@@ -29,10 +31,10 @@ class AdminShell extends StatelessWidget {
     final user = context.watch<AuthProvider>().user;
     final notifProvider = context.watch<AdminNotificationProvider>();
 
-    final currentTitle = _items.firstWhere(
+    final currentTitle = context.tr(_items.firstWhere(
       (item) => item.path == location,
       orElse: () => _items.first,
-    ).label;
+    ).labelKey);
 
     return PopScope(
       canPop: location == '/admin',
@@ -49,12 +51,14 @@ class AdminShell extends StatelessWidget {
           ],
         ),
         actions: [
+          const LanguageToggle(onDark: true),
+          const SizedBox(width: 4),
           const AdminQuickSearchButton(),
           Stack(
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
-                tooltip: 'Notifications',
+                tooltip: context.tr('notifications_title'),
                 onPressed: () => context.go('/admin/notifications'),
               ),
               if (notifProvider.unreadCount > 0)
@@ -83,7 +87,7 @@ class AdminShell extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
+            tooltip: context.tr('logout'),
             onPressed: () async {
               await context.read<AuthProvider>().logout();
               if (context.mounted) context.go('/login');
@@ -114,7 +118,7 @@ class AdminShell extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName : 'Administrator',
+                    user?.fullName.isNotEmpty == true ? user!.fullName : context.tr('administrator'),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 13,
@@ -127,9 +131,9 @@ class AdminShell extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Admin',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                    child: Text(
+                      context.tr('admin_badge'),
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -143,7 +147,7 @@ class AdminShell extends StatelessWidget {
                   for (final item in _items) ...[
                     _DrawerItem(
                       icon: item.icon,
-                      label: item.label,
+                      label: context.tr(item.labelKey),
                       selected: location == item.path,
                       onTap: () {
                         Navigator.pop(context);
@@ -158,7 +162,7 @@ class AdminShell extends StatelessWidget {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.logout_rounded, color: AppTheme.accentRed),
-              title: const Text('Logout', style: TextStyle(color: AppTheme.accentRed)),
+              title: Text(context.tr('logout'), style: const TextStyle(color: AppTheme.accentRed)),
               onTap: () async {
                 Navigator.pop(context);
                 await context.read<AuthProvider>().logout();
