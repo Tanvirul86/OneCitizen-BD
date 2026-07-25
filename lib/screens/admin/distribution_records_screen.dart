@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
@@ -38,10 +39,10 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: SegmentedButton<DistributionMethod?>(
-              segments: const [
-                ButtonSegment(value: null, label: Text('All')),
-                ButtonSegment(value: DistributionMethod.online, label: Text('Online')),
-                ButtonSegment(value: DistributionMethod.offline, label: Text('Offline')),
+              segments: [
+                ButtonSegment(value: null, label: Text(context.tr('filter_all'))),
+                ButtonSegment(value: DistributionMethod.online, label: Text(context.tr('online'))),
+                ButtonSegment(value: DistributionMethod.offline, label: Text(context.tr('offline'))),
               ],
               selected: {_methodFilter},
               onSelectionChanged: (s) => setState(() => _methodFilter = s.first),
@@ -55,7 +56,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                   : provider.distributionsError != null
                       ? ErrorMessage(message: provider.distributionsError!, onRetry: () => provider.loadDistributions())
                       : records.isEmpty
-                          ? const EmptyListMessage(message: 'No distribution records.', icon: Icons.receipt_long)
+                          ? EmptyListMessage(message: context.tr('no_distribution_records'), icon: Icons.receipt_long)
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: records.length,
@@ -73,7 +74,8 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                                     ),
                                     title: Text('${dist.citizenName ?? 'Citizen'} — ৳${dist.amount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w700)),
                                     subtitle: Text(
-                                      '${dist.cardTypeName ?? ''} • ${distributionMethodToString(dist.method).toUpperCase()} • '
+                                      '${dist.cardTypeName ?? ''} • '
+                                      '${(dist.method == DistributionMethod.online ? context.tr('online') : context.tr('offline')).toUpperCase()} • '
                                       '${DateFormat('dd MMM yyyy').format(dist.distributionDate)}',
                                     ),
                                   ),

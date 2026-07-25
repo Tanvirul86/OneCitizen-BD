@@ -210,6 +210,189 @@ class AppStrings {
       AppLanguage.en: 'Already have an account? ',
       AppLanguage.bn: 'অ্যাকাউন্ট আছে? ',
     },
+
+    // ── Admin shell (nav + app bar) ──────────────────────────────────────
+    'admin_nav_dashboard': {AppLanguage.en: 'Dashboard', AppLanguage.bn: 'ড্যাশবোর্ড'},
+    'admin_nav_new_applications': {AppLanguage.en: 'New Applications', AppLanguage.bn: 'নতুন আবেদন'},
+    'admin_nav_document_validation': {AppLanguage.en: 'Document Validation', AppLanguage.bn: 'ডকুমেন্ট যাচাই'},
+    'admin_nav_approved_cards': {AppLanguage.en: 'Approved Cards', AppLanguage.bn: 'অনুমোদিত কার্ড'},
+    'admin_nav_fund_distribution': {AppLanguage.en: 'Fund Distribution', AppLanguage.bn: 'তহবিল বিতরণ'},
+    'admin_nav_distribution_records': {AppLanguage.en: 'Distribution Records', AppLanguage.bn: 'বিতরণ রেকর্ড'},
+    'admin_nav_citizen_accounts': {AppLanguage.en: 'Citizen Accounts', AppLanguage.bn: 'নাগরিক অ্যাকাউন্ট'},
+    'admin_nav_analytics': {AppLanguage.en: 'Analytics', AppLanguage.bn: 'অ্যানালিটিক্স'},
+    'admin_badge': {AppLanguage.en: 'Admin', AppLanguage.bn: 'অ্যাডমিন'},
+    'logout': {AppLanguage.en: 'Logout', AppLanguage.bn: 'লগ আউট'},
+    'administrator': {AppLanguage.en: 'Administrator', AppLanguage.bn: 'প্রশাসক'},
+
+    // ── Admin dashboard ───────────────────────────────────────────────────
+    'greeting_morning': {AppLanguage.en: 'Good morning 👋', AppLanguage.bn: 'শুভ সকাল 👋'},
+    'greeting_afternoon': {AppLanguage.en: 'Good afternoon 👋', AppLanguage.bn: 'শুভ বিকাল 👋'},
+    'greeting_evening': {AppLanguage.en: 'Good evening 👋', AppLanguage.bn: 'শুভ সন্ধ্যা 👋'},
+    'hero_pending_applications': {AppLanguage.en: 'Pending Applications', AppLanguage.bn: 'অপেক্ষমাণ আবেদন'},
+    'hero_docs_to_review': {AppLanguage.en: 'Docs to Review', AppLanguage.bn: 'পর্যালোচনার জন্য ডকুমেন্ট'},
+    'stat_total_applications': {AppLanguage.en: 'Total Applications', AppLanguage.bn: 'মোট আবেদন'},
+    'stat_approved': {AppLanguage.en: 'Approved', AppLanguage.bn: 'অনুমোদিত'},
+    'stat_pending_review': {AppLanguage.en: 'Pending Review', AppLanguage.bn: 'পর্যালোচনাধীন'},
+    'stat_total_disbursed': {AppLanguage.en: 'Total Disbursed', AppLanguage.bn: 'মোট বিতরণকৃত'},
+    'stat_rejected': {AppLanguage.en: 'Rejected', AppLanguage.bn: 'প্রত্যাখ্যাত'},
+    'quick_actions_title': {AppLanguage.en: 'Quick Actions', AppLanguage.bn: 'দ্রুত পদক্ষেপ'},
+    'action_review_decide': {AppLanguage.en: 'Review & decide', AppLanguage.bn: 'পর্যালোচনা ও সিদ্ধান্ত নিন'},
+    'action_verify_uploads': {AppLanguage.en: 'Verify uploads', AppLanguage.bn: 'আপলোড যাচাই করুন'},
+    'action_view_issued_cards': {AppLanguage.en: 'View issued cards', AppLanguage.bn: 'ইস্যুকৃত কার্ড দেখুন'},
+    'action_disburse_funds': {AppLanguage.en: 'Disburse funds', AppLanguage.bn: 'তহবিল বিতরণ করুন'},
+    'action_disbursement_history': {AppLanguage.en: 'Disbursement history', AppLanguage.bn: 'বিতরণের ইতিহাস'},
+    'action_manage_citizens': {AppLanguage.en: 'Manage citizens', AppLanguage.bn: 'নাগরিক পরিচালনা করুন'},
+    'action_program_insights': {AppLanguage.en: 'Program insights', AppLanguage.bn: 'প্রোগ্রাম বিশ্লেষণ'},
+
+    // ── Citizen accounts (admin) ─────────────────────────────────────────
+    'search_by_name_nid': {AppLanguage.en: 'Search by name or NID', AppLanguage.bn: 'নাম বা এনআইডি দিয়ে খুঁজুন'},
+    'no_citizen_accounts': {
+      AppLanguage.en: 'No citizen accounts found.',
+      AppLanguage.bn: 'কোনো নাগরিক অ্যাকাউন্ট পাওয়া যায়নি।',
+    },
+    'deactivate_account_title': {AppLanguage.en: 'Deactivate Account', AppLanguage.bn: 'অ্যাকাউন্ট নিষ্ক্রিয় করুন'},
+    'freeze_account_title': {AppLanguage.en: 'Freeze Account', AppLanguage.bn: 'অ্যাকাউন্ট ফ্রিজ করুন'},
+    'activate_account_title': {AppLanguage.en: 'Activate Account', AppLanguage.bn: 'অ্যাকাউন্ট সক্রিয় করুন'},
+    'confirm_deactivate_body': {
+      AppLanguage.en: "Deactivate {name}'s account? They will no longer be able to log in.",
+      AppLanguage.bn: '{name}-এর অ্যাকাউন্ট নিষ্ক্রিয় করবেন? তিনি আর লগইন করতে পারবেন না।',
+    },
+    'confirm_freeze_body': {
+      AppLanguage.en: "Freeze {name}'s account? They will be temporarily blocked until you unfreeze it.",
+      AppLanguage.bn: '{name}-এর অ্যাকাউন্ট ফ্রিজ করবেন? আনফ্রিজ না করা পর্যন্ত তিনি সাময়িকভাবে ব্লক থাকবেন।',
+    },
+    'confirm_activate_body': {
+      AppLanguage.en: "Activate {name}'s account? They will be able to log in again.",
+      AppLanguage.bn: '{name}-এর অ্যাকাউন্ট সক্রিয় করবেন? তিনি আবার লগইন করতে পারবেন।',
+    },
+    'cancel': {AppLanguage.en: 'Cancel', AppLanguage.bn: 'বাতিল'},
+    'freeze_action': {AppLanguage.en: 'Freeze', AppLanguage.bn: 'ফ্রিজ'},
+    'unfreeze_action': {AppLanguage.en: 'Unfreeze', AppLanguage.bn: 'আনফ্রিজ'},
+    'deactivate_action': {AppLanguage.en: 'Deactivate', AppLanguage.bn: 'নিষ্ক্রিয় করুন'},
+    'activate_action': {AppLanguage.en: 'Activate', AppLanguage.bn: 'সক্রিয় করুন'},
+    'status_inactive': {AppLanguage.en: 'Inactive', AppLanguage.bn: 'নিষ্ক্রিয়'},
+    'status_frozen': {AppLanguage.en: 'Frozen', AppLanguage.bn: 'ফ্রিজড'},
+
+    // ── New applications (admin) ─────────────────────────────────────────
+    'showing_card_type_applications': {
+      AppLanguage.en: 'Showing "{type}" applications',
+      AppLanguage.bn: '"{type}" আবেদন দেখানো হচ্ছে',
+    },
+    'showing_scoped_applications': {
+      AppLanguage.en: 'Showing "{scope}" applications',
+      AppLanguage.bn: '"{scope}" আবেদন দেখানো হচ্ছে',
+    },
+    'filtered_label': {AppLanguage.en: 'filtered', AppLanguage.bn: 'ফিল্টার করা'},
+    'clear': {AppLanguage.en: 'Clear', AppLanguage.bn: 'মুছুন'},
+    'filter_all': {AppLanguage.en: 'All', AppLanguage.bn: 'সব'},
+    'no_applications_found': {AppLanguage.en: 'No applications found.', AppLanguage.bn: 'কোনো আবেদন পাওয়া যায়নি।'},
+    'status_submitted': {AppLanguage.en: 'Submitted', AppLanguage.bn: 'জমা দেওয়া হয়েছে'},
+    'status_under_review': {AppLanguage.en: 'Under Review', AppLanguage.bn: 'পর্যালোচনাধীন'},
+
+    // ── Document validation ──────────────────────────────────────────────
+    'mark_document_invalid_title': {
+      AppLanguage.en: 'Mark Document Invalid',
+      AppLanguage.bn: 'ডকুমেন্ট অবৈধ চিহ্নিত করুন',
+    },
+    'remark_label': {AppLanguage.en: 'Remark', AppLanguage.bn: 'মন্তব্য'},
+    'remark_required': {AppLanguage.en: 'A remark is required', AppLanguage.bn: 'একটি মন্তব্য আবশ্যক'},
+    'mark_invalid_action': {AppLanguage.en: 'Mark Invalid', AppLanguage.bn: 'অবৈধ চিহ্নিত করুন'},
+    'no_documents_to_review': {
+      AppLanguage.en: 'No documents to review.',
+      AppLanguage.bn: 'পর্যালোচনার জন্য কোনো ডকুমেন্ট নেই।',
+    },
+    'citizen_prefix': {AppLanguage.en: 'Citizen: {name}', AppLanguage.bn: 'নাগরিক: {name}'},
+    'remark_prefix': {AppLanguage.en: 'Remark: {remark}', AppLanguage.bn: 'মন্তব্য: {remark}'},
+    'view_document': {AppLanguage.en: 'View document', AppLanguage.bn: 'ডকুমেন্ট দেখুন'},
+    'invalid_action': {AppLanguage.en: 'Invalid', AppLanguage.bn: 'অবৈধ'},
+    'valid_action': {AppLanguage.en: 'Valid', AppLanguage.bn: 'বৈধ'},
+
+    // ── Approved cards ────────────────────────────────────────────────────
+    'search_by_citizen_name': {AppLanguage.en: 'Search by citizen name', AppLanguage.bn: 'নাগরিকের নাম দিয়ে খুঁজুন'},
+    'no_approved_cards': {AppLanguage.en: 'No approved cards yet.', AppLanguage.bn: 'এখনো কোনো অনুমোদিত কার্ড নেই।'},
+    'nid_approved_date': {
+      AppLanguage.en: 'NID: {nid} • Approved: {date}',
+      AppLanguage.bn: 'এনআইডি: {nid} • অনুমোদিত: {date}',
+    },
+
+    // ── Fund distribution ─────────────────────────────────────────────────
+    'select_card_holder_error': {
+      AppLanguage.en: 'Please select an approved card holder',
+      AppLanguage.bn: 'একজন অনুমোদিত কার্ডধারী নির্বাচন করুন',
+    },
+    'approved_card_holder_label': {AppLanguage.en: 'Approved Card Holder', AppLanguage.bn: 'অনুমোদিত কার্ডধারী'},
+    'online_method_full': {
+      AppLanguage.en: 'Online (bKash/Nagad/Bank)',
+      AppLanguage.bn: 'অনলাইন (বিকাশ/নগদ/ব্যাংক)',
+    },
+    'offline': {AppLanguage.en: 'Offline', AppLanguage.bn: 'অফলাইন'},
+    'online': {AppLanguage.en: 'Online', AppLanguage.bn: 'অনলাইন'},
+    'amount_bdt_label': {AppLanguage.en: 'Amount (BDT)', AppLanguage.bn: 'পরিমাণ (টাকা)'},
+    'amount_invalid': {AppLanguage.en: 'Enter a valid amount', AppLanguage.bn: 'সঠিক পরিমাণ লিখুন'},
+    'note_optional_label': {AppLanguage.en: 'Note (optional)', AppLanguage.bn: 'মন্তব্য (ঐচ্ছিক)'},
+    'disburse_funds_action': {AppLanguage.en: 'Disburse Funds', AppLanguage.bn: 'তহবিল বিতরণ করুন'},
+    'funds_disbursed_success': {
+      AppLanguage.en: 'Funds disbursed successfully',
+      AppLanguage.bn: 'তহবিল সফলভাবে বিতরণ হয়েছে',
+    },
+    'disburse_failed': {AppLanguage.en: 'Failed to disburse funds', AppLanguage.bn: 'তহবিল বিতরণ ব্যর্থ হয়েছে'},
+
+    // ── Distribution records ─────────────────────────────────────────────
+    'no_distribution_records': {AppLanguage.en: 'No distribution records.', AppLanguage.bn: 'কোনো বিতরণ রেকর্ড নেই।'},
+
+    // ── Analytics ─────────────────────────────────────────────────────────
+    'pending_documents': {AppLanguage.en: 'Pending Documents', AppLanguage.bn: 'অপেক্ষমাণ ডকুমেন্ট'},
+    'applications_by_card_type': {
+      AppLanguage.en: 'Applications by Card Type',
+      AppLanguage.bn: 'কার্ডের ধরন অনুযায়ী আবেদন',
+    },
+
+    // ── Notifications (shared citizen/admin) ─────────────────────────────
+    'notifications_title': {AppLanguage.en: 'Notifications', AppLanguage.bn: 'নোটিফিকেশন'},
+    'no_notifications_yet': {AppLanguage.en: 'No notifications yet.', AppLanguage.bn: 'এখনো কোনো নোটিফিকেশন নেই।'},
+
+    // ── Admin quick search ────────────────────────────────────────────────
+    'search_by_nid_or_app_id': {
+      AppLanguage.en: 'Search by NID or Application ID',
+      AppLanguage.bn: 'এনআইডি বা আবেদন আইডি দিয়ে খুঁজুন',
+    },
+    'search_applications_title': {AppLanguage.en: 'Search Applications', AppLanguage.bn: 'আবেদন খুঁজুন'},
+    'search_hint_nid_or_id': {
+      AppLanguage.en: 'Enter NID or Application ID',
+      AppLanguage.bn: 'এনআইডি বা আবেদন আইডি লিখুন',
+    },
+    'search_prompt': {
+      AppLanguage.en: 'Type an NID or Application ID to search.',
+      AppLanguage.bn: 'খুঁজতে একটি এনআইডি বা আবেদন আইডি লিখুন।',
+    },
+    'no_matching_applications': {
+      AppLanguage.en: 'No matching applications found.',
+      AppLanguage.bn: 'কোনো মিলযুক্ত আবেদন পাওয়া যায়নি।',
+    },
+    'open_application_id_exact': {
+      AppLanguage.en: 'Open Application ID exactly as typed',
+      AppLanguage.bn: 'ঠিক যেমন লিখেছেন সেভাবে আবেদন আইডি খুলুন',
+    },
+
+    // ── Application review ────────────────────────────────────────────────
+    'application_approved': {AppLanguage.en: 'Application approved', AppLanguage.bn: 'আবেদন অনুমোদিত হয়েছে'},
+    'application_rejected': {AppLanguage.en: 'Application rejected', AppLanguage.bn: 'আবেদন প্রত্যাখ্যান করা হয়েছে'},
+    'failed': {AppLanguage.en: 'Failed', AppLanguage.bn: 'ব্যর্থ হয়েছে'},
+    'reject_application_title': {AppLanguage.en: 'Reject Application', AppLanguage.bn: 'আবেদন প্রত্যাখ্যান করুন'},
+    'reason_label': {AppLanguage.en: 'Reason', AppLanguage.bn: 'কারণ'},
+    'reason_required': {AppLanguage.en: 'A reason is required', AppLanguage.bn: 'একটি কারণ আবশ্যক'},
+    'reject_action': {AppLanguage.en: 'Reject', AppLanguage.bn: 'প্রত্যাখ্যান করুন'},
+    'application_review_title': {AppLanguage.en: 'Application Review', AppLanguage.bn: 'আবেদন পর্যালোচনা'},
+    'application_not_found': {AppLanguage.en: 'Application not found.', AppLanguage.bn: 'আবেদন পাওয়া যায়নি।'},
+    'applicant_label': {AppLanguage.en: 'Applicant', AppLanguage.bn: 'আবেদনকারী'},
+    'nid_short_label': {AppLanguage.en: 'NID', AppLanguage.bn: 'এনআইডি'},
+    'email_short_label': {AppLanguage.en: 'Email', AppLanguage.bn: 'ইমেইল'},
+    'submitted_label': {AppLanguage.en: 'Submitted', AppLanguage.bn: 'জমা দেওয়া হয়েছে'},
+    'review_citizen_documents': {
+      AppLanguage.en: 'Review Citizen Documents',
+      AppLanguage.bn: 'নাগরিকের ডকুমেন্ট পর্যালোচনা করুন',
+    },
+    'approve_action': {AppLanguage.en: 'Approve', AppLanguage.bn: 'অনুমোদন করুন'},
   };
 
   static String of(String key, AppLanguage language) {
@@ -229,4 +412,23 @@ extension AppLocalization on BuildContext {
   /// handlers, or anywhere outside build() (e.g. a SnackBar fallback
   /// message built inside an onPressed handler).
   String trs(String key) => AppStrings.of(key, read<LocaleProvider>().language);
+
+  /// [tr] with `{placeholder}` substitution, e.g.
+  /// `context.trp('confirm_deactivate_body', {'name': citizen.fullName})`.
+  String trp(String key, Map<String, String> params) {
+    var value = tr(key);
+    for (final entry in params.entries) {
+      value = value.replaceAll('{${entry.key}}', entry.value);
+    }
+    return value;
+  }
+
+  /// Non-reactive version of [trp], safe outside build().
+  String trsp(String key, Map<String, String> params) {
+    var value = trs(key);
+    for (final entry in params.entries) {
+      value = value.replaceAll('{${entry.key}}', entry.value);
+    }
+    return value;
+  }
 }
