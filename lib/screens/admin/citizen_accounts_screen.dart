@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:provider/provider.dart';
@@ -23,15 +24,15 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
   Future<void> _confirmDeactivate(String id, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Deactivate Account'),
-        content: Text('Deactivate $name\'s account? They will no longer be able to log in.'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.trs('deactivate_account_title')),
+        content: Text(context.trsp('confirm_deactivate_body', {'name': name})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Deactivate'),
+            child: Text(context.trs('deactivate_action')),
           ),
         ],
       ),
@@ -44,15 +45,15 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
   Future<void> _confirmFreeze(String id, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Freeze Account'),
-        content: Text('Freeze $name\'s account? They will be temporarily blocked until you unfreeze it.'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.trs('freeze_account_title')),
+        content: Text(context.trsp('confirm_freeze_body', {'name': name})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: const Text('Freeze'),
+            child: Text(context.trs('freeze_action')),
           ),
         ],
       ),
@@ -69,15 +70,15 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
   Future<void> _confirmActivate(String id, String name) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Activate Account'),
-        content: Text('Activate $name\'s account? They will be able to log in again.'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.trs('activate_account_title')),
+        content: Text(context.trsp('confirm_activate_body', {'name': name})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
-            child: const Text('Activate'),
+            child: Text(context.trs('activate_action')),
           ),
         ],
       ),
@@ -98,9 +99,9 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search by name or NID',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: context.tr('search_by_name_nid'),
+                prefixIcon: const Icon(Icons.search),
               ),
               onSubmitted: (v) => context.read<AdminProvider>().loadCitizens(search: v),
             ),
@@ -113,7 +114,7 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
                   : provider.citizensError != null
                       ? ErrorMessage(message: provider.citizensError!, onRetry: () => provider.loadCitizens())
                       : provider.citizens.isEmpty
-                          ? const EmptyListMessage(message: 'No citizen accounts found.', icon: Icons.people_outline)
+                          ? EmptyListMessage(message: context.tr('no_citizen_accounts'), icon: Icons.people_outline)
                           : ListView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                               itemCount: provider.citizens.length,
@@ -146,25 +147,25 @@ class _CitizenAccountsScreenState extends State<CitizenAccountsScreen> {
                                             _confirmDeactivate(citizen.id, citizen.fullName);
                                         }
                                       },
-                                      itemBuilder: (context) => !citizen.isActive
-                                          ? [const PopupMenuItem(value: 'activate', child: Text('Activate'))]
+                                      itemBuilder: (menuContext) => !citizen.isActive
+                                          ? [PopupMenuItem(value: 'activate', child: Text(context.trs('activate_action')))]
                                           : [
                                               if (citizen.isFrozen)
-                                                const PopupMenuItem(value: 'unfreeze', child: Text('Unfreeze'))
+                                                PopupMenuItem(value: 'unfreeze', child: Text(context.trs('unfreeze_action')))
                                               else
-                                                const PopupMenuItem(value: 'freeze', child: Text('Freeze')),
-                                              const PopupMenuItem(
+                                                PopupMenuItem(value: 'freeze', child: Text(context.trs('freeze_action'))),
+                                              PopupMenuItem(
                                                 value: 'deactivate',
-                                                child: Text('Deactivate', style: TextStyle(color: Colors.red)),
+                                                child: Text(context.trs('deactivate_action'), style: const TextStyle(color: Colors.red)),
                                               ),
                                             ],
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (!citizen.isActive)
-                                            const _StatusBadge(label: 'Inactive', color: Colors.red)
+                                            _StatusBadge(label: context.trs('status_inactive'), color: Colors.red)
                                           else if (citizen.isFrozen)
-                                            const _StatusBadge(label: 'Frozen', color: Colors.blue),
+                                            _StatusBadge(label: context.trs('status_frozen'), color: Colors.blue),
                                           const Icon(Icons.more_vert, color: AppTheme.textSecondary),
                                         ],
                                       ),

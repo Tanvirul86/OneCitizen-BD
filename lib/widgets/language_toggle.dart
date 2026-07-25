@@ -25,16 +25,9 @@ class LanguageToggle extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: foreground.withValues(alpha: 0.35)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.translate_rounded, size: 14, color: foreground),
-            const SizedBox(width: 6),
-            Text(
-              isBangla ? 'English' : 'বাংলা',
-              style: TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12.5),
-            ),
-          ],
+        child: Text(
+          isBangla ? 'English' : 'বাংলা',
+          style: TextStyle(color: foreground, fontWeight: FontWeight.w700, fontSize: 12.5),
         ),
       ),
     );

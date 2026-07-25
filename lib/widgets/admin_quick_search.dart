@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart' show statusColor;
@@ -17,7 +18,7 @@ class AdminQuickSearchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.search_rounded),
-      tooltip: 'Search by NID or Application ID',
+      tooltip: context.tr('search_by_nid_or_app_id'),
       onPressed: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -88,10 +89,10 @@ class _AdminSearchSheetState extends State<_AdminSearchSheet> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Search Applications',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                        context.tr('search_applications_title'),
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                       ),
                     ),
                     IconButton(
@@ -108,7 +109,7 @@ class _AdminSearchSheetState extends State<_AdminSearchSheet> {
                   autofocus: true,
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
-                    hintText: 'Enter NID or Application ID',
+                    hintText: context.tr('search_hint_nid_or_id'),
                     prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon: _query.isEmpty
                         ? null
@@ -140,13 +141,13 @@ class _AdminSearchSheetState extends State<_AdminSearchSheet> {
 
   Widget _buildBody(AdminProvider provider, String query, List<Application> results) {
     if (query.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Text(
-            'Type an NID or Application ID to search.',
+            context.tr('search_prompt'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
           ),
         ),
       );
@@ -165,16 +166,16 @@ class _AdminSearchSheetState extends State<_AdminSearchSheet> {
             children: [
               const Icon(Icons.search_off_rounded, color: AppTheme.textSecondary, size: 36),
               const SizedBox(height: 12),
-              const Text(
-                'No matching applications found.',
+              Text(
+                context.tr('no_matching_applications'),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 onPressed: () => _openApplication(query),
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                label: const Text('Open Application ID exactly as typed'),
+                label: Text(context.tr('open_application_id_exact')),
               ),
             ],
           ),
