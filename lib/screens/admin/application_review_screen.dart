@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart' show statusColor;
 import 'package:onecitizen/widgets/status_badge.dart';
@@ -34,7 +35,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'Application approved' : provider.applicationsError ?? 'Failed'), backgroundColor: success ? Colors.green : Colors.red),
+      SnackBar(content: Text(success ? context.trs('application_approved') : provider.applicationsError ?? context.trs('failed')), backgroundColor: success ? Colors.green : Colors.red),
     );
   }
 
@@ -43,25 +44,25 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     final formKey = GlobalKey<FormState>();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reject Application'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.trs('reject_application_title')),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: reasonController,
-            decoration: const InputDecoration(labelText: 'Reason'),
+            decoration: InputDecoration(labelText: context.trs('reason_label')),
             maxLines: 3,
-            validator: (v) => (v == null || v.isEmpty) ? 'A reason is required' : null,
+            validator: (v) => (v == null || v.isEmpty) ? context.trs('reason_required') : null,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
           ElevatedButton(
             onPressed: () {
-              if (formKey.currentState!.validate()) Navigator.pop(context, true);
+              if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Reject'),
+            child: Text(context.trs('reject_action')),
           ),
         ],
       ),
@@ -74,7 +75,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'Application rejected' : provider.applicationsError ?? 'Failed'), backgroundColor: success ? Colors.green : Colors.red),
+      SnackBar(content: Text(success ? context.trs('application_rejected') : provider.applicationsError ?? context.trs('failed')), backgroundColor: success ? Colors.green : Colors.red),
     );
   }
 
@@ -88,8 +89,8 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     }
     if (app == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Application Review')),
-        body: Center(child: Text(provider.applicationsError ?? 'Application not found.')),
+        appBar: AppBar(title: Text(context.tr('application_review_title'))),
+        body: Center(child: Text(provider.applicationsError ?? context.tr('application_not_found'))),
       );
     }
 
@@ -98,7 +99,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     final color = statusColor(app.status);
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('Application Review')),
+      appBar: AppBar(title: Text(context.tr('application_review_title'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -131,13 +132,13 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                     ],
                   ),
                   const Divider(height: 28),
-                  _DetailRow(icon: Icons.person_outline_rounded, label: 'Applicant', value: app.applicantName ?? '-'),
+                  _DetailRow(icon: Icons.person_outline_rounded, label: context.tr('applicant_label'), value: app.applicantName ?? '-'),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.badge_outlined, label: 'NID', value: app.applicantNid ?? '-'),
+                  _DetailRow(icon: Icons.badge_outlined, label: context.tr('nid_short_label'), value: app.applicantNid ?? '-'),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.email_outlined, label: 'Email', value: app.applicantEmail ?? '-'),
+                  _DetailRow(icon: Icons.email_outlined, label: context.tr('email_short_label'), value: app.applicantEmail ?? '-'),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.event_outlined, label: 'Submitted', value: DateFormat('dd MMM yyyy').format(app.submittedAt)),
+                  _DetailRow(icon: Icons.event_outlined, label: context.tr('submitted_label'), value: DateFormat('dd MMM yyyy').format(app.submittedAt)),
                   if (app.adminRemark != null) ...[
                     const SizedBox(height: 14),
                     Container(
@@ -164,7 +165,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
             OutlinedButton.icon(
               onPressed: () => context.push('/admin/documents'),
               icon: const Icon(Icons.fact_check_rounded),
-              label: const Text('Review Citizen Documents'),
+              label: Text(context.tr('review_citizen_documents')),
             ),
             if (isPending) ...[
               const SizedBox(height: 24),
@@ -174,7 +175,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _isSubmitting ? null : _reject,
                       icon: const Icon(Icons.close_rounded),
-                      label: const Text('Reject'),
+                      label: Text(context.tr('reject_action')),
                       style: OutlinedButton.styleFrom(foregroundColor: AppTheme.errorRed, side: const BorderSide(color: AppTheme.errorRed)),
                     ),
                   ),
@@ -183,7 +184,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _isSubmitting ? null : _approve,
                       icon: const Icon(Icons.check_rounded),
-                      label: const Text('Approve'),
+                      label: Text(context.tr('approve_action')),
                       style: ElevatedButton.styleFrom(backgroundColor: AppTheme.successGreen),
                     ),
                   ),
