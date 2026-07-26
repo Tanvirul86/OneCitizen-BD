@@ -67,36 +67,26 @@ void main() {
 
     debugPrint('--- STEP: citizen dashboard ---');
     expect(find.text('OneCitizen BD'), findsOneWidget);
-    expect(find.text('Check Eligibility'), findsOneWidget);
     expect(find.text('Apply for Card'), findsOneWidget);
-    expect(find.text('Upload Documents'), findsOneWidget);
-    expect(find.text('Distribution History'), findsOneWidget);
-
-    debugPrint('--- STEP: eligibility ---');
-    await tester.tap(find.text('Check Eligibility'));
-    await settle(tester);
-    expect(find.text('Farmer Card'), findsWidgets);
-    expect(find.text('Family Card'), findsWidgets);
-    expect(find.text('Education Card'), findsWidgets);
-    await tester.tap(find.byType(BackButton).first);
-    await settle(tester);
-
-    debugPrint('--- STEP: documents ---');
-    await tester.tap(find.text('Upload Documents'));
-    await settle(tester);
-    expect(find.text('Document Upload'), findsOneWidget);
-    await tester.tap(find.byType(BackButton).first);
-    await settle(tester);
+    expect(find.text('Check Eligibility'), findsNothing);
+    expect(find.text('Upload Docs'), findsNothing);
 
     debugPrint('--- STEP: apply for card ---');
     await tester.tap(find.text('Apply for Card'));
     await settle(tester);
-    expect(find.text('Apply for a Card'), findsOneWidget);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    expect(find.text('Apply for Card'), findsWidgets);
+    expect(find.text('Select Card'), findsOneWidget);
+    await tester.tap(find.text('Farmer Card').first);
     await settle(tester);
-    await tester.tap(find.text('Farmer Card').last);
+    expect(find.text('Farmer Card requirements'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Proceed'));
     await settle(tester);
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit Application'));
+    expect(find.text('Farmer Card application form'), findsOneWidget);
+    expect(find.text('Required documents'), findsOneWidget);
+    expect(find.text('Preview Application'), findsOneWidget);
+    await tester.tap(find.byType(BackButton).first);
+    await settle(tester);
+    await tester.tap(find.text('Applications'));
     await settle(tester);
 
     debugPrint('--- STEP: my applications ---');
