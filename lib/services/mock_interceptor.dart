@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// persisted to local storage so it survives app restarts during testing.
 class MockInterceptor extends Interceptor {
   static const _documentsPrefsKey = 'mock_citizen_documents';
+  static const _applicationsPrefsKey = 'mock_citizen_applications';
   static const _usersPrefsKey = 'mock_registered_users';
   static const _sessionPrefsKey = 'mock_current_user_email';
   static const _citizensPrefsKey = 'mock_admin_citizens';
@@ -37,6 +38,17 @@ class MockInterceptor extends Interceptor {
         ..addAll(list);
     }
 
+    final rawApplications = prefs.getString(_applicationsPrefsKey);
+    if (rawApplications != null) {
+      final list = (jsonDecode(rawApplications) as List).cast<Map<String, dynamic>>();
+      _applications
+        ..clear()
+        ..addAll(list);
+    } else if (_applications.isEmpty) {
+      _seedApplications();
+      await _persistApplications();
+    }
+
     final rawUsers = prefs.getString(_usersPrefsKey);
     if (rawUsers != null) {
       final map = jsonDecode(rawUsers) as Map<String, dynamic>;
@@ -59,6 +71,11 @@ class MockInterceptor extends Interceptor {
   Future<void> _persistDocuments() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_documentsPrefsKey, jsonEncode(_citizenDocuments));
+  }
+
+  Future<void> _persistApplications() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_applicationsPrefsKey, jsonEncode(_applications));
   }
 
   Future<void> _persistCitizens() async {
@@ -94,7 +111,7 @@ class MockInterceptor extends Interceptor {
 
     final path = options.path.replaceFirst(options.baseUrl, '');
     final method = options.method.toUpperCase();
-    final result = _mockResponse(method, path, options.data);
+    final result = _mockResponse(method, path, options.data, options.queryParameters);
 
     if (result is _MockError) {
       debugPrint('[MOCK] $method $path → ${result.statusCode}');
@@ -121,7 +138,12 @@ class MockInterceptor extends Interceptor {
     }
   }
 
-  dynamic _mockResponse(String method, String path, dynamic body) {
+  dynamic _mockResponse(
+    String method,
+    String path,
+    dynamic body,
+    Map<String, dynamic> queryParameters,
+  ) {
     // ── Auth ──────────────────────────────────────────────────────────────
     if (path == '/auth/register' && method == 'POST') {
       final data = (body is Map) ? body : const <String, dynamic>{};
@@ -250,19 +272,19 @@ class MockInterceptor extends Interceptor {
         final cardTypeId = body is Map
             ? body['card_type_id']?.toString()
             : null;
-        return _mockApplication('app-new', 'submitted', cardTypeId: cardTypeId);
+        final app = _createApplication(cardTypeId: cardTypeId);
+        _persistApplications();
+        return app;
       }
-      return _citizenApplications;
+      return _currentCitizenApplications();
     }
     if (RegExp(r'^/citizen/applications/[^/]+$').hasMatch(path)) {
       final id = path.split('/').last;
-      final statuses = {
-        'app-1': 'submitted',
-        'app-2': 'under_review',
-        'app-3': 'approved',
-        'app-4': 'rejected',
-      };
-      return _mockApplication(id, statuses[id] ?? 'submitted');
+      final app = _applicationById(id);
+      if (app == null || !_belongsToCurrentCitizen(app)) {
+        return _MockError(404, {'detail': 'Application not found.'});
+      }
+      return app;
     }
 
     // ── Citizen distributions / notifications ───────────────────────────
@@ -278,17 +300,20 @@ class MockInterceptor extends Interceptor {
 
     // ── Admin: applications ──────────────────────────────────────────────
     if (path == ApiConfig.adminApplications) {
-      return _citizenApplications;
+      return _filteredApplications(queryParameters);
     }
     if (RegExp(r'^/admin/applications/[^/]+/approve$').hasMatch(path)) {
-      return _mockApplication('app-1', 'approved');
+      final id = path.split('/')[3];
+      return _updateApplicationStatus(id, 'approved');
     }
     if (RegExp(r'^/admin/applications/[^/]+/reject$').hasMatch(path)) {
-      return _mockApplication('app-1', 'rejected');
+      final id = path.split('/')[3];
+      final reason = body is Map ? body['reason']?.toString() : null;
+      return _updateApplicationStatus(id, 'rejected', remark: reason);
     }
     if (RegExp(r'^/admin/applications/[^/]+$').hasMatch(path)) {
       final id = path.split('/').last;
-      return _mockApplication(id, 'under_review');
+      return _applicationById(id) ?? _MockError(404, {'detail': 'Application not found.'});
     }
 
     // ── Admin: documents ──────────────────────────────────────────────────
@@ -342,7 +367,7 @@ class MockInterceptor extends Interceptor {
 
     // ── Admin: analytics ──────────────────────────────────────────────────
     if (path == ApiConfig.adminAnalytics) {
-      return _analytics;
+      return _buildAnalytics();
     }
 
     // ── Admin: notifications ─────────────────────────────────────────────
@@ -429,8 +454,9 @@ class MockInterceptor extends Interceptor {
           'Must be a registered farmer with a valid certificate from the local ward/union authority.',
       'required_documents': [
         'nid_copy',
+        'union_paurosova_certificate',
+        'recent_photo',
         'agricultural_certificate',
-        'ward_union_certificate',
       ],
     },
     {
@@ -441,9 +467,9 @@ class MockInterceptor extends Interceptor {
           'Must own land of ≤ 0.50 acres, have a monthly household income ≤ BDT 12,000, and hold a certificate from the local ward/union authority.',
       'required_documents': [
         'nid_copy',
+        'union_paurosova_certificate',
+        'recent_photo',
         'income_certificate',
-        'land_ownership',
-        'ward_union_certificate',
       ],
     },
     {
@@ -451,8 +477,17 @@ class MockInterceptor extends Interceptor {
       'code': 'education',
       'name': 'Education Card',
       'eligibility_criteria':
-          'Must have achieved GPA 5.00 in both SSC and HSC examinations.',
-      'required_documents': ['nid_copy', 'ssc_marksheet', 'hsc_marksheet'],
+          'Must provide student identity, SSC and HSC examination details, exam registration/admit/certificate PDFs, NID/Birth Certificate PDF, and a recent photo.',
+      'required_documents': [
+        'nid_birth_certificate',
+        'ssc_registration_card',
+        'ssc_admit_card',
+        'ssc_certificate',
+        'hsc_registration_card',
+        'hsc_admit_card',
+        'hsc_certificate',
+        'recent_photo',
+      ],
     },
     {
       'id': 'ct-worker',
@@ -527,25 +562,135 @@ class MockInterceptor extends Interceptor {
     },
   ];
 
+  final List<Map<String, dynamic>> _applications = [];
+
+  void _seedApplications() {
+    _applications
+      ..clear()
+      ..addAll([
+        _mockApplication('app-1', 'submitted'),
+        _mockApplication('app-2', 'under_review', cardTypeId: 'ct-family'),
+        _mockApplication('app-3', 'approved', cardTypeId: 'ct-education'),
+        _mockApplication('app-4', 'rejected', cardTypeId: 'ct-worker'),
+      ]);
+  }
+
   Map<String, dynamic> _mockApplication(
     String id,
     String status, {
     String? cardTypeId,
+    DateTime? submittedAt,
+    String? adminRemark,
   }) {
     final cardType = _cardTypeById(cardTypeId) ?? _cardTypes[0];
+    final profile = _currentCitizenProfile();
+    final firstName = profile['first_name']?.toString() ?? '';
+    final lastName = profile['last_name']?.toString() ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    final submitted = submittedAt ?? DateTime(2025, 6, 1, 8);
     return {
       'id': id,
       'card_type_id': cardType['id'],
       'card_type_name': cardType['name'],
-      'applicant_name': 'Tanvirul Islam',
-      'applicant_nid': '1234567890',
-      'applicant_email': 'citizen@onecitizen.bd',
+      'applicant_name': fullName.isEmpty ? 'Citizen' : fullName,
+      'applicant_nid': profile['nid']?.toString(),
+      'applicant_email': profile['email']?.toString(),
       'status': status,
-      'submitted_at': '2025-06-01T08:00:00Z',
-      'updated_at': '2025-06-10T12:00:00Z',
-      'admin_remark': status == 'rejected'
+      'submitted_at': submitted.toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+      'admin_remark': adminRemark ?? (status == 'rejected'
           ? 'Documents were incomplete.'
-          : null,
+          : null),
+    };
+  }
+
+  Map<String, dynamic> _createApplication({String? cardTypeId}) {
+    final app = _mockApplication(
+      'app-${DateTime.now().microsecondsSinceEpoch}',
+      'submitted',
+      cardTypeId: cardTypeId,
+      submittedAt: DateTime.now(),
+    );
+    _applications.insert(0, app);
+    return app;
+  }
+
+  Map<String, dynamic>? _applicationById(String id) {
+    for (final app in _applications) {
+      if (app['id'] == id) return app;
+    }
+    return null;
+  }
+
+  List<Map<String, dynamic>> _currentCitizenApplications() {
+    return _applications.where(_belongsToCurrentCitizen).toList();
+  }
+
+  bool _belongsToCurrentCitizen(Map<String, dynamic> app) {
+    final email = _currentCitizenProfile()['email']?.toString();
+    if (email == null || email.isEmpty) return true;
+    return app['applicant_email']?.toString().toLowerCase() == email.toLowerCase();
+  }
+
+  List<Map<String, dynamic>> _filteredApplications(Map<String, dynamic> queryParameters) {
+    final cardTypeId = queryParameters['card_type_id']?.toString();
+    final status = queryParameters['status']?.toString();
+    return _applications.where((app) {
+      final matchesCard = cardTypeId == null ||
+          cardTypeId.isEmpty ||
+          app['card_type_id']?.toString() == cardTypeId;
+      final matchesStatus = status == null ||
+          status.isEmpty ||
+          app['status']?.toString() == status;
+      return matchesCard && matchesStatus;
+    }).toList();
+  }
+
+  dynamic _updateApplicationStatus(String id, String status, {String? remark}) {
+    final index = _applications.indexWhere((app) => app['id'] == id);
+    if (index == -1) return _MockError(404, {'detail': 'Application not found.'});
+
+    _applications[index] = {
+      ..._applications[index],
+      'status': status,
+      'updated_at': DateTime.now().toIso8601String(),
+      'admin_remark': remark,
+    };
+    _persistApplications();
+    return _applications[index];
+  }
+
+  Map<String, dynamic> _currentCitizenProfile() {
+    final key = _currentUserEmail;
+    if (key != null && _registeredUsers.containsKey(key)) {
+      return Map<String, dynamic>.from(_registeredUsers[key]!)..remove('password');
+    }
+    return Map<String, dynamic>.from(_citizenProfile);
+  }
+
+  Map<String, dynamic> _buildAnalytics() {
+    final byCardType = <String, int>{};
+    for (final app in _applications) {
+      final cardTypeName = app['card_type_name']?.toString() ?? 'Unknown';
+      byCardType[cardTypeName] = (byCardType[cardTypeName] ?? 0) + 1;
+    }
+
+    int countStatus(String status) {
+      return _applications.where((app) => app['status'] == status).length;
+    }
+
+    return {
+      'total_applications': _applications.length,
+      'applications_by_card_type': byCardType,
+      'approved': countStatus('approved'),
+      'rejected': countStatus('rejected'),
+      'pending_review': countStatus('submitted') + countStatus('under_review'),
+      'pending_document_reviews':
+          _citizenDocuments.where((doc) => doc['is_valid'] == null).length,
+      'total_disbursed': _distributions.fold<num>(
+        0,
+        (sum, dist) => sum + ((dist['amount'] as num?) ?? 0),
+      ),
     };
   }
 
@@ -556,13 +701,6 @@ class MockInterceptor extends Interceptor {
     }
     return null;
   }
-
-  List<Map<String, dynamic>> get _citizenApplications => [
-    _mockApplication('app-1', 'submitted'),
-    _mockApplication('app-2', 'under_review', cardTypeId: 'ct-family'),
-    _mockApplication('app-3', 'approved', cardTypeId: 'ct-education'),
-    _mockApplication('app-4', 'rejected', cardTypeId: 'ct-worker'),
-  ];
 
   static const _distributions = [
     {
@@ -659,19 +797,6 @@ class MockInterceptor extends Interceptor {
     _persistCitizens();
   }
 
-  static const _analytics = {
-    'total_applications': 124,
-    'applications_by_card_type': {
-      'Farmer Card': 52,
-      'Family Card': 41,
-      'Education Card': 31,
-    },
-    'approved': 78,
-    'rejected': 14,
-    'pending_review': 32,
-    'pending_document_reviews': 9,
-    'total_disbursed': 312000,
-  };
 }
 
 class _MockError {
