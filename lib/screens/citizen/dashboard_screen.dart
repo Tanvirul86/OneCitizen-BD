@@ -227,17 +227,17 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       title:
                           '$invalidDocs Document${invalidDocs > 1 ? 's' : ''} Need Re-upload',
                       subtitle:
-                          'Some of your documents were marked invalid by the admin.',
+                          'Some documents were marked invalid. Re-upload them while applying for a card.',
                       color: AppTheme.errorRed,
-                      actionLabel: 'Fix Now',
-                      onAction: () => context.push('/citizen/documents'),
+                      actionLabel: 'Apply Now',
+                      onAction: () => context.push('/citizen/apply'),
                     ),
                     const SizedBox(height: 12),
                   ],
 
                   // ── Quick Actions ──────────────────────────────────────
                   Text(
-                    'Quick Actions',
+                    'Quick Action',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
@@ -245,87 +245,21 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isCompact = constraints.maxWidth < 360;
-                      final isWide = constraints.maxWidth >= 700;
-                      final cardWidth = isCompact
-                          ? constraints.maxWidth
-                          : isWide
-                          ? 220.0
-                          : (constraints.maxWidth - 12) / 2;
-
-                      return Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          SizedBox(
-                            width: cardWidth,
-                            height: 104,
-                            child: _ActionCard(
-                              icon: Icons.check_circle_outline_rounded,
-                              title: 'Check Eligibility',
-                              subtitle: 'Submit for admin review',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF0369A1), Color(0xFF0EA5E9)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.push('/citizen/eligibility'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            height: 104,
-                            child: _ActionCard(
-                              icon: Icons.add_card_rounded,
-                              title: 'Apply for Card',
-                              subtitle: 'New application',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFBE185D), Color(0xFFEC4899)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.push('/citizen/apply'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            height: 104,
-                            child: _ActionCard(
-                              icon: Icons.upload_file_rounded,
-                              title: 'Upload Docs',
-                              subtitle: 'Manage documents',
-                              gradient: const LinearGradient(
-                                colors: [
-                                  AppTheme.primaryGreenDark,
-                                  AppTheme.primaryGreenLight,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              badge: invalidDocs > 0 ? invalidDocs : null,
-                              onTap: () => context.push('/citizen/documents'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: cardWidth,
-                            height: 104,
-                            child: _ActionCard(
-                              icon: Icons.payments_rounded,
-                              title: 'Fund History',
-                              subtitle: 'Distribution records',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF5B21B6), Color(0xFF8B5CF6)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/citizen/distributions'),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                  SizedBox(
+                    height: 116,
+                    child: _ActionCard(
+                      icon: Icons.add_card_rounded,
+                      title: 'Apply for Card',
+                      subtitle:
+                          'Select a card, review required documents, fill the form, upload files, and preview before submit.',
+                      gradient: const LinearGradient(
+                        colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      badge: invalidDocs > 0 ? invalidDocs : null,
+                      onTap: () => context.push('/citizen/apply'),
+                    ),
                   ),
                   const SizedBox(height: 28),
 
@@ -363,9 +297,9 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       icon: Icons.assignment_outlined,
                       title: 'No applications yet',
                       subtitle:
-                          'Check your eligibility first, then apply for a welfare card.',
-                      actionLabel: 'Check Eligibility',
-                      onAction: () => context.push('/citizen/eligibility'),
+                          'Start one guided application and upload every required document there.',
+                      actionLabel: 'Apply for Card',
+                      onAction: () => context.push('/citizen/apply'),
                     )
                   else
                     ...recentApps.map(
@@ -549,6 +483,8 @@ class _ActionCard extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -558,6 +494,8 @@ class _ActionCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white.withValues(alpha: 0.75),
                     fontSize: 10.5,
