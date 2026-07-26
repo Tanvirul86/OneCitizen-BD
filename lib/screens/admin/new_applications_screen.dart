@@ -2,12 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart' show statusColor;
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
+
+String _statusLabel(BuildContext context, ApplicationStatus status) {
+  switch (status) {
+    case ApplicationStatus.submitted:
+      return context.tr('status_submitted');
+    case ApplicationStatus.underReview:
+      return context.tr('status_under_review');
+    case ApplicationStatus.approved:
+      return context.tr('stat_approved');
+    case ApplicationStatus.rejected:
+      return context.tr('stat_rejected');
+  }
+}
 
 /// Navigation payload for `/admin/applications` — lets callers (e.g. the
 /// dashboard stat cards) pre-scope the list to a card type and/or a set of
@@ -79,14 +93,14 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Showing "$_cardTypeFilter" applications',
+                      context.trp('showing_card_type_applications', {'type': _cardTypeFilter!}),
                       style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => setState(() => _cardTypeFilter = null),
                     icon: const Icon(Icons.close_rounded, size: 16),
-                    label: const Text('Clear'),
+                    label: Text(context.tr('clear')),
                   ),
                 ],
               ),
@@ -98,14 +112,14 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Showing "${widget.statusScopeLabel ?? 'filtered'}" applications',
+                      context.trp('showing_scoped_applications', {'scope': widget.statusScopeLabel ?? context.trs('filtered_label')}),
                       style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => setState(() => _statusScope = null),
                     icon: const Icon(Icons.close_rounded, size: 16),
-                    label: const Text('Clear'),
+                    label: Text(context.tr('clear')),
                   ),
                 ],
               ),
@@ -116,10 +130,10 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: [
-                _Chip(label: 'All', selected: _filter == null, onTap: () => setState(() => _filter = null)),
+                _Chip(label: context.tr('filter_all'), selected: _filter == null, onTap: () => setState(() => _filter = null)),
                 ...ApplicationStatus.values.map(
                   (s) => _Chip(
-                    label: applicationStatusToString(s),
+                    label: _statusLabel(context, s),
                     selected: _filter == s,
                     color: statusColor(s),
                     onTap: () => setState(() => _filter = s),
@@ -136,7 +150,7 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                   : provider.applicationsError != null
                       ? ErrorMessage(message: provider.applicationsError!, onRetry: () => provider.loadApplications())
                       : filtered.isEmpty
-                          ? const EmptyListMessage(message: 'No applications found.', icon: Icons.assignment_outlined)
+                          ? EmptyListMessage(message: context.tr('no_applications_found'), icon: Icons.assignment_outlined)
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: filtered.length,

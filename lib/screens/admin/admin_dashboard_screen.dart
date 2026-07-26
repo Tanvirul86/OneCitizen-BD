@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
@@ -26,11 +27,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
   }
 
-  String _greeting() {
+  String _greeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning 👋';
-    if (hour < 17) return 'Good afternoon 👋';
-    return 'Good evening 👋';
+    if (hour < 12) return context.tr('greeting_morning');
+    if (hour < 17) return context.tr('greeting_afternoon');
+    return context.tr('greeting_evening');
   }
 
   @override
@@ -72,7 +73,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _greeting(),
+                              _greeting(context),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white.withValues(alpha: 0.75),
                                 fontSize: 13,
@@ -81,7 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              user?.fullName.isNotEmpty == true ? user!.fullName : 'Administrator',
+                              user?.fullName.isNotEmpty == true ? user!.fullName : context.tr('administrator'),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 22,
@@ -94,14 +95,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               children: [
                                 Expanded(
                                   child: _HeroStat(
-                                    label: 'Pending Applications',
+                                    label: context.tr('hero_pending_applications'),
                                     value: '${analytics['pending_review'] ?? 0}',
                                   ),
                                 ),
                                 Container(width: 1, height: 34, color: Colors.white.withValues(alpha: 0.2)),
                                 Expanded(
                                   child: _HeroStat(
-                                    label: 'Docs to Review',
+                                    label: context.tr('hero_docs_to_review'),
                                     value: '${analytics['pending_document_reviews'] ?? 0}',
                                   ),
                                 ),
@@ -128,40 +129,40 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           childAspectRatio: 1.1,
                           children: [
                             _StatCard(
-                              label: 'Total Applications',
+                              label: context.tr('stat_total_applications'),
                               value: '${analytics['total_applications'] ?? 0}',
                               icon: Icons.assignment_rounded,
                               color: AppTheme.primaryGreen,
                               onTap: () => context.go('/admin/applications'),
                             ),
                             _StatCard(
-                              label: 'Approved',
+                              label: context.tr('stat_approved'),
                               value: '${analytics['approved'] ?? 0}',
                               icon: Icons.check_circle_rounded,
                               color: AppTheme.successGreen,
                               onTap: () => context.go(
                                 '/admin/applications',
-                                extra: const ApplicationsFilterArgs(
-                                  statuses: [ApplicationStatus.approved],
-                                  scopeLabel: 'Approved',
+                                extra: ApplicationsFilterArgs(
+                                  statuses: const [ApplicationStatus.approved],
+                                  scopeLabel: context.trs('stat_approved'),
                                 ),
                               ),
                             ),
                             _StatCard(
-                              label: 'Pending Review',
+                              label: context.tr('stat_pending_review'),
                               value: '${analytics['pending_review'] ?? 0}',
                               icon: Icons.hourglass_empty_rounded,
                               color: AppTheme.warningAmber,
                               onTap: () => context.go(
                                 '/admin/applications',
-                                extra: const ApplicationsFilterArgs(
-                                  statuses: [ApplicationStatus.submitted, ApplicationStatus.underReview],
-                                  scopeLabel: 'Pending Review',
+                                extra: ApplicationsFilterArgs(
+                                  statuses: const [ApplicationStatus.submitted, ApplicationStatus.underReview],
+                                  scopeLabel: context.trs('stat_pending_review'),
                                 ),
                               ),
                             ),
                             _StatCard(
-                              label: 'Total Disbursed',
+                              label: context.tr('stat_total_disbursed'),
                               value: '৳${analytics['total_disbursed'] ?? 0}',
                               icon: Icons.payments_rounded,
                               color: AppTheme.infoBlue,
@@ -176,15 +177,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             child: AspectRatio(
                               aspectRatio: 1.1,
                               child: _StatCard(
-                                label: 'Rejected',
+                                label: context.tr('stat_rejected'),
                                 value: '${analytics['rejected'] ?? 0}',
                                 icon: Icons.cancel_rounded,
                                 color: AppTheme.errorRed,
                                 onTap: () => context.go(
                                   '/admin/applications',
-                                  extra: const ApplicationsFilterArgs(
-                                    statuses: [ApplicationStatus.rejected],
-                                    scopeLabel: 'Rejected',
+                                  extra: ApplicationsFilterArgs(
+                                    statuses: const [ApplicationStatus.rejected],
+                                    scopeLabel: context.trs('stat_rejected'),
                                   ),
                                 ),
                               ),
@@ -195,7 +196,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
                         // ── Quick actions ────────────────────────────────
                         Text(
-                          'Quick Actions',
+                          context.tr('quick_actions_title'),
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
@@ -213,8 +214,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           children: [
                             _ActionCard(
                               icon: Icons.assignment_rounded,
-                              title: 'New Applications',
-                              subtitle: 'Review & decide',
+                              title: context.tr('admin_nav_new_applications'),
+                              subtitle: context.tr('action_review_decide'),
                               gradient: const LinearGradient(
                                 colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
                                 begin: Alignment.topLeft,
@@ -224,8 +225,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.fact_check_rounded,
-                              title: 'Document Validation',
-                              subtitle: 'Verify uploads',
+                              title: context.tr('admin_nav_document_validation'),
+                              subtitle: context.tr('action_verify_uploads'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF0369A1), Color(0xFF0EA5E9)],
                                 begin: Alignment.topLeft,
@@ -235,8 +236,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.credit_card_rounded,
-                              title: 'Approved Cards',
-                              subtitle: 'View issued cards',
+                              title: context.tr('admin_nav_approved_cards'),
+                              subtitle: context.tr('action_view_issued_cards'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFFBE185D), Color(0xFFEC4899)],
                                 begin: Alignment.topLeft,
@@ -246,8 +247,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.payments_rounded,
-                              title: 'Fund Distribution',
-                              subtitle: 'Disburse funds',
+                              title: context.tr('admin_nav_fund_distribution'),
+                              subtitle: context.tr('action_disburse_funds'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF5B21B6), Color(0xFF8B5CF6)],
                                 begin: Alignment.topLeft,
@@ -257,8 +258,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.receipt_long_rounded,
-                              title: 'Distribution Records',
-                              subtitle: 'Disbursement history',
+                              title: context.tr('admin_nav_distribution_records'),
+                              subtitle: context.tr('action_disbursement_history'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFFB45309), Color(0xFFF59E0B)],
                                 begin: Alignment.topLeft,
@@ -268,8 +269,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.people_rounded,
-                              title: 'Citizen Accounts',
-                              subtitle: 'Manage citizens',
+                              title: context.tr('admin_nav_citizen_accounts'),
+                              subtitle: context.tr('action_manage_citizens'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
                                 begin: Alignment.topLeft,
@@ -279,8 +280,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             _ActionCard(
                               icon: Icons.bar_chart_rounded,
-                              title: 'Analytics',
-                              subtitle: 'Program insights',
+                              title: context.tr('admin_nav_analytics'),
+                              subtitle: context.tr('action_program_insights'),
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF334155), Color(0xFF64748B)],
                                 begin: Alignment.topLeft,
