@@ -69,11 +69,6 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         );
       case CardTypeCode.education:
         return (icon: Icons.school_rounded, color: const Color(0xFF7C3AED));
-      case CardTypeCode.worker:
-        return (
-          icon: Icons.engineering_rounded,
-          color: const Color(0xFFEA580C),
-        );
     }
   }
 
