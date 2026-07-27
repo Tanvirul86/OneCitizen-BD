@@ -346,17 +346,6 @@ class LocalWorkflowInterceptor extends Interceptor {
         {'key': 'hsc_passing_year', 'label': 'HSC passing year', 'required': true, 'input_type': 'number'},
       ],
     },
-    {
-      'id': 'worker', 'code': 'worker', 'name': 'Worker Card',
-      'eligibility_criteria': 'Submit your documents for administrative review.',
-      'required_documents': ['nid_copy', 'worker_certificate', 'labor_registration', 'income_certificate'],
-      'application_fields': [
-        {'key': 'work_type', 'label': 'Type of work', 'required': true},
-        {'key': 'employer_name', 'label': 'Employer or organization', 'required': true},
-        {'key': 'monthly_income', 'label': 'Monthly income', 'required': true, 'input_type': 'number'},
-        {'key': 'registration_no', 'label': 'Labor registration number', 'required': true},
-      ],
-    },
   ];
 
   String _adminId(String email) => 'local-admin-$email';

@@ -53,8 +53,6 @@ const requiredDocumentTypes = <String>[
   'ssc_marksheet',
   'hsc_marksheet',
   'ward_union_certificate',
-  'worker_certificate',
-  'labor_registration',
 ];
 
 String documentTypeLabel(String docType) {
@@ -91,10 +89,6 @@ String documentTypeLabel(String docType) {
       return 'HSC Marksheet';
     case 'ward_union_certificate':
       return 'Ward/Union Authority Certificate';
-    case 'worker_certificate':
-      return 'Worker Certificate';
-    case 'labor_registration':
-      return 'Labor Registration';
     default:
       return docType;
   }

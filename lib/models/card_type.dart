@@ -1,4 +1,4 @@
-enum CardTypeCode { farmer, family, education, worker }
+enum CardTypeCode { farmer, family, education }
 
 CardTypeCode cardTypeCodeFromString(String? value) {
   switch (value?.toLowerCase()) {
@@ -6,8 +6,6 @@ CardTypeCode cardTypeCodeFromString(String? value) {
       return CardTypeCode.family;
     case 'education':
       return CardTypeCode.education;
-    case 'worker':
-      return CardTypeCode.worker;
     default:
       return CardTypeCode.farmer;
   }
@@ -21,8 +19,6 @@ String cardTypeCodeToString(CardTypeCode code) {
       return 'family';
     case CardTypeCode.education:
       return 'education';
-    case CardTypeCode.worker:
-      return 'worker';
   }
 }
 
