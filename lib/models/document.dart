@@ -9,6 +9,7 @@ class CitizenDocument {
     this.remark,
     this.uploadedAt,
     this.citizenName,
+    this.applicationId,
   });
 
   final String id;
@@ -19,6 +20,7 @@ class CitizenDocument {
   final String? remark;
   final DateTime? uploadedAt;
   final String? citizenName;
+  final String? applicationId;
 
   factory CitizenDocument.fromJson(Map<String, dynamic> json) {
     return CitizenDocument(
@@ -32,6 +34,7 @@ class CitizenDocument {
           ? DateTime.tryParse(json['uploaded_at'] as String)
           : null,
       citizenName: json['citizen_name'] as String?,
+      applicationId: json['application_id']?.toString(),
     );
   }
 }

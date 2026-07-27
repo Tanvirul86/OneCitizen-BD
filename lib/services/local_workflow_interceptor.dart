@@ -190,13 +190,40 @@ class LocalWorkflowInterceptor extends Interceptor {
     final user = _activeCitizen();
     if (user is _LocalError) return user;
     if (method != 'POST') return _owned(_documents);
-    final docType = body is FormData ? body.fields.where((field) => field.key == 'doc_type').map((field) => field.value).firstOrNull ?? '' : '';
-    final existing = _documents.indexWhere((doc) => doc['citizen_id'] == user['id'] && doc['doc_type'] == docType);
-    final record = {'id': existing >= 0 ? _documents[existing]['id'] : _newId('document'), 'citizen_id': user['id'], 'citizen_name': _name(user), 'doc_type': docType, 'file_url': '', 'is_valid': null, 'remark': null, 'uploaded_at': DateTime.now().toIso8601String()};
+    final docType = _formField(body, 'doc_type') ?? '';
+    final applicationId = _formField(body, 'application_id');
+    final existing = _documents.indexWhere(
+      (doc) =>
+          doc['citizen_id'] == user['id'] &&
+          doc['doc_type'] == docType &&
+          doc['application_id'] == applicationId,
+    );
+    final record = {
+      'id': existing >= 0 ? _documents[existing]['id'] : _newId('document'),
+      'citizen_id': user['id'],
+      'citizen_name': _name(user),
+      'doc_type': docType,
+      'application_id': applicationId,
+      'file_url': '',
+      'is_valid': null,
+      'remark': null,
+      'uploaded_at': DateTime.now().toIso8601String(),
+    };
     if (existing >= 0) {
       _documents[existing] = record;
     } else {
       _documents.add(record);
+    }
+    if (applicationId != null) {
+      final appIndex = _applications.indexWhere((app) => app['id'] == applicationId);
+      if (appIndex >= 0) {
+        _applications[appIndex] = {
+          ..._applications[appIndex],
+          'status': 'under_review',
+          'admin_remark': null,
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+      }
     }
     await _save();
     return record;
@@ -211,6 +238,21 @@ class LocalWorkflowInterceptor extends Interceptor {
     if (card == null) return _LocalError(400, {'detail': 'Choose a card type.'});
     final app = {'id': _newId('application'), 'card_type_id': card['id'], 'card_type_name': card['name'], 'applicant_id': user['id'], 'applicant_name': _name(user), 'applicant_email': user['email'], 'status': 'submitted', 'submitted_at': DateTime.now().toIso8601String(), 'updated_at': DateTime.now().toIso8601String(), 'application_data': data['application_data'] ?? {}};
     _applications.insert(0, app);
+    final requiredDocuments = (card['required_documents'] as List)
+        .map((document) => document.toString())
+        .toSet();
+    for (var index = 0; index < _documents.length; index++) {
+      final document = _documents[index];
+      if (document['citizen_id'] == user['id'] &&
+          document['application_id'] == null &&
+          requiredDocuments.contains(document['doc_type'])) {
+        _documents[index] = {
+          ...document,
+          'application_id': app['id'],
+          'card_type_id': card['id'],
+        };
+      }
+    }
     _adminNotifications.insert(0, _notification('New ${card['name']} request received from ${_name(user)}.'));
     await _save();
     return app;
@@ -235,12 +277,49 @@ class LocalWorkflowInterceptor extends Interceptor {
     return updated;
   }
 
-  List<Map<String, dynamic>> _filterDocuments(Map<String, dynamic> query) => _documents.where((doc) => (query['citizen_id'] == null || doc['citizen_id'] == query['citizen_id']) && (query['citizen_email'] == null || _users[doc['citizen_id']]?['email'] == query['citizen_email'])).toList();
+  List<Map<String, dynamic>> _filterDocuments(Map<String, dynamic> query) =>
+      _documents
+          .where(
+            (doc) =>
+                doc['application_id'] != null &&
+                doc['is_valid'] == null &&
+                (query['citizen_id'] == null ||
+                    doc['citizen_id'] == query['citizen_id']) &&
+                (query['citizen_email'] == null ||
+                    _users[doc['citizen_id']]?['email'] ==
+                        query['citizen_email']),
+          )
+          .toList();
 
   dynamic _validateDocument(String id, dynamic body) async {
     final index = _documents.indexWhere((doc) => doc['id'] == id);
     if (index < 0) return _LocalError(404, {'detail': 'Document not found.'});
-    _documents[index] = {..._documents[index], 'is_valid': body is Map ? body['is_valid'] == true : true, 'remark': body is Map ? body['remark']?.toString() : null};
+    final isValid = body is Map ? body['is_valid'] == true : true;
+    final remark = body is Map ? body['remark']?.toString() : null;
+    _documents[index] = {
+      ..._documents[index],
+      'is_valid': isValid,
+      'remark': remark,
+    };
+    if (!isValid) {
+      final applicationId = _documents[index]['application_id']?.toString();
+      final appIndex = _applications.indexWhere((app) => app['id'] == applicationId);
+      if (appIndex >= 0) {
+        final app = {
+          ..._applications[appIndex],
+          'status': 'rejected',
+          'admin_remark': remark ?? 'Please re-upload ${_documents[index]['doc_type']}.',
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        _applications[appIndex] = app;
+        _citizenNotifications.insert(0, {
+          ..._notification(
+            '${_documents[index]['doc_type']} was rejected. Please re-upload it for your ${app['card_type_name']} request.',
+          ),
+          'citizen_id': app['applicant_id'],
+        });
+      }
+    }
     await _save();
     return _documents[index];
   }
@@ -267,7 +346,7 @@ class LocalWorkflowInterceptor extends Interceptor {
     return {'success': true};
   }
 
-  dynamic _analytics() => {'total_applications': _applications.length, 'approved': _applications.where((app) => app['status'] == 'approved').length, 'rejected': _applications.where((app) => app['status'] == 'rejected').length, 'pending_review': _applications.where((app) => app['status'] == 'submitted' || app['status'] == 'under_review').length, 'pending_document_reviews': _documents.where((doc) => doc['is_valid'] == null).length, 'total_disbursed': _distributions.fold<num>(0, (sum, item) => sum + ((item['amount'] as num?) ?? 0)), 'applications_by_card_type': <String, int>{}};
+  dynamic _analytics() => {'total_applications': _applications.length, 'approved': _applications.where((app) => app['status'] == 'approved').length, 'rejected': _applications.where((app) => app['status'] == 'rejected').length, 'pending_review': _applications.where((app) => app['status'] == 'submitted' || app['status'] == 'under_review').length, 'pending_document_reviews': _documents.where((doc) => doc['application_id'] != null && doc['is_valid'] == null).length, 'total_disbursed': _distributions.fold<num>(0, (sum, item) => sum + ((item['amount'] as num?) ?? 0)), 'applications_by_card_type': <String, int>{}};
 
   dynamic _markRead(List<Map<String, dynamic>> source, String path) async {
     final id = path.split('/')[3];
@@ -284,6 +363,13 @@ class LocalWorkflowInterceptor extends Interceptor {
     return _LocalError(404, {'detail': 'Record not found.'});
   }
   Map<String, dynamic>? _activeUser() => _activeUserId == null ? null : _users[_activeUserId];
+  String? _formField(dynamic body, String key) {
+    if (body is! FormData) return null;
+    for (final field in body.fields) {
+      if (field.key == key) return field.value;
+    }
+    return null;
+  }
   dynamic _activeCitizen() => _activeUser()?['role'] == 'citizen' ? _activeUser()! : _LocalError(401, {'detail': 'Citizen sign in required.'});
   String _newId(String type) => '$type-${DateTime.now().microsecondsSinceEpoch}';
   String _name(Map<String, dynamic> user) => '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isEmpty ? user['email'].toString() : '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim();

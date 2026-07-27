@@ -81,10 +81,12 @@ class DocumentService {
   Future<CitizenDocument> uploadDocument({
     required String docType,
     required String filePath,
+    String? applicationId,
   }) async {
     final formData = FormData.fromMap({
       'doc_type': docType,
       'file': await MultipartFile.fromFile(filePath),
+        'application_id': ?applicationId,
     });
     final response = await _apiClient.dio.post(
       ApiConfig.citizenDocuments,

@@ -103,7 +103,11 @@ class AppRouter {
         ),
         GoRoute(
           path: '/citizen/documents',
-          builder: (context, state) => const DocumentUploadScreen(),
+          builder: (context, state) => DocumentUploadScreen(
+            args: state.extra is DocumentUploadArgs
+                ? state.extra as DocumentUploadArgs
+                : null,
+          ),
         ),
         GoRoute(
           path: '/citizen/eligibility',
