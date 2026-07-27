@@ -54,21 +54,24 @@ This generates `lib/firebase_options.dart`. Enable **Phone Authentication** in t
 
 ### 3. API base URL
 
-The app never generates local/demo API records. Supply the URL of the real
-backend (including `/api`) when building or running:
+Without a backend URL, the app uses a local frontend workflow store. It starts
+empty and records only accounts, requests, document reviews, decisions, funds,
+and notifications created through the app on that device. This lets the
+citizen and admin panels exercise the full workflow without seeded demo data.
+
+When your backend is ready, supply its URL (including `/api`) when building or
+running. The app then uses the backend instead of local storage:
 
 ```bash
 flutter run --dart-define=API_BASE_URL=https://your-api.example/api
 ```
 
-Use the corresponding staging or production URL in CI/release builds. Without
-`API_BASE_URL`, requests fail with a clear configuration error instead of
-showing invented citizen or admin data.
+Use the corresponding staging or production URL in CI/release builds.
 
 ### 4. Run the app
 
 ```bash
-flutter run --dart-define=API_BASE_URL=https://your-api.example/api
+flutter run
 ```
 
 ## Backend API

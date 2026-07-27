@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onecitizen/config/api_config.dart';
+import 'package:onecitizen/services/local_workflow_interceptor.dart';
 import 'package:onecitizen/services/storage_service.dart';
 
 class ApiClient {
@@ -15,22 +16,13 @@ class ApiClient {
       ),
     );
 
+    if (!ApiConfig.isConfigured) {
+      _dio.interceptors.add(LocalWorkflowInterceptor());
+    }
+
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          if (!ApiConfig.isConfigured) {
-            handler.reject(
-              DioException(
-                requestOptions: options,
-                type: DioExceptionType.unknown,
-                error: StateError(
-                  'API_BASE_URL is not configured. Build with '
-                  '--dart-define=API_BASE_URL=https://your-api.example/api.',
-                ),
-              ),
-            );
-            return;
-          }
           final token = await _storageService.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
