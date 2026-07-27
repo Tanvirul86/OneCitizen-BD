@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onecitizen/config/api_config.dart';
 import 'package:onecitizen/models/application.dart';
+import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/services/admin_services.dart';
 import 'package:onecitizen/services/api_client.dart';
 import 'package:onecitizen/services/auth_service.dart';
@@ -57,6 +58,9 @@ void main() {
         storageService: storageService,
       );
       final applicationService = ApplicationService(apiClient: apiClient);
+      final distributionService = DistributionService(apiClient: apiClient);
+      final notificationService = NotificationService(apiClient: apiClient);
+      final adminService = AdminService(apiClient: apiClient);
 
       await authService.register(
         firstName: 'First',
@@ -77,15 +81,30 @@ void main() {
       final firstApplication = await applicationService.submitApplication(
         cardTypeId: 'ct-family',
       );
+      await adminService.approveApplication(firstApplication.id);
+      await adminService.createDistribution(
+        applicationId: firstApplication.id,
+        method: DistributionMethod.online,
+        amount: 2500,
+      );
+
+      final firstDistributions = await distributionService.getDistributions();
+      final firstNotifications = await notificationService.getNotifications();
+      expect(firstDistributions, isNotEmpty);
+      expect(firstNotifications, isNotEmpty);
 
       await mockLogin(apiClient, 'second@example.com');
       final secondApplications = await applicationService.getApplications();
+      final secondDistributions = await distributionService.getDistributions();
+      final secondNotifications = await notificationService.getNotifications();
 
       expect(
         secondApplications.where((app) => app.id == firstApplication.id),
         isEmpty,
       );
       expect(secondApplications, isEmpty);
+      expect(secondDistributions, isEmpty);
+      expect(secondNotifications, isEmpty);
     },
   );
 

@@ -46,7 +46,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   String _statusLabel(BuildContext context, ApplicationStatus status) {
     switch (status) {
       case ApplicationStatus.submitted:
-        return context.tr('status_submitted');
+        return context.tr('status_request');
       case ApplicationStatus.underReview:
         return context.tr('status_under_review');
       case ApplicationStatus.approved:

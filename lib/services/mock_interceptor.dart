@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MockInterceptor extends Interceptor {
   static const _documentsPrefsKey = 'mock_citizen_documents';
   static const _applicationsPrefsKey = 'mock_citizen_applications';
+  static const _distributionsPrefsKey = 'mock_distributions';
+  static const _notificationsPrefsKey = 'mock_citizen_notifications';
   static const _usersPrefsKey = 'mock_registered_users';
   static const _sessionPrefsKey = 'mock_current_user_email';
   static const _citizensPrefsKey = 'mock_admin_citizens';
@@ -45,9 +47,24 @@ class MockInterceptor extends Interceptor {
       _applications
         ..clear()
         ..addAll(list);
-    } else if (_applications.isEmpty) {
-      _seedApplications();
-      await _persistApplications();
+    }
+
+    final rawDistributions = prefs.getString(_distributionsPrefsKey);
+    if (rawDistributions != null) {
+      final list = (jsonDecode(rawDistributions) as List)
+          .cast<Map<String, dynamic>>();
+      _distributions
+        ..clear()
+        ..addAll(list);
+    }
+
+    final rawNotifications = prefs.getString(_notificationsPrefsKey);
+    if (rawNotifications != null) {
+      final list = (jsonDecode(rawNotifications) as List)
+          .cast<Map<String, dynamic>>();
+      _notifications
+        ..clear()
+        ..addAll(list);
     }
 
     final rawUsers = prefs.getString(_usersPrefsKey);
@@ -80,6 +97,16 @@ class MockInterceptor extends Interceptor {
   Future<void> _persistApplications() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_applicationsPrefsKey, jsonEncode(_applications));
+  }
+
+  Future<void> _persistDistributions() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_distributionsPrefsKey, jsonEncode(_distributions));
+  }
+
+  Future<void> _persistNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_notificationsPrefsKey, jsonEncode(_notifications));
   }
 
   Future<void> _persistCitizens() async {
@@ -306,12 +333,13 @@ class MockInterceptor extends Interceptor {
 
     // ── Citizen distributions / notifications ───────────────────────────
     if (path == ApiConfig.citizenDistributions) {
-      return _distributions;
+      return _currentCitizenDistributions();
     }
     if (path == ApiConfig.citizenNotifications) {
-      return _notifications;
+      return _currentCitizenNotifications();
     }
     if (RegExp(r'^/citizen/notifications/[^/]+/read$').hasMatch(path)) {
+      _markNotificationRead(path.split('/')[3]);
       return {'success': true};
     }
 
@@ -355,7 +383,7 @@ class MockInterceptor extends Interceptor {
 
     // ── Admin: distributions ─────────────────────────────────────────────
     if (path == ApiConfig.adminDistributions) {
-      if (method == 'POST') return _distributions.first;
+      if (method == 'POST') return _createDistribution(body);
       return _distributions;
     }
 
@@ -556,54 +584,9 @@ class MockInterceptor extends Interceptor {
     ],
   };
 
-  final List<Map<String, dynamic>> _citizenDocuments = [
-    {
-      'id': 'doc-1',
-      'citizen_id': 'dev-citizen',
-      'citizen_email': 'citizen@onecitizen.bd',
-      'doc_type': 'nid_copy',
-      'file_url': 'https://placehold.co/400x300.png',
-      'is_valid': true,
-      'remark': null,
-      'uploaded_at': '2025-06-01T08:00:00Z',
-      'citizen_name': 'Tanvirul Islam',
-    },
-    {
-      'id': 'doc-2',
-      'citizen_id': 'dev-citizen',
-      'citizen_email': 'citizen@onecitizen.bd',
-      'doc_type': 'income_certificate',
-      'file_url': 'https://placehold.co/400x300.png',
-      'is_valid': null,
-      'remark': null,
-      'uploaded_at': '2025-06-01T08:05:00Z',
-      'citizen_name': 'Tanvirul Islam',
-    },
-    {
-      'id': 'doc-3',
-      'citizen_id': 'dev-citizen',
-      'citizen_email': 'citizen@onecitizen.bd',
-      'doc_type': 'ward_union_certificate',
-      'file_url': 'https://placehold.co/400x300.png',
-      'is_valid': false,
-      'remark': 'Certificate is expired, please re-upload.',
-      'uploaded_at': '2025-06-01T08:10:00Z',
-      'citizen_name': 'Tanvirul Islam',
-    },
-  ];
+  final List<Map<String, dynamic>> _citizenDocuments = [];
 
   final List<Map<String, dynamic>> _applications = [];
-
-  void _seedApplications() {
-    _applications
-      ..clear()
-      ..addAll([
-        _mockApplication('app-1', 'submitted'),
-        _mockApplication('app-2', 'under_review', cardTypeId: 'ct-family'),
-        _mockApplication('app-3', 'approved', cardTypeId: 'ct-education'),
-        _mockApplication('app-4', 'rejected', cardTypeId: 'ct-worker'),
-      ]);
-  }
 
   Map<String, dynamic> _mockApplication(
     String id,
@@ -643,6 +626,9 @@ class MockInterceptor extends Interceptor {
       submittedAt: DateTime.now(),
     );
     _applications.insert(0, app);
+    _addAdminNotification(
+      'New ${app['card_type_name']} request received from ${app['applicant_name']}.',
+    );
     return app;
   }
 
@@ -655,6 +641,40 @@ class MockInterceptor extends Interceptor {
 
   List<Map<String, dynamic>> _currentCitizenApplications() {
     return _applications.where(_belongsToCurrentCitizen).toList();
+  }
+
+  List<Map<String, dynamic>> _currentCitizenDistributions() {
+    final profile = _currentCitizenProfile();
+    final citizenId = profile['id']?.toString();
+    final email = profile['email']?.toString().toLowerCase();
+    return _distributions.where((dist) {
+      final matchesId =
+          citizenId != null &&
+          citizenId.isNotEmpty &&
+          dist['citizen_id']?.toString() == citizenId;
+      final matchesEmail =
+          email != null &&
+          email.isNotEmpty &&
+          dist['citizen_email']?.toString().toLowerCase() == email;
+      return matchesId || matchesEmail;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _currentCitizenNotifications() {
+    final profile = _currentCitizenProfile();
+    final citizenId = profile['id']?.toString();
+    final email = profile['email']?.toString().toLowerCase();
+    return _notifications.where((notification) {
+      final matchesId =
+          citizenId != null &&
+          citizenId.isNotEmpty &&
+          notification['citizen_id']?.toString() == citizenId;
+      final matchesEmail =
+          email != null &&
+          email.isNotEmpty &&
+          notification['citizen_email']?.toString().toLowerCase() == email;
+      return matchesId || matchesEmail;
+    }).toList();
   }
 
   List<Map<String, dynamic>> _currentCitizenDocuments() {
@@ -736,7 +756,76 @@ class MockInterceptor extends Interceptor {
       'admin_remark': remark,
     };
     _persistApplications();
+    _addCitizenNotification(
+      app: _applications[index],
+      message: status == 'approved'
+          ? 'Your ${_applications[index]['card_type_name']} request has been approved.'
+          : 'Your ${_applications[index]['card_type_name']} request was rejected. Please review the admin remark.',
+    );
     return _applications[index];
+  }
+
+  dynamic _createDistribution(dynamic body) {
+    final applicationId = body is Map ? body['app_id']?.toString() : null;
+    final app = _applicationById(applicationId ?? '');
+    if (app == null) {
+      return _MockError(404, {'detail': 'Application not found.'});
+    }
+
+    final amount = body is Map ? (body['amount'] as num?)?.toDouble() : null;
+    final method = body is Map ? body['method']?.toString() : null;
+    final note = body is Map ? body['note']?.toString() : null;
+    final dist = {
+      'id': 'dist-${DateTime.now().microsecondsSinceEpoch}',
+      'app_id': app['id'],
+      'method': method == 'offline' ? 'offline' : 'online',
+      'amount': amount ?? 0,
+      'dist_date': DateTime.now().toIso8601String(),
+      'note': note?.isEmpty == true ? null : note,
+      'card_type_name': app['card_type_name'],
+      'citizen_name': app['applicant_name'],
+      'citizen_id': app['applicant_id'],
+      'citizen_email': app['applicant_email'],
+    };
+    _distributions.insert(0, dist);
+    _persistDistributions();
+    _addCitizenNotification(
+      app: app,
+      message:
+          'BDT ${(amount ?? 0).toStringAsFixed(0)} has been disbursed for your ${app['card_type_name']} request.',
+    );
+    return dist;
+  }
+
+  void _addCitizenNotification({
+    required Map<String, dynamic> app,
+    required String message,
+  }) {
+    _notifications.insert(0, {
+      'id': 'notif-${DateTime.now().microsecondsSinceEpoch}',
+      'citizen_id': app['applicant_id'],
+      'citizen_email': app['applicant_email'],
+      'message': message,
+      'created_at': DateTime.now().toIso8601String(),
+      'is_read': false,
+    });
+    _persistNotifications();
+  }
+
+  void _markNotificationRead(String id) {
+    final index = _notifications.indexWhere((n) => n['id'] == id);
+    if (index == -1) return;
+    _notifications[index] = {..._notifications[index], 'is_read': true};
+    _persistNotifications();
+  }
+
+  void _addAdminNotification(String message) {
+    _adminNotifications.insert(0, {
+      'id': 'admin-notif-${DateTime.now().microsecondsSinceEpoch}',
+      'message': message,
+      'created_at': DateTime.now().toIso8601String(),
+      'is_read': false,
+    });
   }
 
   Map<String, dynamic> _currentCitizenProfile() {
@@ -783,69 +872,11 @@ class MockInterceptor extends Interceptor {
     return null;
   }
 
-  static const _distributions = [
-    {
-      'id': 'dist-1',
-      'app_id': 'app-3',
-      'method': 'online',
-      'amount': 5000,
-      'dist_date': '2025-06-15T10:00:00Z',
-      'note': 'Disbursed via bKash.',
-      'card_type_name': 'Farmer Card',
-      'citizen_name': 'Tanvirul Islam',
-    },
-  ];
+  final List<Map<String, dynamic>> _distributions = [];
 
-  static const _notifications = [
-    {
-      'id': 'notif-1',
-      'message': 'Your Farmer Card application has been approved.',
-      'created_at': '2025-06-10T12:00:00Z',
-      'is_read': false,
-    },
-    {
-      'id': 'notif-2',
-      'message':
-          'Document "Ward/Union Authority Certificate" was marked invalid. Please re-upload.',
-      'created_at': '2025-06-08T09:30:00Z',
-      'is_read': false,
-    },
-    {
-      'id': 'notif-3',
-      'message': 'BDT 5,000 has been disbursed to your account via bKash.',
-      'created_at': '2025-06-15T10:00:00Z',
-      'is_read': true,
-    },
-  ];
+  final List<Map<String, dynamic>> _notifications = [];
 
-  static const _adminNotifications = [
-    {
-      'id': 'admin-notif-1',
-      'message': 'New Farmer Card application submitted by Rahim Uddin.',
-      'created_at': '2025-06-16T09:15:00Z',
-      'is_read': false,
-    },
-    {
-      'id': 'admin-notif-2',
-      'message':
-          'Document mismatch: NID photo on application app-2 does not match the applicant name.',
-      'created_at': '2025-06-16T08:40:00Z',
-      'is_read': false,
-    },
-    {
-      'id': 'admin-notif-3',
-      'message': '9 documents are pending review.',
-      'created_at': '2025-06-15T18:00:00Z',
-      'is_read': false,
-    },
-    {
-      'id': 'admin-notif-4',
-      'message':
-          'Fund distribution of BDT 5,000 for app-3 completed successfully.',
-      'created_at': '2025-06-15T10:05:00Z',
-      'is_read': true,
-    },
-  ];
+  final List<Map<String, dynamic>> _adminNotifications = [];
 
   final List<Map<String, dynamic>> _citizens = List.generate(
     8,

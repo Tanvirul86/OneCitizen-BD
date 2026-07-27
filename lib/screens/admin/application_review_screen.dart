@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/screens/admin/document_validation_screen.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart'
@@ -22,6 +23,19 @@ class ApplicationReviewScreen extends StatefulWidget {
 
 class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
   bool _isSubmitting = false;
+
+  String _statusLabel(BuildContext context, ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.submitted:
+        return context.tr('status_request');
+      case ApplicationStatus.underReview:
+        return context.tr('status_under_review');
+      case ApplicationStatus.approved:
+        return context.tr('stat_approved');
+      case ApplicationStatus.rejected:
+        return context.tr('stat_rejected');
+    }
+  }
 
   @override
   void initState() {
@@ -174,7 +188,10 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                           ),
                         ),
                       ),
-                      StatusBadge(label: app.status.name, color: color),
+                      StatusBadge(
+                        label: _statusLabel(context, app.status),
+                        color: color,
+                      ),
                     ],
                   ),
                   const Divider(height: 28),
@@ -198,7 +215,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                   const SizedBox(height: 10),
                   _DetailRow(
                     icon: Icons.event_outlined,
-                    label: context.tr('submitted_label'),
+                    label: context.tr('request_received_label'),
                     value: DateFormat('dd MMM yyyy').format(app.submittedAt),
                   ),
                   if (app.adminRemark != null) ...[
