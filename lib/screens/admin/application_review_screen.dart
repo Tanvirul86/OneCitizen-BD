@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
-import 'package:onecitizen/screens/citizen/my_applications_screen.dart' show statusColor;
+import 'package:onecitizen/screens/admin/document_validation_screen.dart';
+import 'package:onecitizen/screens/citizen/my_applications_screen.dart'
+    show statusColor;
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
@@ -14,7 +16,8 @@ class ApplicationReviewScreen extends StatefulWidget {
   final String applicationId;
 
   @override
-  State<ApplicationReviewScreen> createState() => _ApplicationReviewScreenState();
+  State<ApplicationReviewScreen> createState() =>
+      _ApplicationReviewScreenState();
 }
 
 class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
@@ -35,7 +38,14 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? context.trs('application_approved') : provider.applicationsError ?? context.trs('failed')), backgroundColor: success ? Colors.green : Colors.red),
+      SnackBar(
+        content: Text(
+          success
+              ? context.trs('application_approved')
+              : provider.applicationsError ?? context.trs('failed'),
+        ),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
     );
   }
 
@@ -52,14 +62,21 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
             controller: reasonController,
             decoration: InputDecoration(labelText: context.trs('reason_label')),
             maxLines: 3,
-            validator: (v) => (v == null || v.isEmpty) ? context.trs('reason_required') : null,
+            validator: (v) => (v == null || v.isEmpty)
+                ? context.trs('reason_required')
+                : null,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(context.trs('cancel'))),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.trs('cancel')),
+          ),
           ElevatedButton(
             onPressed: () {
-              if (formKey.currentState!.validate()) Navigator.pop(dialogContext, true);
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text(context.trs('reject_action')),
@@ -71,11 +88,21 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     if (confirmed != true || !mounted) return;
     setState(() => _isSubmitting = true);
     final provider = context.read<AdminProvider>();
-    final success = await provider.rejectApplication(widget.applicationId, reason: reasonController.text.trim());
+    final success = await provider.rejectApplication(
+      widget.applicationId,
+      reason: reasonController.text.trim(),
+    );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? context.trs('application_rejected') : provider.applicationsError ?? context.trs('failed')), backgroundColor: success ? Colors.green : Colors.red),
+      SnackBar(
+        content: Text(
+          success
+              ? context.trs('application_rejected')
+              : provider.applicationsError ?? context.trs('failed'),
+        ),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
     );
   }
 
@@ -90,11 +117,16 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     if (app == null) {
       return Scaffold(
         appBar: AppBar(title: Text(context.tr('application_review_title'))),
-        body: Center(child: Text(provider.applicationsError ?? context.tr('application_not_found'))),
+        body: Center(
+          child: Text(
+            provider.applicationsError ?? context.tr('application_not_found'),
+          ),
+        ),
       );
     }
 
-    final isPending = app.status.name == 'submitted' || app.status.name == 'underReview';
+    final isPending =
+        app.status.name == 'submitted' || app.status.name == 'underReview';
 
     final color = statusColor(app.status);
     return Scaffold(
@@ -121,24 +153,54 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                       Container(
                         width: 44,
                         height: 44,
-                        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Icon(Icons.assignment_rounded, color: color, size: 24),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.assignment_rounded,
+                          color: color,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(app.cardTypeName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                        child: Text(
+                          app.cardTypeName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                       ),
                       StatusBadge(label: app.status.name, color: color),
                     ],
                   ),
                   const Divider(height: 28),
-                  _DetailRow(icon: Icons.person_outline_rounded, label: context.tr('applicant_label'), value: app.applicantName ?? '-'),
+                  _DetailRow(
+                    icon: Icons.person_outline_rounded,
+                    label: context.tr('applicant_label'),
+                    value: app.applicantName ?? '-',
+                  ),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.badge_outlined, label: context.tr('nid_short_label'), value: app.applicantNid ?? '-'),
+                  _DetailRow(
+                    icon: Icons.badge_outlined,
+                    label: context.tr('nid_short_label'),
+                    value: app.applicantNid ?? '-',
+                  ),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.email_outlined, label: context.tr('email_short_label'), value: app.applicantEmail ?? '-'),
+                  _DetailRow(
+                    icon: Icons.email_outlined,
+                    label: context.tr('email_short_label'),
+                    value: app.applicantEmail ?? '-',
+                  ),
                   const SizedBox(height: 10),
-                  _DetailRow(icon: Icons.event_outlined, label: context.tr('submitted_label'), value: DateFormat('dd MMM yyyy').format(app.submittedAt)),
+                  _DetailRow(
+                    icon: Icons.event_outlined,
+                    label: context.tr('submitted_label'),
+                    value: DateFormat('dd MMM yyyy').format(app.submittedAt),
+                  ),
                   if (app.adminRemark != null) ...[
                     const SizedBox(height: 14),
                     Container(
@@ -147,13 +209,27 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.warningAmber.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: AppTheme.warningAmber.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded, color: AppTheme.warningAmber, size: 18),
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: AppTheme.warningAmber,
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(app.adminRemark!, style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13))),
+                          Expanded(
+                            child: Text(
+                              app.adminRemark!,
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -163,7 +239,14 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
-              onPressed: () => context.push('/admin/documents'),
+              onPressed: () => context.push(
+                '/admin/documents',
+                extra: DocumentValidationFilterArgs(
+                  citizenId: app.applicantId,
+                  citizenEmail: app.applicantEmail,
+                  citizenName: app.applicantName,
+                ),
+              ),
               icon: const Icon(Icons.fact_check_rounded),
               label: Text(context.tr('review_citizen_documents')),
             ),
@@ -176,7 +259,10 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                       onPressed: _isSubmitting ? null : _reject,
                       icon: const Icon(Icons.close_rounded),
                       label: Text(context.tr('reject_action')),
-                      style: OutlinedButton.styleFrom(foregroundColor: AppTheme.errorRed, side: const BorderSide(color: AppTheme.errorRed)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.errorRed,
+                        side: const BorderSide(color: AppTheme.errorRed),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -185,7 +271,9 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                       onPressed: _isSubmitting ? null : _approve,
                       icon: const Icon(Icons.check_rounded),
                       label: Text(context.tr('approve_action')),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.successGreen),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.successGreen,
+                      ),
                     ),
                   ),
                 ],
@@ -199,7 +287,11 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
 }
 
 class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.icon, required this.label, required this.value});
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
   final IconData icon;
   final String label;
   final String value;
@@ -213,10 +305,20 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(width: 10),
         SizedBox(
           width: 80,
-          child: Text(label, style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+          ),
         ),
         Expanded(
-          child: Text(value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
         ),
       ],
     );

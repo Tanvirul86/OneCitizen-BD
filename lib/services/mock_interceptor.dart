@@ -40,7 +40,8 @@ class MockInterceptor extends Interceptor {
 
     final rawApplications = prefs.getString(_applicationsPrefsKey);
     if (rawApplications != null) {
-      final list = (jsonDecode(rawApplications) as List).cast<Map<String, dynamic>>();
+      final list = (jsonDecode(rawApplications) as List)
+          .cast<Map<String, dynamic>>();
       _applications
         ..clear()
         ..addAll(list);
@@ -54,14 +55,17 @@ class MockInterceptor extends Interceptor {
       final map = jsonDecode(rawUsers) as Map<String, dynamic>;
       _registeredUsers
         ..clear()
-        ..addAll(map.map((k, v) => MapEntry(k, (v as Map).cast<String, dynamic>())));
+        ..addAll(
+          map.map((k, v) => MapEntry(k, (v as Map).cast<String, dynamic>())),
+        );
     }
 
     _currentUserEmail = prefs.getString(_sessionPrefsKey);
 
     final rawCitizens = prefs.getString(_citizensPrefsKey);
     if (rawCitizens != null) {
-      final list = (jsonDecode(rawCitizens) as List).cast<Map<String, dynamic>>();
+      final list = (jsonDecode(rawCitizens) as List)
+          .cast<Map<String, dynamic>>();
       _citizens
         ..clear()
         ..addAll(list);
@@ -111,7 +115,12 @@ class MockInterceptor extends Interceptor {
 
     final path = options.path.replaceFirst(options.baseUrl, '');
     final method = options.method.toUpperCase();
-    final result = _mockResponse(method, path, options.data, options.queryParameters);
+    final result = _mockResponse(
+      method,
+      path,
+      options.data,
+      options.queryParameters,
+    );
 
     if (result is _MockError) {
       debugPrint('[MOCK] $method $path → ${result.statusCode}');
@@ -156,7 +165,9 @@ class MockInterceptor extends Interceptor {
         return _MockError(400, {'detail': 'Email and password are required.'});
       }
       if (key == seedEmail || _registeredUsers.containsKey(key)) {
-        return _MockError(400, {'detail': 'An account with this email already exists.'});
+        return _MockError(400, {
+          'detail': 'An account with this email already exists.',
+        });
       }
 
       final profile = <String, dynamic>{
@@ -195,12 +206,17 @@ class MockInterceptor extends Interceptor {
       if (role == 'admin') {
         if ((email == 'admin@gmail.com' || email == 'admin@onecitizen.bd') &&
             password == 'admin123') {
+          _currentUserEmail = null;
+          _persistSession();
           return {'access': 'mock-token', 'user': _adminProfile};
         }
         return _MockError(401, {'detail': 'Invalid email or password.'});
       }
 
-      if (email == null || email.isEmpty || password == null || password.isEmpty) {
+      if (email == null ||
+          email.isEmpty ||
+          password == null ||
+          password.isEmpty) {
         return _MockError(401, {'detail': 'Invalid email or password.'});
       }
       final key = email.toLowerCase();
@@ -235,7 +251,8 @@ class MockInterceptor extends Interceptor {
           _registeredUsers[key] = {..._registeredUsers[key]!, ...body};
           _persistUsers();
         }
-        final profile = Map<String, dynamic>.from(_registeredUsers[key]!)..remove('password');
+        final profile = Map<String, dynamic>.from(_registeredUsers[key]!)
+          ..remove('password');
         return profile;
       }
       return _citizenProfile;
@@ -263,7 +280,7 @@ class MockInterceptor extends Interceptor {
     // ── Citizen documents ────────────────────────────────────────────────
     if (path == ApiConfig.citizenDocuments) {
       if (method == 'POST') return _uploadDocument(body);
-      return _citizenDocuments;
+      return _currentCitizenDocuments();
     }
 
     // ── Citizen applications ─────────────────────────────────────────────
@@ -313,12 +330,13 @@ class MockInterceptor extends Interceptor {
     }
     if (RegExp(r'^/admin/applications/[^/]+$').hasMatch(path)) {
       final id = path.split('/').last;
-      return _applicationById(id) ?? _MockError(404, {'detail': 'Application not found.'});
+      return _applicationById(id) ??
+          _MockError(404, {'detail': 'Application not found.'});
     }
 
     // ── Admin: documents ──────────────────────────────────────────────────
     if (path == ApiConfig.adminDocuments) {
-      return _citizenDocuments;
+      return _filteredDocuments(queryParameters);
     }
     if (RegExp(r'^/admin/documents/[^/]+/validate$').hasMatch(path)) {
       final id = path.split('/')[3];
@@ -382,6 +400,12 @@ class MockInterceptor extends Interceptor {
   }
 
   Map<String, dynamic> _uploadDocument(dynamic body) {
+    final profile = _currentCitizenProfile();
+    final citizenId = profile['id']?.toString() ?? 'dev-citizen';
+    final citizenEmail = profile['email']?.toString();
+    final firstName = profile['first_name']?.toString() ?? '';
+    final lastName = profile['last_name']?.toString() ?? '';
+    final fullName = '$firstName $lastName'.trim();
     final docType = body is FormData
         ? body.fields
               .firstWhere(
@@ -390,18 +414,21 @@ class MockInterceptor extends Interceptor {
               )
               .value
         : '';
-    final index = _citizenDocuments.indexWhere((d) => d['doc_type'] == docType);
+    final index = _citizenDocuments.indexWhere(
+      (d) => d['doc_type'] == docType && d['citizen_id'] == citizenId,
+    );
     final newDoc = {
       'id': index >= 0
           ? _citizenDocuments[index]['id']
           : 'doc-${DateTime.now().millisecondsSinceEpoch}',
-      'citizen_id': 'dev-citizen',
+      'citizen_id': citizenId,
+      'citizen_email': citizenEmail,
       'doc_type': docType,
       'file_url': 'https://placehold.co/400x300.png',
       'is_valid': null,
       'remark': null,
       'uploaded_at': DateTime.now().toIso8601String(),
-      'citizen_name': 'Tanvirul Islam',
+      'citizen_name': fullName.isEmpty ? 'Citizen' : fullName,
     };
     if (index >= 0) {
       _citizenDocuments[index] = newDoc;
@@ -533,6 +560,7 @@ class MockInterceptor extends Interceptor {
     {
       'id': 'doc-1',
       'citizen_id': 'dev-citizen',
+      'citizen_email': 'citizen@onecitizen.bd',
       'doc_type': 'nid_copy',
       'file_url': 'https://placehold.co/400x300.png',
       'is_valid': true,
@@ -543,6 +571,7 @@ class MockInterceptor extends Interceptor {
     {
       'id': 'doc-2',
       'citizen_id': 'dev-citizen',
+      'citizen_email': 'citizen@onecitizen.bd',
       'doc_type': 'income_certificate',
       'file_url': 'https://placehold.co/400x300.png',
       'is_valid': null,
@@ -553,6 +582,7 @@ class MockInterceptor extends Interceptor {
     {
       'id': 'doc-3',
       'citizen_id': 'dev-citizen',
+      'citizen_email': 'citizen@onecitizen.bd',
       'doc_type': 'ward_union_certificate',
       'file_url': 'https://placehold.co/400x300.png',
       'is_valid': false,
@@ -592,15 +622,16 @@ class MockInterceptor extends Interceptor {
       'id': id,
       'card_type_id': cardType['id'],
       'card_type_name': cardType['name'],
+      'applicant_id': profile['id']?.toString(),
       'applicant_name': fullName.isEmpty ? 'Citizen' : fullName,
       'applicant_nid': profile['nid']?.toString(),
       'applicant_email': profile['email']?.toString(),
       'status': status,
       'submitted_at': submitted.toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
-      'admin_remark': adminRemark ?? (status == 'rejected'
-          ? 'Documents were incomplete.'
-          : null),
+      'admin_remark':
+          adminRemark ??
+          (status == 'rejected' ? 'Documents were incomplete.' : null),
     };
   }
 
@@ -626,20 +657,66 @@ class MockInterceptor extends Interceptor {
     return _applications.where(_belongsToCurrentCitizen).toList();
   }
 
+  List<Map<String, dynamic>> _currentCitizenDocuments() {
+    final profile = _currentCitizenProfile();
+    final citizenId = profile['id']?.toString();
+    final email = profile['email']?.toString().toLowerCase();
+    return _citizenDocuments.where((doc) {
+      final matchesId =
+          citizenId != null &&
+          citizenId.isNotEmpty &&
+          doc['citizen_id']?.toString() == citizenId;
+      final matchesEmail =
+          email != null &&
+          email.isNotEmpty &&
+          doc['citizen_email']?.toString().toLowerCase() == email;
+      return matchesId || matchesEmail;
+    }).toList();
+  }
+
   bool _belongsToCurrentCitizen(Map<String, dynamic> app) {
     final email = _currentCitizenProfile()['email']?.toString();
     if (email == null || email.isEmpty) return true;
-    return app['applicant_email']?.toString().toLowerCase() == email.toLowerCase();
+    return app['applicant_email']?.toString().toLowerCase() ==
+        email.toLowerCase();
   }
 
-  List<Map<String, dynamic>> _filteredApplications(Map<String, dynamic> queryParameters) {
+  List<Map<String, dynamic>> _filteredDocuments(
+    Map<String, dynamic> queryParameters,
+  ) {
+    final citizenId = queryParameters['citizen_id']?.toString();
+    final citizenEmail = queryParameters['citizen_email']
+        ?.toString()
+        .toLowerCase();
+    final hasCitizenFilter =
+        (citizenId != null && citizenId.isNotEmpty) ||
+        (citizenEmail != null && citizenEmail.isNotEmpty);
+    return _citizenDocuments.where((doc) {
+      if (!hasCitizenFilter) return true;
+      final matchesId =
+          citizenId != null &&
+          citizenId.isNotEmpty &&
+          doc['citizen_id']?.toString() == citizenId;
+      final matchesEmail =
+          citizenEmail != null &&
+          citizenEmail.isNotEmpty &&
+          doc['citizen_email']?.toString().toLowerCase() == citizenEmail;
+      return matchesId || matchesEmail;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _filteredApplications(
+    Map<String, dynamic> queryParameters,
+  ) {
     final cardTypeId = queryParameters['card_type_id']?.toString();
     final status = queryParameters['status']?.toString();
     return _applications.where((app) {
-      final matchesCard = cardTypeId == null ||
+      final matchesCard =
+          cardTypeId == null ||
           cardTypeId.isEmpty ||
           app['card_type_id']?.toString() == cardTypeId;
-      final matchesStatus = status == null ||
+      final matchesStatus =
+          status == null ||
           status.isEmpty ||
           app['status']?.toString() == status;
       return matchesCard && matchesStatus;
@@ -648,7 +725,9 @@ class MockInterceptor extends Interceptor {
 
   dynamic _updateApplicationStatus(String id, String status, {String? remark}) {
     final index = _applications.indexWhere((app) => app['id'] == id);
-    if (index == -1) return _MockError(404, {'detail': 'Application not found.'});
+    if (index == -1) {
+      return _MockError(404, {'detail': 'Application not found.'});
+    }
 
     _applications[index] = {
       ..._applications[index],
@@ -663,7 +742,8 @@ class MockInterceptor extends Interceptor {
   Map<String, dynamic> _currentCitizenProfile() {
     final key = _currentUserEmail;
     if (key != null && _registeredUsers.containsKey(key)) {
-      return Map<String, dynamic>.from(_registeredUsers[key]!)..remove('password');
+      return Map<String, dynamic>.from(_registeredUsers[key]!)
+        ..remove('password');
     }
     return Map<String, dynamic>.from(_citizenProfile);
   }
@@ -685,8 +765,9 @@ class MockInterceptor extends Interceptor {
       'approved': countStatus('approved'),
       'rejected': countStatus('rejected'),
       'pending_review': countStatus('submitted') + countStatus('under_review'),
-      'pending_document_reviews':
-          _citizenDocuments.where((doc) => doc['is_valid'] == null).length,
+      'pending_document_reviews': _citizenDocuments
+          .where((doc) => doc['is_valid'] == null)
+          .length,
       'total_disbursed': _distributions.fold<num>(
         0,
         (sum, dist) => sum + ((dist['amount'] as num?) ?? 0),
@@ -759,7 +840,8 @@ class MockInterceptor extends Interceptor {
     },
     {
       'id': 'admin-notif-4',
-      'message': 'Fund distribution of BDT 5,000 for app-3 completed successfully.',
+      'message':
+          'Fund distribution of BDT 5,000 for app-3 completed successfully.',
       'created_at': '2025-06-15T10:05:00Z',
       'is_read': true,
     },
@@ -796,7 +878,6 @@ class MockInterceptor extends Interceptor {
     _citizens[index] = {..._citizens[index], ...patch};
     _persistCitizens();
   }
-
 }
 
 class _MockError {

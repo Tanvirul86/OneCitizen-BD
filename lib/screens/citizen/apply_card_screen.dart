@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
@@ -59,13 +58,22 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   ({IconData icon, Color color}) _styleFor(CardTypeCode code) {
     switch (code) {
       case CardTypeCode.farmer:
-        return (icon: Icons.agriculture_rounded, color: const Color(0xFF059669));
+        return (
+          icon: Icons.agriculture_rounded,
+          color: const Color(0xFF059669),
+        );
       case CardTypeCode.family:
-        return (icon: Icons.family_restroom_rounded, color: const Color(0xFF2563EB));
+        return (
+          icon: Icons.family_restroom_rounded,
+          color: const Color(0xFF2563EB),
+        );
       case CardTypeCode.education:
         return (icon: Icons.school_rounded, color: const Color(0xFF7C3AED));
       case CardTypeCode.worker:
-        return (icon: Icons.engineering_rounded, color: const Color(0xFFEA580C));
+        return (
+          icon: Icons.engineering_rounded,
+          color: const Color(0xFFEA580C),
+        );
     }
   }
 
@@ -246,7 +254,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         return const [
           _ApplicationField('work_type', 'Type of work'),
           _ApplicationField('employer_name', 'Employer or organization'),
-          _ApplicationField('monthly_income', 'Monthly income', keyboardType: TextInputType.number),
+          _ApplicationField(
+            'monthly_income',
+            'Monthly income',
+            keyboardType: TextInputType.number,
+          ),
           _ApplicationField('registration_no', 'Labor registration number'),
         ];
     }
@@ -264,9 +276,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   List<String> _missingDocs(CardType cardType) {
-    return _requiredDocumentsFor(cardType)
-        .where((docType) => !_hasDocument(docType))
-        .toList();
+    return _requiredDocumentsFor(
+      cardType,
+    ).where((docType) => !_hasDocument(docType)).toList();
   }
 
   List<String> _requiredDocumentsFor(CardType cardType) {
@@ -307,9 +319,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   String _formatRequirementFor(String docType) {
-    final extensions = _allowedExtensionsFor(docType)
-        .map((extension) => extension.toUpperCase())
-        .join('/');
+    final extensions = _allowedExtensionsFor(
+      docType,
+    ).map((extension) => extension.toUpperCase()).join('/');
     return '$extensions only';
   }
 
@@ -329,8 +341,13 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   bool _isFarmerAddressComplete() {
-    return const ['division', 'district', 'upazila', 'local_body', 'ward']
-        .every((key) => _choiceValues[key]?.trim().isNotEmpty == true);
+    return const [
+      'division',
+      'district',
+      'upazila',
+      'local_body',
+      'ward',
+    ].every((key) => _choiceValues[key]?.trim().isNotEmpty == true);
   }
 
   void _clearApplicationInput() {
@@ -360,11 +377,15 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     final path = result?.files.single.path;
     final name = result?.files.single.name;
     if (path == null || name == null) return;
+    if (!mounted) return;
 
     setState(() => _uploadingDocuments.add(docType));
 
     final provider = context.read<ApplicationProvider>();
-    final success = await provider.uploadDocument(docType: docType, filePath: path);
+    final success = await provider.uploadDocument(
+      docType: docType,
+      filePath: path,
+    );
     if (!mounted) return;
     setState(() {
       _uploadingDocuments.remove(docType);
@@ -377,7 +398,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? 'Document uploaded successfully' : provider.error ?? 'Upload failed'),
+        content: Text(
+          success
+              ? 'Document uploaded successfully'
+              : provider.error ?? 'Upload failed',
+        ),
         backgroundColor: success ? AppTheme.successGreen : AppTheme.errorRed,
       ),
     );
@@ -394,14 +419,21 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
           children: [
             Text(_criteriaFor(cardType)),
             const SizedBox(height: 16),
-            const Text('Documents required:', style: TextStyle(fontWeight: FontWeight.w800)),
+            const Text(
+              'Documents required:',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 8),
             ..._requiredDocumentsFor(cardType).map(
               (docType) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
                   children: [
-                    const Icon(Icons.description_rounded, size: 17, color: AppTheme.primaryGreen),
+                    const Icon(
+                      Icons.description_rounded,
+                      size: 17,
+                      color: AppTheme.primaryGreen,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -451,8 +483,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
               _PreviewRow(label: 'Card type', value: cardType.name),
               const Divider(height: 24),
               ...fields.map((field) {
-                final controller =
-                    _controllerFor('${cardType.code.name}_${field.key}');
+                final controller = _controllerFor(
+                  '${cardType.code.name}_${field.key}',
+                );
                 return _PreviewRow(
                   label: field.label,
                   value: controller.text.trim().isEmpty
@@ -462,11 +495,26 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
               }),
               if (cardType.code == CardTypeCode.farmer ||
                   cardType.code == CardTypeCode.family) ...[
-                _PreviewRow(label: 'Division', value: _choiceValues['division'] ?? 'Not selected'),
-                _PreviewRow(label: 'District', value: _choiceValues['district'] ?? 'Not selected'),
-                _PreviewRow(label: 'Upazila', value: _choiceValues['upazila'] ?? 'Not selected'),
-                _PreviewRow(label: 'Union', value: _choiceValues['local_body'] ?? 'Not selected'),
-                _PreviewRow(label: 'Ward number', value: _choiceValues['ward'] ?? 'Not selected'),
+                _PreviewRow(
+                  label: 'Division',
+                  value: _choiceValues['division'] ?? 'Not selected',
+                ),
+                _PreviewRow(
+                  label: 'District',
+                  value: _choiceValues['district'] ?? 'Not selected',
+                ),
+                _PreviewRow(
+                  label: 'Upazila',
+                  value: _choiceValues['upazila'] ?? 'Not selected',
+                ),
+                _PreviewRow(
+                  label: 'Union',
+                  value: _choiceValues['local_body'] ?? 'Not selected',
+                ),
+                _PreviewRow(
+                  label: 'Ward number',
+                  value: _choiceValues['ward'] ?? 'Not selected',
+                ),
               ],
               const Divider(height: 24),
               ..._requiredDocumentsFor(cardType).map((docType) {
@@ -493,7 +541,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     final selectedType = _selectedCardType(provider);
     if (selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a card type'), backgroundColor: AppTheme.errorRed),
+        const SnackBar(
+          content: Text('Please select a card type'),
+          backgroundColor: AppTheme.errorRed,
+        ),
       );
       return;
     }
@@ -519,7 +570,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please upload every required document before submitting.'),
+          content: Text(
+            'Please upload every required document before submitting.',
+          ),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -528,7 +581,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
 
     if (!formValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required form fields.'), backgroundColor: AppTheme.errorRed),
+        const SnackBar(
+          content: Text('Please complete all required form fields.'),
+          backgroundColor: AppTheme.errorRed,
+        ),
       );
       return;
     }
@@ -538,7 +594,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         !_isFarmerAddressComplete()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select division, district, upazila, union, and ward.'),
+          content: Text(
+            'Please select division, district, upazila, union, and ward.',
+          ),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -546,18 +604,26 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     }
 
     setState(() => _isSubmitting = true);
-    final success = await provider.submitApplication(cardTypeId: selectedType.id);
+    final success = await provider.submitApplication(
+      cardTypeId: selectedType.id,
+    );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application submitted successfully!'), backgroundColor: AppTheme.successGreen),
+        const SnackBar(
+          content: Text('Application submitted successfully!'),
+          backgroundColor: AppTheme.successGreen,
+        ),
       );
       context.go('/citizen/applications');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Failed to submit application'), backgroundColor: AppTheme.errorRed),
+        SnackBar(
+          content: Text(provider.error ?? 'Failed to submit application'),
+          backgroundColor: AppTheme.errorRed,
+        ),
       );
     }
   }
@@ -579,7 +645,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                 children: [
                   const Text(
                     'Select Card',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 14),
                   if (selectedType == null)
@@ -613,13 +683,17 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                       if (selectedType.code == CardTypeCode.education &&
                           field.key == 'ssc_institute_eiin') {
                         widgets.add(
-                          const _SubsectionHeader(title: 'SSC examination information'),
+                          const _SubsectionHeader(
+                            title: 'SSC examination information',
+                          ),
                         );
                       }
                       if (selectedType.code == CardTypeCode.education &&
                           field.key == 'hsc_institute_eiin') {
                         widgets.add(
-                          const _SubsectionHeader(title: 'HSC examination information'),
+                          const _SubsectionHeader(
+                            title: 'HSC examination information',
+                          ),
                         );
                       }
                       widgets.add(
@@ -627,11 +701,15 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _ApplicationFieldInput(
                             field: field,
-                            controller: _controllerFor('${selectedType.code.name}_${field.key}'),
-                            value: _choiceValues['${selectedType.code.name}_${field.key}'],
+                            controller: _controllerFor(
+                              '${selectedType.code.name}_${field.key}',
+                            ),
+                            value:
+                                _choiceValues['${selectedType.code.name}_${field.key}'],
                             onChanged: (value) {
                               setState(() {
-                                _choiceValues['${selectedType.code.name}_${field.key}'] = value;
+                                _choiceValues['${selectedType.code.name}_${field.key}'] =
+                                    value;
                               });
                             },
                           ),
@@ -680,7 +758,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                     _SectionHeader(
                       key: _documentsKey,
                       title: 'Required documents',
-                      subtitle: 'Upload and preview documents before submitting.',
+                      subtitle:
+                          'Upload and preview documents before submitting.',
                     ),
                     const SizedBox(height: 12),
                     ..._requiredDocumentsFor(selectedType).map(
@@ -710,10 +789,15 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Icon(Icons.send_rounded),
-                      label: Text(_isSubmitting ? 'Submitting...' : 'Submit Application'),
+                      label: Text(
+                        _isSubmitting ? 'Submitting...' : 'Submit Application',
+                      ),
                     ),
                   ),
                 ],
@@ -757,17 +841,14 @@ class _ApplicationFieldInput extends StatelessWidget {
     final options = field.options;
     if (options != null) {
       return DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: field.label,
           prefixIcon: const Icon(Icons.touch_app_rounded),
         ),
         items: options
             .map(
-              (option) => DropdownMenuItem(
-                value: option,
-                child: Text(option),
-              ),
+              (option) => DropdownMenuItem(value: option, child: Text(option)),
             )
             .toList(),
         onChanged: (selected) {
@@ -833,7 +914,11 @@ class _SubsectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4, bottom: 12),
       child: Row(
         children: [
-          const Icon(Icons.school_rounded, color: AppTheme.primaryGreen, size: 20),
+          const Icon(
+            Icons.school_rounded,
+            color: AppTheme.primaryGreen,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -852,10 +937,7 @@ class _SubsectionHeader extends StatelessWidget {
 }
 
 class _FarmerAddressFields extends StatefulWidget {
-  const _FarmerAddressFields({
-    required this.values,
-    required this.onChanged,
-  });
+  const _FarmerAddressFields({required this.values, required this.onChanged});
 
   final Map<String, String> values;
   final void Function(String key, String value) onChanged;
@@ -891,7 +973,10 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
     );
   }
 
-  List<_GeoLocation> _locationsFrom(dynamic response, {required String? parentKey}) {
+  List<_GeoLocation> _locationsFrom(
+    dynamic response, {
+    required String? parentKey,
+  }) {
     final data = response is Map ? response['data'] : null;
     if (data is! List) return const [];
 
@@ -934,7 +1019,8 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
         if (snapshot.hasError || data == null || data.divisions.isEmpty) {
           return const _LocationStatusBox(
             icon: Icons.cloud_off_rounded,
-            message: 'Could not load verified location data. Check internet and try again.',
+            message:
+                'Could not load verified location data. Check internet and try again.',
             isError: true,
           );
         }
@@ -1015,12 +1101,16 @@ class _BangladeshGeoData {
 
   List<_GeoLocation> districtsFor(String? divisionId) {
     if (divisionId == null) return const [];
-    return districts.where((location) => location.parentId == divisionId).toList();
+    return districts
+        .where((location) => location.parentId == divisionId)
+        .toList();
   }
 
   List<_GeoLocation> upazilasFor(String? districtId) {
     if (districtId == null) return const [];
-    return upazilas.where((location) => location.parentId == districtId).toList();
+    return upazilas
+        .where((location) => location.parentId == districtId)
+        .toList();
   }
 
   List<_GeoLocation> unionsFor(String? upazilaId) {
@@ -1064,12 +1154,13 @@ class _AddressDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = options.isNotEmpty;
-    final selectedValue = enabled && options.any((option) => option.id == selectedId)
+    final selectedValue =
+        enabled && options.any((option) => option.id == selectedId)
         ? selectedId
         : null;
 
     return DropdownButtonFormField<String>(
-      value: selectedValue,
+      initialValue: selectedValue,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.location_on_rounded),
@@ -1085,7 +1176,9 @@ class _AddressDropdown extends StatelessWidget {
       onChanged: enabled
           ? (selected) {
               if (selected == null) return;
-              final location = options.firstWhere((option) => option.id == selected);
+              final location = options.firstWhere(
+                (option) => option.id == selected,
+              );
               onChanged(location);
             }
           : null,
@@ -1100,10 +1193,7 @@ class _AddressDropdown extends StatelessWidget {
 }
 
 class _WardDropdown extends StatelessWidget {
-  const _WardDropdown({
-    required this.value,
-    required this.onChanged,
-  });
+  const _WardDropdown({required this.value, required this.onChanged});
 
   final String? value;
   final ValueChanged<String> onChanged;
@@ -1112,7 +1202,7 @@ class _WardDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final wards = List.generate(9, (index) => 'Ward ${index + 1}');
     return DropdownButtonFormField<String>(
-      value: wards.contains(value) ? value : null,
+      initialValue: wards.contains(value) ? value : null,
       decoration: const InputDecoration(
         labelText: 'Ward number',
         prefixIcon: Icon(Icons.location_on_rounded),
@@ -1173,7 +1263,11 @@ class _LocationStatusBox extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({super.key, required this.title, required this.subtitle});
+  const _SectionHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   final String title;
   final String subtitle;
@@ -1185,10 +1279,17 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textPrimary,
+          ),
         ),
         const SizedBox(height: 4),
-        Text(subtitle, style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
+        Text(
+          subtitle,
+          style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+        ),
       ],
     );
   }
@@ -1220,7 +1321,10 @@ class _CardTypeTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? color.withValues(alpha: 0.06) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? color : AppTheme.divider, width: selected ? 1.5 : 1),
+          border: Border.all(
+            color: selected ? color : AppTheme.divider,
+            width: selected ? 1.5 : 1,
+          ),
           boxShadow: selected ? null : AppTheme.cardShadow,
         ),
         child: Row(
@@ -1228,7 +1332,10 @@ class _CardTypeTile extends StatelessWidget {
             Container(
               width: 42,
               height: 42,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(width: 12),
@@ -1236,17 +1343,28 @@ class _CardTypeTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cardType.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  Text(
+                    cardType.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     '${cardType.code == CardTypeCode.farmer ? 4 : cardType.requiredDocuments.length} documents required',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
             Icon(
-              selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+              selected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_unchecked_rounded,
               color: selected ? color : AppTheme.textTertiary,
               size: 22,
             ),
@@ -1307,15 +1425,15 @@ class _SelectedCardHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${cardType.code == CardTypeCode.farmer ? 4 : cardType.requiredDocuments.length} documents required',
-                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ],
             ),
           ),
-          TextButton(
-            onPressed: onChange,
-            child: const Text('Change'),
-          ),
+          TextButton(onPressed: onChange, child: const Text('Change')),
         ],
       ),
     );
@@ -1347,8 +1465,8 @@ class _DocumentRequirementTile extends StatelessWidget {
     final statusColor = isMissing
         ? AppTheme.errorRed
         : hasDocument
-            ? AppTheme.successGreen
-            : AppTheme.textSecondary;
+        ? AppTheme.successGreen
+        : AppTheme.textSecondary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1356,7 +1474,10 @@ class _DocumentRequirementTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isMissing ? AppTheme.errorRed : AppTheme.divider, width: isMissing ? 1.5 : 1),
+        border: Border.all(
+          color: isMissing ? AppTheme.errorRed : AppTheme.divider,
+          width: isMissing ? 1.5 : 1,
+        ),
         boxShadow: AppTheme.cardShadow,
       ),
       child: Row(
@@ -1372,7 +1493,13 @@ class _DocumentRequirementTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 3),
                 Text(
                   pickedFileName ??
@@ -1410,7 +1537,11 @@ class _DocumentRequirementTile extends StatelessWidget {
             tooltip: hasDocument ? 'Replace document' : 'Upload document',
             onPressed: isUploading ? null : onUpload,
             icon: isUploading
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Icon(hasDocument ? Icons.upload_rounded : Icons.add_rounded),
           ),
         ],
@@ -1440,7 +1571,12 @@ void _showDocumentPreview(
     builder: (sheetContext) {
       return SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 18, 20, 20 + MediaQuery.of(sheetContext).viewInsets.bottom),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            18,
+            20,
+            20 + MediaQuery.of(sheetContext).viewInsets.bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1499,7 +1635,10 @@ void _showDocumentPreview(
               const SizedBox(height: 6),
               Text(
                 filePath,
-                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -1560,10 +1699,9 @@ class _PdfPagePreview extends StatelessWidget {
   final String filePath;
 
   Future<Uint8List> _renderFirstPage() async {
-    final bytes = await _channel.invokeMethod<Uint8List>(
-      'renderPdfFirstPage',
-      {'path': filePath},
-    );
+    final bytes = await _channel.invokeMethod<Uint8List>('renderPdfFirstPage', {
+      'path': filePath,
+    });
     if (bytes == null || bytes.isEmpty) {
       throw StateError('No PDF preview was returned.');
     }
@@ -1597,10 +1735,7 @@ class _PdfPagePreview extends StatelessWidget {
             child: InteractiveViewer(
               minScale: 1,
               maxScale: 4,
-              child: Image.memory(
-                bytes,
-                fit: BoxFit.contain,
-              ),
+              child: Image.memory(bytes, fit: BoxFit.contain),
             ),
           ),
         );
@@ -1622,9 +1757,18 @@ class _PreviewRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+          ),
           const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
+          ),
         ],
       ),
     );

@@ -18,7 +18,8 @@ class AdminService {
     final response = await _apiClient.dio.get(
       ApiConfig.adminApplications,
       queryParameters: {
-        if (cardTypeId != null && cardTypeId.isNotEmpty) 'card_type_id': cardTypeId,
+        if (cardTypeId != null && cardTypeId.isNotEmpty)
+          'card_type_id': cardTypeId,
         if (status != null) 'status': applicationStatusToString(status),
       },
     );
@@ -29,17 +30,23 @@ class AdminService {
   }
 
   Future<Application> getApplication(String id) async {
-    final response = await _apiClient.dio.get('${ApiConfig.adminApplications}/$id');
+    final response = await _apiClient.dio.get(
+      '${ApiConfig.adminApplications}/$id',
+    );
     return Application.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<Application> approveApplication(String id) async {
-    final response = await _apiClient.dio
-        .patch('${ApiConfig.adminApplications}/$id/approve');
+    final response = await _apiClient.dio.patch(
+      '${ApiConfig.adminApplications}/$id/approve',
+    );
     return Application.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<Application> rejectApplication(String id, {required String reason}) async {
+  Future<Application> rejectApplication(
+    String id, {
+    required String reason,
+  }) async {
     final response = await _apiClient.dio.patch(
       '${ApiConfig.adminApplications}/$id/reject',
       data: {'reason': reason},
@@ -48,8 +55,18 @@ class AdminService {
   }
 
   // ── Document validation ─────────────────────────────────────────────────
-  Future<List<CitizenDocument>> getPendingDocuments() async {
-    final response = await _apiClient.dio.get(ApiConfig.adminDocuments);
+  Future<List<CitizenDocument>> getPendingDocuments({
+    String? citizenId,
+    String? citizenEmail,
+  }) async {
+    final response = await _apiClient.dio.get(
+      ApiConfig.adminDocuments,
+      queryParameters: {
+        if (citizenId != null && citizenId.isNotEmpty) 'citizen_id': citizenId,
+        if (citizenEmail != null && citizenEmail.isNotEmpty)
+          'citizen_email': citizenEmail,
+      },
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((e) => CitizenDocument.fromJson(e as Map<String, dynamic>))
@@ -94,7 +111,8 @@ class AdminService {
     final response = await _apiClient.dio.get(
       ApiConfig.adminDistributions,
       queryParameters: {
-        if (cardTypeId != null && cardTypeId.isNotEmpty) 'card_type_id': cardTypeId,
+        if (cardTypeId != null && cardTypeId.isNotEmpty)
+          'card_type_id': cardTypeId,
         if (method != null) 'method': distributionMethodToString(method),
       },
     );
@@ -108,7 +126,9 @@ class AdminService {
   Future<List<User>> getCitizens({String? search}) async {
     final response = await _apiClient.dio.get(
       ApiConfig.adminCitizens,
-      queryParameters: {if (search != null && search.isNotEmpty) 'search': search},
+      queryParameters: {
+        if (search != null && search.isNotEmpty) 'search': search,
+      },
     );
     final list = response.data as List<dynamic>;
     return list.map((e) => User.fromJson(e as Map<String, dynamic>)).toList();
@@ -143,7 +163,8 @@ class AdminService {
 }
 
 class AdminNotificationService {
-  AdminNotificationService({required ApiClient apiClient}) : _apiClient = apiClient;
+  AdminNotificationService({required ApiClient apiClient})
+    : _apiClient = apiClient;
   final ApiClient _apiClient;
 
   Future<List<AppNotification>> getNotifications() async {
