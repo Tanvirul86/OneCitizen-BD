@@ -33,6 +33,7 @@ class CardType {
     required this.name,
     required this.eligibilityCriteria,
     this.requiredDocuments = const [],
+    this.applicationFields = const [],
   });
 
   final String id;
@@ -40,6 +41,7 @@ class CardType {
   final String name;
   final String eligibilityCriteria;
   final List<String> requiredDocuments;
+  final List<CardTypeApplicationField> applicationFields;
 
   factory CardType.fromJson(Map<String, dynamic> json) {
     return CardType(
@@ -50,6 +52,50 @@ class CardType {
       requiredDocuments:
           (json['required_documents'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      applicationFields:
+          (json['application_fields'] as List<dynamic>?)
+              ?.whereType<Map>()
+              .map(
+                (field) => CardTypeApplicationField.fromJson(
+                  field.cast<String, dynamic>(),
+                ),
+              )
+              .toList() ??
+          [],
+    );
+  }
+}
+
+/// Field definitions are owned by the backend card-type configuration.
+class CardTypeApplicationField {
+  const CardTypeApplicationField({
+    required this.key,
+    required this.label,
+    required this.required,
+    this.hintText,
+    this.inputType,
+    this.options = const [],
+  });
+
+  final String key;
+  final String label;
+  final bool required;
+  final String? hintText;
+  final String? inputType;
+  final List<String> options;
+
+  factory CardTypeApplicationField.fromJson(Map<String, dynamic> json) {
+    return CardTypeApplicationField(
+      key: json['key']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      required: json['required'] as bool? ?? false,
+      hintText: json['hint']?.toString(),
+      inputType: json['input_type']?.toString(),
+      options:
+          (json['options'] as List<dynamic>?)
+              ?.map((option) => option.toString())
               .toList() ??
           [],
     );

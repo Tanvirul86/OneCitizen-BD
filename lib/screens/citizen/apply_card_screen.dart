@@ -77,191 +77,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     }
   }
 
-  List<_ApplicationField> _fieldsFor(CardTypeCode code) {
-    switch (code) {
-      case CardTypeCode.farmer:
-        return const [
-          _ApplicationField('first_name', 'First name'),
-          _ApplicationField('last_name', 'Last name'),
-          _ApplicationField(
-            'nid_card_number',
-            'NID card number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'date_of_birth',
-            'Date of birth',
-            hintText: 'DD/MM/YYYY',
-            keyboardType: TextInputType.datetime,
-          ),
-          _ApplicationField(
-            'phone_number',
-            'Phone number linked with own NID',
-            keyboardType: TextInputType.phone,
-          ),
-          _ApplicationField(
-            'mobile_wallet',
-            'Mobile financial service',
-            options: ['bKash', 'Nagad'],
-          ),
-          _ApplicationField(
-            'cultivated_land_amount',
-            'Cultivated land amount',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'land_unit',
-            'Land measuring unit',
-            options: ['Decimal', 'Katha', 'Bigha', 'Acre'],
-          ),
-          _ApplicationField('village_road', 'Village/Road/House'),
-        ];
-      case CardTypeCode.family:
-        return const [
-          _ApplicationField('first_name', 'First name'),
-          _ApplicationField('last_name', 'Last name'),
-          _ApplicationField(
-            'nid_card_number',
-            'NID card number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'date_of_birth',
-            'Date of birth',
-            hintText: 'DD/MM/YYYY',
-            keyboardType: TextInputType.datetime,
-          ),
-          _ApplicationField(
-            'phone_number',
-            'Phone number linked with own NID',
-            keyboardType: TextInputType.phone,
-          ),
-          _ApplicationField(
-            'mobile_wallet',
-            'Mobile financial service',
-            options: ['bKash', 'Nagad'],
-          ),
-          _ApplicationField(
-            'family_members',
-            'Number of family members',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'monthly_income',
-            'Monthly household income',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'dependents',
-            'Number of dependents',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField('village_road', 'Village/Road/House'),
-        ];
-      case CardTypeCode.education:
-        return const [
-          _ApplicationField('student_first_name', 'Student first name'),
-          _ApplicationField('student_last_name', 'Student last name'),
-          _ApplicationField('father_name', 'Father name'),
-          _ApplicationField('mother_name', 'Mother name'),
-          _ApplicationField(
-            'date_of_birth',
-            'Date of birth',
-            hintText: 'DD/MM/YYYY',
-            keyboardType: TextInputType.datetime,
-          ),
-          _ApplicationField(
-            'nid_birth_certificate_number',
-            'NID/Birth certificate number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'ssc_institute_eiin',
-            'SSC institute EIIN number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'ssc_registration_number',
-            'SSC registration number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'ssc_roll_number',
-            'SSC roll number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'ssc_board',
-            'SSC board',
-            options: [
-              'Dhaka',
-              'Chattogram',
-              'Rajshahi',
-              'Cumilla',
-              'Jashore',
-              'Barishal',
-              'Sylhet',
-              'Dinajpur',
-              'Mymensingh',
-              'Madrasah',
-              'Technical',
-            ],
-          ),
-          _ApplicationField(
-            'ssc_passing_year',
-            'SSC passing year',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'hsc_institute_eiin',
-            'HSC institute EIIN number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'hsc_registration_number',
-            'HSC registration number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'hsc_roll_number',
-            'HSC roll number',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField(
-            'hsc_board',
-            'HSC board',
-            options: [
-              'Dhaka',
-              'Chattogram',
-              'Rajshahi',
-              'Cumilla',
-              'Jashore',
-              'Barishal',
-              'Sylhet',
-              'Dinajpur',
-              'Mymensingh',
-              'Madrasah',
-              'Technical',
-            ],
-          ),
-          _ApplicationField(
-            'hsc_passing_year',
-            'HSC passing year',
-            keyboardType: TextInputType.number,
-          ),
-        ];
-      case CardTypeCode.worker:
-        return const [
-          _ApplicationField('work_type', 'Type of work'),
-          _ApplicationField('employer_name', 'Employer or organization'),
-          _ApplicationField(
-            'monthly_income',
-            'Monthly income',
-            keyboardType: TextInputType.number,
-          ),
-          _ApplicationField('registration_no', 'Labor registration number'),
-        ];
-    }
+  List<_ApplicationField> _fieldsFor(CardType cardType) {
+    return cardType.applicationFields
+        .where((field) => field.key.isNotEmpty && field.label.isNotEmpty)
+        .map(_ApplicationField.fromConfig)
+        .toList();
   }
 
   CardType? _selectedCardType(ApplicationProvider provider) {
@@ -282,34 +102,6 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   List<String> _requiredDocumentsFor(CardType cardType) {
-    if (cardType.code == CardTypeCode.farmer) {
-      return const [
-        'nid_copy',
-        'union_paurosova_certificate',
-        'recent_photo',
-        'agricultural_certificate',
-      ];
-    }
-    if (cardType.code == CardTypeCode.family) {
-      return const [
-        'nid_copy',
-        'union_paurosova_certificate',
-        'recent_photo',
-        'income_certificate',
-      ];
-    }
-    if (cardType.code == CardTypeCode.education) {
-      return const [
-        'nid_birth_certificate',
-        'ssc_registration_card',
-        'ssc_admit_card',
-        'ssc_certificate',
-        'hsc_registration_card',
-        'hsc_admit_card',
-        'hsc_certificate',
-        'recent_photo',
-      ];
-    }
     return cardType.requiredDocuments;
   }
 
@@ -326,17 +118,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   String _documentLabelFor(CardType cardType, String docType) {
-    if (cardType.code == CardTypeCode.family &&
-        docType == 'union_paurosova_certificate') {
-      return 'Citizen Certificate from Union or Pourasova';
-    }
     return documentTypeLabel(docType);
   }
 
   String _criteriaFor(CardType cardType) {
-    if (cardType.code == CardTypeCode.family) {
-      return 'Must be a low-income household with valid NID, monthly household income details, family member information, dependents count, recent photo, income certificate, and Union/Paurosova certificate.';
-    }
     return cardType.eligibilityCriteria;
   }
 
@@ -470,7 +255,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
   }
 
   void _showPreview(CardType cardType) {
-    final fields = _fieldsFor(cardType.code);
+    final fields = _fieldsFor(cardType);
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -604,8 +389,17 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     }
 
     setState(() => _isSubmitting = true);
+    final applicationData = <String, String>{
+      for (final field in _fieldsFor(selectedType))
+        field.key:
+            _choiceValues['${selectedType.code.name}_${field.key}'] ??
+            _controllerFor('${selectedType.code.name}_${field.key}').text.trim(),
+      for (final entry in _choiceValues.entries)
+        if (!entry.key.startsWith('${selectedType.code.name}_')) entry.key: entry.value,
+    };
     final success = await provider.submitApplication(
       cardTypeId: selectedType.id,
+      applicationData: applicationData,
     );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -678,7 +472,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                       subtitle: 'Fill the details required for this card type.',
                     ),
                     const SizedBox(height: 12),
-                    ..._fieldsFor(selectedType.code).expand((field) {
+                    ..._fieldsFor(selectedType).expand((field) {
                       final widgets = <Widget>[];
                       if (selectedType.code == CardTypeCode.education &&
                           field.key == 'ssc_institute_eiin') {
@@ -813,14 +607,33 @@ class _ApplicationField {
     this.label, {
     this.keyboardType,
     this.hintText,
-    this.options,
+    this.options = const [],
+    required this.required,
   });
+
+  factory _ApplicationField.fromConfig(CardTypeApplicationField config) {
+    return _ApplicationField(
+      config.key,
+      config.label,
+      hintText: config.hintText,
+      options: config.options,
+      required: config.required,
+      keyboardType: switch (config.inputType?.toLowerCase()) {
+        'number' || 'numeric' || 'decimal' => TextInputType.number,
+        'phone' => TextInputType.phone,
+        'date' => TextInputType.datetime,
+        'email' => TextInputType.emailAddress,
+        _ => TextInputType.text,
+      },
+    );
+  }
 
   final String key;
   final String label;
   final TextInputType? keyboardType;
   final String? hintText;
-  final List<String>? options;
+  final List<String> options;
+  final bool required;
 }
 
 class _ApplicationFieldInput extends StatelessWidget {
@@ -839,7 +652,7 @@ class _ApplicationFieldInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final options = field.options;
-    if (options != null) {
+    if (options.isNotEmpty) {
       return DropdownButtonFormField<String>(
         initialValue: value,
         decoration: InputDecoration(
@@ -857,7 +670,7 @@ class _ApplicationFieldInput extends StatelessWidget {
           onChanged(selected);
         },
         validator: (selected) {
-          if (selected == null || selected.trim().isEmpty) {
+          if (field.required && (selected == null || selected.trim().isEmpty)) {
             return 'This field is required';
           }
           return null;
@@ -874,28 +687,8 @@ class _ApplicationFieldInput extends StatelessWidget {
         prefixIcon: const Icon(Icons.edit_note_rounded),
       ),
       validator: (value) {
-        if (value == null || value.trim().isEmpty) {
+        if (field.required && (value == null || value.trim().isEmpty)) {
           return 'This field is required';
-        }
-        if (field.key == 'phone_number' &&
-            !RegExp(r'^(?:\+?88)?01[3-9]\d{8}$').hasMatch(value.trim())) {
-          return 'Enter a valid Bangladesh phone number';
-        }
-        if (field.key == 'nid_card_number' &&
-            !RegExp(r'^\d{10,17}$').hasMatch(value.trim())) {
-          return 'Enter a valid NID card number';
-        }
-        if (field.key == 'nid_birth_certificate_number' &&
-            !RegExp(r'^\d{10,17}$').hasMatch(value.trim())) {
-          return 'Enter a valid NID or birth certificate number';
-        }
-        if (field.key.endsWith('_institute_eiin') &&
-            !RegExp(r'^\d{6}$').hasMatch(value.trim())) {
-          return 'Enter a valid 6 digit EIIN number';
-        }
-        if (field.key.endsWith('_passing_year') &&
-            !RegExp(r'^(19|20)\d{2}$').hasMatch(value.trim())) {
-          return 'Enter a valid passing year';
         }
         return null;
       },
@@ -1200,22 +993,16 @@ class _WardDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wards = List.generate(9, (index) => 'Ward ${index + 1}');
-    return DropdownButtonFormField<String>(
-      initialValue: wards.contains(value) ? value : null,
+    return TextFormField(
+      initialValue: value,
+      keyboardType: TextInputType.text,
       decoration: const InputDecoration(
         labelText: 'Ward number',
         prefixIcon: Icon(Icons.location_on_rounded),
       ),
-      items: wards
-          .map((ward) => DropdownMenuItem(value: ward, child: Text(ward)))
-          .toList(),
-      onChanged: (selected) {
-        if (selected == null) return;
-        onChanged(selected);
-      },
-      validator: (selected) {
-        if (selected == null || selected.trim().isEmpty) {
+      onChanged: onChanged,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
           return 'This field is required';
         }
         return null;
@@ -1352,7 +1139,7 @@ class _CardTypeTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${cardType.code == CardTypeCode.farmer ? 4 : cardType.requiredDocuments.length} documents required',
+                    '${cardType.requiredDocuments.length} documents required',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -1424,7 +1211,7 @@ class _SelectedCardHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${cardType.code == CardTypeCode.farmer ? 4 : cardType.requiredDocuments.length} documents required',
+                  '${cardType.requiredDocuments.length} documents required',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,

@@ -51,10 +51,16 @@ class ApplicationService {
     return Application.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<Application> submitApplication({required String cardTypeId}) async {
+  Future<Application> submitApplication({
+    required String cardTypeId,
+    required Map<String, String> applicationData,
+  }) async {
     final response = await _apiClient.dio.post(
       ApiConfig.citizenApplications,
-      data: {'card_type_id': cardTypeId},
+      data: {
+        'card_type_id': cardTypeId,
+        'application_data': applicationData,
+      },
     );
     return Application.fromJson(response.data as Map<String, dynamic>);
   }
