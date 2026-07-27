@@ -14,19 +14,19 @@ class AppStrings {
   static const Map<String, Map<AppLanguage, String>> _strings = {
     // ── Home / landing page ──────────────────────────────────────────────
     'about': {AppLanguage.en: 'About', AppLanguage.bn: 'সম্পর্কে'},
-    'gov_badge': {
-      AppLanguage.en: 'Government of Bangladesh  •  Official Platform',
-      AppLanguage.bn: 'বাংলাদেশ সরকার  •  অফিসিয়াল প্ল্যাটফর্ম',
+    'hero_title_main': {
+      AppLanguage.en: 'Your welfare, ',
+      AppLanguage.bn: 'আপনার কল্যাণ, ',
     },
-    'hero_title': {
-      AppLanguage.en: 'Your Welfare,\nSimplified.',
-      AppLanguage.bn: 'আপনার কল্যাণ,\nসহজ করা হলো।',
+    'hero_title_accent': {
+      AppLanguage.en: 'simplified.',
+      AppLanguage.bn: 'সহজ হলো।',
     },
     'hero_subtitle': {
       AppLanguage.en:
-          'Check eligibility, apply for welfare cards, upload documents, and track your application — all from your phone.',
+          'Check eligibility, apply for your welfare card and track your application — all from your phone.',
       AppLanguage.bn:
-          'যোগ্যতা যাচাই করুন, কল্যাণ কার্ডের জন্য আবেদন করুন, ডকুমেন্ট আপলোড করুন এবং আবেদনের অবস্থা ট্র্যাক করুন — সবকিছু আপনার ফোন থেকেই।',
+          'যোগ্যতা যাচাই করুন, কল্যাণ কার্ডের জন্য আবেদন করুন এবং আবেদনের অবস্থা ট্র্যাক করুন — সবকিছু আপনার ফোন থেকেই।',
     },
     'sign_in': {AppLanguage.en: 'Sign In', AppLanguage.bn: 'সাইন ইন'},
     'create_account': {AppLanguage.en: 'Create Account', AppLanguage.bn: 'অ্যাকাউন্ট তৈরি করুন'},
@@ -34,13 +34,25 @@ class AppStrings {
     'stat_digital': {AppLanguage.en: 'Digital', AppLanguage.bn: 'ডিজিটাল'},
     'stat_free': {AppLanguage.en: 'Free', AppLanguage.bn: 'ফ্রি'},
     'stat_service': {AppLanguage.en: 'Service', AppLanguage.bn: 'সেবা'},
+    'cards_section_eyebrow': {
+      AppLanguage.en: 'WELFARE CARDS',
+      AppLanguage.bn: 'কল্যাণ কার্ড',
+    },
     'available_cards_title': {
-      AppLanguage.en: 'Available Welfare Cards',
-      AppLanguage.bn: 'উপলব্ধ কল্যাণ কার্ড',
+      AppLanguage.en: 'Find your card',
+      AppLanguage.bn: 'আপনার কার্ড খুঁজুন',
     },
     'available_cards_subtitle': {
       AppLanguage.en: 'Check if you qualify for any of these benefits',
       AppLanguage.bn: 'আপনি এই সুবিধাগুলোর জন্য যোগ্য কিনা যাচাই করুন',
+    },
+    'welcome_banner_title': {
+      AppLanguage.en: 'Welcome to OneCitizen BD',
+      AppLanguage.bn: 'ওয়ানসিটিজেন বিডি-তে স্বাগতম',
+    },
+    'welcome_banner_subtitle': {
+      AppLanguage.en: "One account for every welfare card you're entitled to. Open yours today.",
+      AppLanguage.bn: 'আপনার প্রাপ্য সব কল্যাণ কার্ডের জন্য একটি অ্যাকাউন্ট। আজই খুলুন।',
     },
     'card_farmer_title': {AppLanguage.en: 'Farmer Card', AppLanguage.bn: 'কৃষক কার্ড'},
     'card_farmer_subtitle': {
@@ -56,31 +68,6 @@ class AppStrings {
     'card_education_subtitle': {
       AppLanguage.en: 'For students achieving GPA 5.00 in both SSC and HSC.',
       AppLanguage.bn: 'SSC ও HSC উভয় পরীক্ষায় GPA ৫.০০ অর্জনকারী শিক্ষার্থীদের জন্য।',
-    },
-    'how_it_works_title': {AppLanguage.en: 'How It Works', AppLanguage.bn: 'যেভাবে কাজ করে'},
-    'how_it_works_subtitle': {
-      AppLanguage.en: 'Four simple steps to get your welfare card',
-      AppLanguage.bn: 'আপনার কল্যাণ কার্ড পেতে চারটি সহজ ধাপ',
-    },
-    'step1_title': {AppLanguage.en: 'Register & Set Up', AppLanguage.bn: 'রেজিস্ট্রেশন ও প্রোফাইল তৈরি'},
-    'step1_subtitle': {
-      AppLanguage.en: 'Create your account and complete your profile details.',
-      AppLanguage.bn: 'আপনার অ্যাকাউন্ট তৈরি করুন এবং প্রোফাইলের তথ্য পূরণ করুন।',
-    },
-    'step2_title': {AppLanguage.en: 'Check Eligibility', AppLanguage.bn: 'যোগ্যতা যাচাই করুন'},
-    'step2_subtitle': {
-      AppLanguage.en: 'Submit your details for admin review and confirmation.',
-      AppLanguage.bn: 'অ্যাডমিন পর্যালোচনা ও নিশ্চিতকরণের জন্য আপনার তথ্য জমা দিন।',
-    },
-    'step3_title': {AppLanguage.en: 'Apply & Upload', AppLanguage.bn: 'আবেদন ও ডকুমেন্ট আপলোড'},
-    'step3_subtitle': {
-      AppLanguage.en: 'Submit your card application and upload required documents.',
-      AppLanguage.bn: 'আপনার কার্ডের আবেদন জমা দিন এবং প্রয়োজনীয় ডকুমেন্ট আপলোড করুন।',
-    },
-    'step4_title': {AppLanguage.en: 'Get Approved', AppLanguage.bn: 'অনুমোদন পান'},
-    'step4_subtitle': {
-      AppLanguage.en: 'Admin reviews your application and you receive your benefit.',
-      AppLanguage.bn: 'অ্যাডমিন আপনার আবেদন পর্যালোচনা করবে এবং আপনি সুবিধা পাবেন।',
     },
     'footer_tagline': {
       AppLanguage.en: 'A unified welfare card management platform\nfor the People\'s Republic of Bangladesh.',
