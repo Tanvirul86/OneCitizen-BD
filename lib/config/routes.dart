@@ -186,6 +186,15 @@ class AppRouter {
             applicationId: state.pathParameters['id']!,
           ),
         ),
+        GoRoute(
+          path: '/admin/applications/:id/documents',
+          builder: (context, state) => DocumentValidationScreen(
+            standalone: true,
+            filter: state.extra is DocumentValidationFilterArgs
+                ? state.extra as DocumentValidationFilterArgs
+                : null,
+          ),
+        ),
       ],
     );
   }

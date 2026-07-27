@@ -7,9 +7,14 @@ import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:provider/provider.dart';
 
 class DocumentValidationScreen extends StatefulWidget {
-  const DocumentValidationScreen({super.key, this.filter});
+  const DocumentValidationScreen({
+    super.key,
+    this.filter,
+    this.standalone = false,
+  });
 
   final DocumentValidationFilterArgs? filter;
+  final bool standalone;
 
   @override
   State<DocumentValidationScreen> createState() =>
@@ -102,6 +107,9 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
+      appBar: widget.standalone
+          ? AppBar(title: Text(context.tr('admin_nav_document_validation')))
+          : null,
       body: RefreshIndicator(
         onRefresh: _loadDocuments,
         child: provider.isLoadingDocuments
