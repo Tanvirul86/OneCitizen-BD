@@ -54,16 +54,21 @@ This generates `lib/firebase_options.dart`. Enable **Phone Authentication** in t
 
 ### 3. API base URL
 
-Update `lib/config/api_config.dart` if your backend URL differs:
+The app never generates local/demo API records. Supply the URL of the real
+backend (including `/api`) when building or running:
 
-```dart
-static const String baseUrl = 'https://api.onecitizen.bd/api';
+```bash
+flutter run --dart-define=API_BASE_URL=https://your-api.example/api
 ```
+
+Use the corresponding staging or production URL in CI/release builds. Without
+`API_BASE_URL`, requests fail with a clear configuration error instead of
+showing invented citizen or admin data.
 
 ### 4. Run the app
 
 ```bash
-flutter run
+flutter run --dart-define=API_BASE_URL=https://your-api.example/api
 ```
 
 ## Backend API

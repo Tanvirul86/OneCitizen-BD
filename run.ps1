@@ -1,5 +1,10 @@
 # Launches the Pixel_7_API_34 Android emulator (if not already running) and runs the app on it.
 
+$apiBaseUrl = $env:ONECITIZEN_API_BASE_URL
+if ([string]::IsNullOrWhiteSpace($apiBaseUrl)) {
+    throw "Set ONECITIZEN_API_BASE_URL to your real backend API URL before running the app."
+}
+
 $emulator = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"
 $device = & adb devices | Select-String "emulator-\d+\s+device$"
 
@@ -23,4 +28,4 @@ if (-not $device) {
 
 $deviceId = (& adb devices | Select-String "emulator-\d+\s+device$").ToString().Split()[0]
 Write-Host "Launching app on $deviceId..."
-flutter run -d $deviceId
+flutter run -d $deviceId --dart-define=API_BASE_URL=$apiBaseUrl

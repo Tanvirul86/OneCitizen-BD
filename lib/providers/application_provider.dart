@@ -91,13 +91,19 @@ class ApplicationProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitApplication({required String cardTypeId}) async {
+  Future<bool> submitApplication({
+    required String cardTypeId,
+    required Map<String, String> applicationData,
+  }) async {
     isLoading = true;
     error = null;
     notifyListeners();
 
     try {
-      final app = await _applicationService.submitApplication(cardTypeId: cardTypeId);
+      final app = await _applicationService.submitApplication(
+        cardTypeId: cardTypeId,
+        applicationData: applicationData,
+      );
       applications.insert(0, app);
       isLoading = false;
       notifyListeners();
