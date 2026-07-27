@@ -6,7 +6,8 @@ import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/admin_services.dart';
 
 class AdminProvider extends ChangeNotifier {
-  AdminProvider({required AdminService adminService}) : _adminService = adminService;
+  AdminProvider({required AdminService adminService})
+    : _adminService = adminService;
 
   final AdminService _adminService;
 
@@ -16,12 +17,18 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingApplications = false;
   String? applicationsError;
 
-  Future<void> loadApplications({String? cardTypeId, ApplicationStatus? status}) async {
+  Future<void> loadApplications({
+    String? cardTypeId,
+    ApplicationStatus? status,
+  }) async {
     isLoadingApplications = true;
     applicationsError = null;
     notifyListeners();
     try {
-      applications = await _adminService.getApplications(cardTypeId: cardTypeId, status: status);
+      applications = await _adminService.getApplications(
+        cardTypeId: cardTypeId,
+        status: status,
+      );
     } catch (e) {
       applicationsError = e.toString();
     } finally {
@@ -58,7 +65,10 @@ class AdminProvider extends ChangeNotifier {
 
   Future<bool> rejectApplication(String id, {required String reason}) async {
     try {
-      selectedApplication = await _adminService.rejectApplication(id, reason: reason);
+      selectedApplication = await _adminService.rejectApplication(
+        id,
+        reason: reason,
+      );
       _replaceApplication(selectedApplication!);
       notifyListeners();
       return true;
@@ -79,12 +89,18 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingDocuments = false;
   String? documentsError;
 
-  Future<void> loadPendingDocuments() async {
+  Future<void> loadPendingDocuments({
+    String? citizenId,
+    String? citizenEmail,
+  }) async {
     isLoadingDocuments = true;
     documentsError = null;
     notifyListeners();
     try {
-      pendingDocuments = await _adminService.getPendingDocuments();
+      pendingDocuments = await _adminService.getPendingDocuments(
+        citizenId: citizenId,
+        citizenEmail: citizenEmail,
+      );
     } catch (e) {
       documentsError = e.toString();
     } finally {
@@ -93,9 +109,17 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> validateDocument(String id, {required bool isValid, String? remark}) async {
+  Future<bool> validateDocument(
+    String id, {
+    required bool isValid,
+    String? remark,
+  }) async {
     try {
-      final doc = await _adminService.validateDocument(id, isValid: isValid, remark: remark);
+      final doc = await _adminService.validateDocument(
+        id,
+        isValid: isValid,
+        remark: remark,
+      );
       final idx = pendingDocuments.indexWhere((d) => d.id == id);
       if (idx >= 0) pendingDocuments[idx] = doc;
       notifyListeners();
@@ -112,12 +136,18 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingDistributions = false;
   String? distributionsError;
 
-  Future<void> loadDistributions({String? cardTypeId, DistributionMethod? method}) async {
+  Future<void> loadDistributions({
+    String? cardTypeId,
+    DistributionMethod? method,
+  }) async {
     isLoadingDistributions = true;
     distributionsError = null;
     notifyListeners();
     try {
-      distributions = await _adminService.getDistributions(cardTypeId: cardTypeId, method: method);
+      distributions = await _adminService.getDistributions(
+        cardTypeId: cardTypeId,
+        method: method,
+      );
     } catch (e) {
       distributionsError = e.toString();
     } finally {
