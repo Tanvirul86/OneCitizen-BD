@@ -121,7 +121,13 @@ class AdminProvider extends ChangeNotifier {
         remark: remark,
       );
       final idx = pendingDocuments.indexWhere((d) => d.id == id);
-      if (idx >= 0) pendingDocuments[idx] = doc;
+      if (idx >= 0) {
+        if (doc.isValid == null) {
+          pendingDocuments[idx] = doc;
+        } else {
+          pendingDocuments.removeAt(idx);
+        }
+      }
       notifyListeners();
       return true;
     } catch (e) {

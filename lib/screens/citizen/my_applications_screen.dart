@@ -5,6 +5,7 @@ import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/screens/citizen/document_upload_screen.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
@@ -245,11 +246,14 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
   }
 
   CitizenDocument? _documentFor(
+    String applicationId,
     String docType,
     List<CitizenDocument> documents,
   ) {
     for (final document in documents) {
-      if (document.docType == docType) return document;
+      if (document.applicationId == applicationId && document.docType == docType) {
+        return document;
+      }
     }
     return null;
   }
@@ -367,11 +371,21 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
               const Text('No documents uploaded yet.')
             else
               ..._requiredDocumentsFor(application, appProvider).map((docType) {
-                final document = _documentFor(docType, appProvider.documents);
+                final document = _documentFor(
+                  application.id,
+                  docType,
+                  appProvider.documents,
+                );
                 return _DocumentValidationTile(
                   applicationStatus: application.status,
                   docType: docType,
                   document: document,
+                  applicationId: application.id,
+                  cardTypeName: application.cardTypeName,
+                  requiredDocuments: _requiredDocumentsFor(
+                    application,
+                    appProvider,
+                  ),
                 );
               }),
           ],
@@ -386,11 +400,17 @@ class _DocumentValidationTile extends StatelessWidget {
     required this.applicationStatus,
     required this.docType,
     required this.document,
+    required this.applicationId,
+    required this.cardTypeName,
+    required this.requiredDocuments,
   });
 
   final ApplicationStatus applicationStatus;
   final String docType;
   final CitizenDocument? document;
+  final String applicationId;
+  final String cardTypeName;
+  final List<String> requiredDocuments;
 
   _DocumentValidationState get _state {
     switch (applicationStatus) {
@@ -489,9 +509,29 @@ class _DocumentValidationTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 110),
-              child: StatusBadge(label: state.label, color: state.color),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 110),
+                  child: StatusBadge(label: state.label, color: state.color),
+                ),
+                if (document?.isValid == false) ...[
+                  const SizedBox(height: 4),
+                  TextButton.icon(
+                    onPressed: () => context.push(
+                      '/citizen/documents',
+                      extra: DocumentUploadArgs(
+                        applicationId: applicationId,
+                        cardTypeName: cardTypeName,
+                        requiredDocuments: requiredDocuments,
+                      ),
+                    ),
+                    icon: const Icon(Icons.upload_file_rounded, size: 16),
+                    label: const Text('Re-upload'),
+                  ),
+                ],
+              ],
             ),
           ],
         ),

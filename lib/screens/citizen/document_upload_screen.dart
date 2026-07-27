@@ -6,7 +6,9 @@ import 'package:onecitizen/providers/application_provider.dart';
 import 'package:provider/provider.dart';
 
 class DocumentUploadScreen extends StatefulWidget {
-  const DocumentUploadScreen({super.key});
+  const DocumentUploadScreen({super.key, this.args});
+
+  final DocumentUploadArgs? args;
 
   @override
   State<DocumentUploadScreen> createState() => _DocumentUploadScreenState();
@@ -33,9 +35,10 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
     final appProvider = context.read<ApplicationProvider>();
     setState(() => _uploading.add(docType));
-    final success = await appProvider.uploadDocument(
-      docType: docType,
-      filePath: result.files.single.path!,
+      final success = await appProvider.uploadDocument(
+        docType: docType,
+        filePath: result.files.single.path!,
+        applicationId: widget.args?.applicationId,
     );
     if (!mounted) return;
     setState(() => _uploading.remove(docType));
@@ -51,14 +54,24 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   @override
   Widget build(BuildContext context) {
     final appProvider = context.watch<ApplicationProvider>();
-    final byType = {for (final d in appProvider.documents) d.docType: d};
-    final uploaded = appProvider.documents.length;
-    final total = requiredDocumentTypes.length;
-    final valid = appProvider.documents.where((d) => d.isValid == true).length;
+    final scopedDocuments = appProvider.documents
+        .where((document) => document.applicationId == widget.args?.applicationId)
+        .toList();
+    final byType = {for (final d in scopedDocuments) d.docType: d};
+    final documentTypes = widget.args?.requiredDocuments ?? requiredDocumentTypes;
+    final uploaded = scopedDocuments.length;
+    final total = documentTypes.length;
+    final valid = scopedDocuments.where((d) => d.isValid == true).length;
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('Document Upload')),
+      appBar: AppBar(
+        title: Text(
+          widget.args == null
+              ? 'Document Upload'
+              : '${widget.args!.cardTypeName} Documents',
+        ),
+      ),
       body: appProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -133,7 +146,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  ...requiredDocumentTypes.map((docType) {
+                  ...documentTypes.map((docType) {
                     final doc = byType[docType];
                     final isUploading = _uploading.contains(docType);
                     return _DocumentCard(
@@ -148,6 +161,18 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
             ),
     );
   }
+}
+
+class DocumentUploadArgs {
+  const DocumentUploadArgs({
+    required this.applicationId,
+    required this.cardTypeName,
+    required this.requiredDocuments,
+  });
+
+  final String applicationId;
+  final String cardTypeName;
+  final List<String> requiredDocuments;
 }
 
 class _ProgressStat extends StatelessWidget {

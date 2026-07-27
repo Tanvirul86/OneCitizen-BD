@@ -60,9 +60,21 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
     final appProvider = context.watch<ApplicationProvider>();
     final notifProvider = context.watch<NotificationProvider>();
 
-    final invalidDocs = appProvider.documents
-        .where((d) => d.isValid == false)
-        .length;
+    final invalidDocuments = appProvider.documents
+        .where(
+          (document) =>
+              document.isValid == false && document.applicationId != null,
+        )
+        .toList();
+    final invalidDocs = invalidDocuments.length;
+    final invalidDocument = invalidDocuments.isEmpty
+        ? null
+        : invalidDocuments.first;
+    final affectedApplication = invalidDocument == null
+        ? null
+        : appProvider.applications
+              .where((app) => app.id == invalidDocument.applicationId)
+              .firstOrNull;
     final recentApps = appProvider.applications.take(3).toList();
 
     return Scaffold(
@@ -221,16 +233,18 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  if (invalidDocs > 0) ...[
+                  if (invalidDocs > 0 && affectedApplication != null) ...[
                     _AlertCard(
                       icon: Icons.warning_amber_rounded,
                       title:
                           '$invalidDocs Document${invalidDocs > 1 ? 's' : ''} Need Re-upload',
                       subtitle:
-                          'Some documents were marked invalid. Re-upload them while applying for a card.',
+                          '${invalidDocument!.docType.replaceAll('_', ' ')} was marked invalid for your ${affectedApplication.cardTypeName} request. Open the request to re-upload it.',
                       color: AppTheme.errorRed,
-                      actionLabel: 'Apply Now',
-                      onAction: () => context.push('/citizen/apply'),
+                      actionLabel: 'Review Request',
+                      onAction: () => context.push(
+                        '/citizen/applications/${affectedApplication.id}',
+                      ),
                     ),
                     const SizedBox(height: 12),
                   ],
