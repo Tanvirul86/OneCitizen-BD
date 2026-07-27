@@ -257,7 +257,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () => context.push(
-                '/admin/documents',
+                '/admin/applications/${app.id}/documents',
                 extra: DocumentValidationFilterArgs(
                   citizenId: app.applicantId,
                   citizenEmail: app.applicantEmail,
