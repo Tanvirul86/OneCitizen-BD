@@ -11,18 +11,16 @@ import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/services/admin_services.dart';
 import 'package:onecitizen/services/api_client.dart';
 import 'package:onecitizen/services/citizen_services.dart';
-import 'package:onecitizen/services/storage_service.dart';
 import 'package:provider/provider.dart';
 
 class OneCitizenApp extends StatelessWidget {
-  const OneCitizenApp({super.key, required this.authProvider});
+  const OneCitizenApp({super.key, required this.authProvider, required this.apiClient});
 
   final AuthProvider authProvider;
+  final ApiClient apiClient;
 
   @override
   Widget build(BuildContext context) {
-    final storageService = StorageService();
-    final apiClient = ApiClient(storageService: storageService);
     final cardTypeService = CardTypeService(apiClient: apiClient);
     final applicationService = ApplicationService(apiClient: apiClient);
     final eligibilityService = EligibilityService(apiClient: apiClient);
