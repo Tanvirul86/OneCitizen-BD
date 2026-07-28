@@ -510,7 +510,6 @@ class _MiniCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 168,
-      height: 106,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -529,10 +528,13 @@ class _MiniCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'GOVT OF BANGLADESH',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.ibmPlexMono(
               color: Colors.white.withValues(alpha: 0.72),
               fontSize: 7.5,
@@ -543,6 +545,8 @@ class _MiniCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             context.tr(titleKey),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.plusJakartaSans(
               color: Colors.white,
               fontSize: 14,
@@ -550,7 +554,7 @@ class _MiniCard extends StatelessWidget {
               letterSpacing: -0.2,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 18),
           Container(
             width: 26,
             height: 19,

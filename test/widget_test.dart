@@ -18,7 +18,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));
+    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider, apiClient: apiClient));
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 

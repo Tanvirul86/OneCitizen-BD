@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// created through the app, so citizen and admin screens share the same state.
 class LocalWorkflowInterceptor extends Interceptor {
   static const _stateKey = 'onecitizen_local_workflow_v1';
-  bool _loaded = false;
   String? _activeUserId;
   final Map<String, Map<String, dynamic>> _users = {};
   final Map<String, String> _passwords = {};
@@ -48,19 +47,28 @@ class LocalWorkflowInterceptor extends Interceptor {
     handler.resolve(Response(requestOptions: options, statusCode: 200, data: result), true);
   }
 
+  // Re-synced from storage before every request (not just once per process)
+  // so that separate app instances/tabs sharing the same persisted store —
+  // e.g. a citizen uploading a document and an admin reviewing it — see each
+  // other's writes instead of freezing at whatever was on disk at first load.
   Future<void> _load() async {
-    if (_loaded) return;
-    _loaded = true;
     final raw = (await SharedPreferences.getInstance()).getString(_stateKey);
     if (raw == null) return;
     final state = jsonDecode(raw) as Map<String, dynamic>;
     _activeUserId = state['active_user_id']?.toString();
+    _users.clear();
     _restoreMap(_users, state['users']);
+    _passwords.clear();
     _restoreStringMap(_passwords, state['passwords']);
+    _applications.clear();
     _restoreList(_applications, state['applications']);
+    _documents.clear();
     _restoreList(_documents, state['documents']);
+    _distributions.clear();
     _restoreList(_distributions, state['distributions']);
+    _citizenNotifications.clear();
     _restoreList(_citizenNotifications, state['citizen_notifications']);
+    _adminNotifications.clear();
     _restoreList(_adminNotifications, state['admin_notifications']);
   }
 

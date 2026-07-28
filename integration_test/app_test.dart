@@ -39,7 +39,7 @@ void main() {
     final authProvider = AuthProvider(authService: authService);
     await authProvider.checkSession();
 
-    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));
+    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider, apiClient: apiClient));
     // Splash screen waits 2s before redirecting.
     await tester.pump(const Duration(seconds: 3));
     await settle(tester);
