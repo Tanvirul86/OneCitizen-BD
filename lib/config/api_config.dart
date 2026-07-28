@@ -1,5 +1,9 @@
 class ApiConfig {
-  static const String baseUrl = 'https://api.onecitizen.bd/api';
+  /// Supplied per environment so debug, staging, and production builds use
+  /// their own real API and database.
+  static const String baseUrl = String.fromEnvironment('API_BASE_URL');
+
+  static bool get isConfigured => baseUrl.trim().isNotEmpty;
 
   // Auth
   static const String register = '/auth/register';

@@ -4,6 +4,7 @@ import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/providers/locale_provider.dart';
 import 'package:onecitizen/widgets/admin_quick_search.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
@@ -27,6 +28,7 @@ class AdminShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 500;
     final location = GoRouterState.of(context).matchedLocation;
     final user = context.watch<AuthProvider>().user;
     final notifProvider = context.watch<AdminNotificationProvider>();
@@ -47,53 +49,40 @@ class AdminShell extends StatelessWidget {
           children: [
             const AppLogo(size: 28, onDark: true, linkToLanding: true),
             const SizedBox(width: 8),
-            Text(currentTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Flexible(
+              child: Text(
+                currentTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
-        actions: [
-          const LanguageToggle(onDark: true),
-          const SizedBox(width: 4),
-          const AdminQuickSearchButton(),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                tooltip: context.tr('notifications_title'),
-                onPressed: () => context.go('/admin/notifications'),
-              ),
-              if (notifProvider.unreadCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.accentRed,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${notifProvider.unreadCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+        actions: isCompact
+            ? [
+                const AdminQuickSearchButton(),
+                IconButton(
+                  icon: const Icon(Icons.translate_rounded),
+                  tooltip: 'Change language',
+                  onPressed: () => context.read<LocaleProvider>().toggle(),
                 ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: context.tr('logout'),
-            onPressed: () async {
-              await context.read<AuthProvider>().logout();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
+                _CompactAdminMenu(unreadCount: notifProvider.unreadCount),
+              ]
+            : [
+                const LanguageToggle(onDark: true),
+                const SizedBox(width: 4),
+                const AdminQuickSearchButton(),
+                _NotificationsButton(unreadCount: notifProvider.unreadCount),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded),
+                  tooltip: context.tr('logout'),
+                  onPressed: () async {
+                    await context.read<AuthProvider>().logout();
+                    if (context.mounted) context.go('/login');
+                  },
+                ),
+              ],
       ),
       drawer: Drawer(
         child: Column(
@@ -178,6 +167,97 @@ class AdminShell extends StatelessWidget {
     );
   }
 }
+
+class _NotificationsButton extends StatelessWidget {
+  const _NotificationsButton({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined),
+          tooltip: context.tr('notifications_title'),
+          onPressed: () => context.go('/admin/notifications'),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                color: AppTheme.accentRed,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '$unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _CompactAdminMenu extends StatelessWidget {
+  const _CompactAdminMenu({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_AdminMenuAction>(
+      tooltip: 'More actions',
+      icon: Badge(
+        isLabelVisible: unreadCount > 0,
+        label: Text('$unreadCount'),
+        child: const Icon(Icons.more_vert_rounded),
+      ),
+      onSelected: (action) async {
+        switch (action) {
+          case _AdminMenuAction.notifications:
+            context.go('/admin/notifications');
+          case _AdminMenuAction.logout:
+            await context.read<AuthProvider>().logout();
+            if (context.mounted) context.go('/login');
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: _AdminMenuAction.notifications,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.notifications_outlined),
+            title: Text(context.tr('notifications_title')),
+          ),
+        ),
+        PopupMenuItem(
+          value: _AdminMenuAction.logout,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.logout_rounded, color: AppTheme.accentRed),
+            title: Text(
+              context.tr('logout'),
+              style: const TextStyle(color: AppTheme.accentRed),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum _AdminMenuAction { notifications, logout }
 
 class _DrawerItem extends StatelessWidget {
   const _DrawerItem({

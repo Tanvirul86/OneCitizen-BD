@@ -38,6 +38,7 @@ class Application {
     this.applicantName,
     this.applicantNid,
     this.applicantEmail,
+    this.applicantId,
   });
 
   final String id;
@@ -50,6 +51,7 @@ class Application {
   final String? applicantName;
   final String? applicantNid;
   final String? applicantEmail;
+  final String? applicantId;
 
   factory Application.fromJson(Map<String, dynamic> json) {
     return Application(
@@ -57,7 +59,8 @@ class Application {
       cardTypeId: json['card_type_id']?.toString() ?? '',
       cardTypeName: json['card_type_name'] as String? ?? '',
       status: applicationStatusFromString(json['status'] as String?),
-      submittedAt: DateTime.tryParse(json['submitted_at'] as String? ?? '') ??
+      submittedAt:
+          DateTime.tryParse(json['submitted_at'] as String? ?? '') ??
           DateTime.now(),
       updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'] as String)
@@ -66,6 +69,7 @@ class Application {
       applicantName: json['applicant_name'] as String?,
       applicantNid: json['applicant_nid'] as String?,
       applicantEmail: json['applicant_email'] as String?,
+      applicantId: (json['applicant_id'] ?? json['citizen_id'])?.toString(),
     );
   }
 }
