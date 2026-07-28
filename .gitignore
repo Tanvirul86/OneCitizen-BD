@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+.toolchains/
+devtools_options.yaml
 
 # Symbolication related
 app.*.symbols

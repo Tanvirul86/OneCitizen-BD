@@ -36,7 +36,8 @@ class AppRouter {
       redirect: (context, state) {
         final isLoggedIn = authProvider.status == AuthStatus.authenticated;
         final location = state.matchedLocation;
-        final isPublicRoute = location == '/' ||
+        final isPublicRoute =
+            location == '/' ||
             location == '/home' ||
             location == '/login' ||
             location == '/register' ||
@@ -51,41 +52,87 @@ class AppRouter {
       },
       routes: [
         GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-        GoRoute(path: '/home', builder: (context, state) => const PublicHomeScreen()),
-        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-        GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
-        GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => const PublicHomeScreen(),
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/about',
+          builder: (context, state) => const AboutScreen(),
+        ),
 
         // ── Citizen shell ────────────────────────────────────────────────
         ShellRoute(
           builder: (context, state, child) => CitizenShell(child: child),
           routes: [
-            GoRoute(path: '/citizen', builder: (context, state) => const CitizenDashboardScreen()),
-            GoRoute(path: '/citizen/applications', builder: (context, state) => const MyApplicationsScreen()),
-            GoRoute(path: '/citizen/distributions', builder: (context, state) => const DistributionHistoryScreen()),
-            GoRoute(path: '/citizen/notifications', builder: (context, state) => const NotificationsScreen()),
-            GoRoute(path: '/citizen/profile', builder: (context, state) => const ProfileScreen()),
+            GoRoute(
+              path: '/citizen',
+              builder: (context, state) => const CitizenDashboardScreen(),
+            ),
+            GoRoute(
+              path: '/citizen/applications',
+              builder: (context, state) => const MyApplicationsScreen(),
+            ),
+            GoRoute(
+              path: '/citizen/distributions',
+              builder: (context, state) => const DistributionHistoryScreen(),
+            ),
+            GoRoute(
+              path: '/citizen/notifications',
+              builder: (context, state) => const NotificationsScreen(),
+            ),
+            GoRoute(
+              path: '/citizen/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
           ],
         ),
 
         // Citizen standalone routes (outside shell so back button works)
-        GoRoute(path: '/citizen/profile-completion', builder: (context, state) => const ProfileCompletionScreen()),
-        GoRoute(path: '/citizen/documents', builder: (context, state) => const DocumentUploadScreen()),
-        GoRoute(path: '/citizen/eligibility', builder: (context, state) => const EligibilityScreen()),
+        GoRoute(
+          path: '/citizen/profile-completion',
+          builder: (context, state) => const ProfileCompletionScreen(),
+        ),
+        GoRoute(
+          path: '/citizen/documents',
+          builder: (context, state) => DocumentUploadScreen(
+            args: state.extra is DocumentUploadArgs
+                ? state.extra as DocumentUploadArgs
+                : null,
+          ),
+        ),
+        GoRoute(
+          path: '/citizen/eligibility',
+          builder: (context, state) => const EligibilityScreen(),
+        ),
         GoRoute(
           path: '/citizen/apply',
-          builder: (context, state) => ApplyCardScreen(initialCardTypeId: state.extra as String?),
+          builder: (context, state) =>
+              ApplyCardScreen(initialCardTypeId: state.extra as String?),
         ),
         GoRoute(
           path: '/citizen/applications/:id',
-          builder: (context, state) => ApplicationDetailScreen(applicationId: state.pathParameters['id']!),
+          builder: (context, state) => ApplicationDetailScreen(
+            applicationId: state.pathParameters['id']!,
+          ),
         ),
 
         // ── Admin shell ──────────────────────────────────────────────────
         ShellRoute(
           builder: (context, state, child) => AdminShell(child: child),
           routes: [
-            GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardScreen()),
+            GoRoute(
+              path: '/admin',
+              builder: (context, state) => const AdminDashboardScreen(),
+            ),
             GoRoute(
               path: '/admin/applications',
               builder: (context, state) {
@@ -97,22 +144,60 @@ class AppRouter {
                     statusScopeLabel: extra.scopeLabel,
                   );
                 }
-                return NewApplicationsScreen(initialCardTypeName: extra as String?);
+                return NewApplicationsScreen(
+                  initialCardTypeName: extra as String?,
+                );
               },
             ),
-            GoRoute(path: '/admin/documents', builder: (context, state) => const DocumentValidationScreen()),
-            GoRoute(path: '/admin/approved-cards', builder: (context, state) => const ApprovedCardsScreen()),
-            GoRoute(path: '/admin/distributions/new', builder: (context, state) => const FundDistributionScreen()),
-            GoRoute(path: '/admin/distributions', builder: (context, state) => const DistributionRecordsScreen()),
-            GoRoute(path: '/admin/citizens', builder: (context, state) => const CitizenAccountsScreen()),
-            GoRoute(path: '/admin/analytics', builder: (context, state) => const AdminAnalyticsScreen()),
-            GoRoute(path: '/admin/notifications', builder: (context, state) => const AdminNotificationsScreen()),
+            GoRoute(
+              path: '/admin/documents',
+              builder: (context, state) => DocumentValidationScreen(
+                filter: state.extra is DocumentValidationFilterArgs
+                    ? state.extra as DocumentValidationFilterArgs
+                    : null,
+              ),
+            ),
+            GoRoute(
+              path: '/admin/approved-cards',
+              builder: (context, state) => const ApprovedCardsScreen(),
+            ),
+            GoRoute(
+              path: '/admin/distributions/new',
+              builder: (context, state) => const FundDistributionScreen(),
+            ),
+            GoRoute(
+              path: '/admin/distributions',
+              builder: (context, state) => const DistributionRecordsScreen(),
+            ),
+            GoRoute(
+              path: '/admin/citizens',
+              builder: (context, state) => const CitizenAccountsScreen(),
+            ),
+            GoRoute(
+              path: '/admin/analytics',
+              builder: (context, state) => const AdminAnalyticsScreen(),
+            ),
+            GoRoute(
+              path: '/admin/notifications',
+              builder: (context, state) => const AdminNotificationsScreen(),
+            ),
           ],
         ),
         // Admin detail outside shell so it gets its own back button
         GoRoute(
           path: '/admin/applications/:id',
-          builder: (context, state) => ApplicationReviewScreen(applicationId: state.pathParameters['id']!),
+          builder: (context, state) => ApplicationReviewScreen(
+            applicationId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/admin/applications/:id/documents',
+          builder: (context, state) => DocumentValidationScreen(
+            standalone: true,
+            filter: state.extra is DocumentValidationFilterArgs
+                ? state.extra as DocumentValidationFilterArgs
+                : null,
+          ),
         ),
       ],
     );
