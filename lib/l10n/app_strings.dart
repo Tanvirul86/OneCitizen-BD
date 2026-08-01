@@ -658,6 +658,12 @@ class AppStrings {
       AppLanguage.en: 'Application approved',
       AppLanguage.bn: 'আবেদন অনুমোদিত হয়েছে',
     },
+    'documents_must_be_reviewed_hint': {
+      AppLanguage.en:
+          'All citizen documents must be marked Valid before you can approve this application. If any document is Invalid, this application cannot be approved.',
+      AppLanguage.bn:
+          'এই আবেদন অনুমোদন করতে হলে নাগরিকের সব ডকুমেন্ট অবশ্যই Valid হিসেবে চিহ্নিত থাকতে হবে। কোনো ডকুমেন্ট Invalid থাকলে এই আবেদন অনুমোদন করা যাবে না।',
+    },
     'application_rejected': {
       AppLanguage.en: 'Application rejected',
       AppLanguage.bn: 'আবেদন প্রত্যাখ্যান করা হয়েছে',
