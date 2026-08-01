@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
@@ -109,7 +110,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     final extensions = _allowedExtensionsFor(
       docType,
     ).map((extension) => extension.toUpperCase()).join('/');
-    return '$extensions only';
+    return context.trsp('extensions_only_format', {'ext': extensions});
   }
 
   String _documentLabelFor(CardType cardType, String docType) {
@@ -180,8 +181,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
       SnackBar(
         content: Text(
           success
-              ? 'Document uploaded successfully'
-              : provider.error ?? 'Upload failed',
+              ? context.trs('document_uploaded_success')
+              : provider.error ?? context.trs('upload_failed_generic'),
         ),
         backgroundColor: success ? AppTheme.successGreen : AppTheme.errorRed,
       ),
@@ -192,16 +193,18 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('${cardType.name} requirements'),
+        title: Text(
+          context.trsp('card_requirements_title', {'name': cardType.name}),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_criteriaFor(cardType)),
             const SizedBox(height: 16),
-            const Text(
-              'Documents required:',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            Text(
+              context.trs('documents_required_label'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             ..._requiredDocumentsFor(cardType).map(
@@ -229,7 +232,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.trs('cancel')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -242,7 +245,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                 _requirementsAccepted = true;
               });
             },
-            child: const Text('Proceed'),
+            child: Text(context.trs('proceed_action')),
           ),
         ],
       ),
@@ -254,13 +257,16 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Application Preview'),
+        title: Text(context.trs('application_preview_title')),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _PreviewRow(label: 'Card type', value: cardType.name),
+              _PreviewRow(
+                label: context.trs('card_type_label'),
+                value: cardType.name,
+              ),
               const Divider(height: 24),
               ...fields.map((field) {
                 final controller = _controllerFor(
@@ -269,38 +275,47 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                 return _PreviewRow(
                   label: field.label,
                   value: controller.text.trim().isEmpty
-                      ? 'Not filled'
+                      ? context.trs('not_filled_value')
                       : controller.text.trim(),
                 );
               }),
               if (cardType.code == CardTypeCode.farmer ||
                   cardType.code == CardTypeCode.family) ...[
                 _PreviewRow(
-                  label: 'Division',
-                  value: _choiceValues['division'] ?? 'Not selected',
+                  label: context.trs('division_label'),
+                  value:
+                      _choiceValues['division'] ??
+                      context.trs('not_selected_value'),
                 ),
                 _PreviewRow(
-                  label: 'District',
-                  value: _choiceValues['district'] ?? 'Not selected',
+                  label: context.trs('district_label'),
+                  value:
+                      _choiceValues['district'] ??
+                      context.trs('not_selected_value'),
                 ),
                 _PreviewRow(
-                  label: 'Upazila',
-                  value: _choiceValues['upazila'] ?? 'Not selected',
+                  label: context.trs('upazila_label'),
+                  value:
+                      _choiceValues['upazila'] ??
+                      context.trs('not_selected_value'),
                 ),
                 _PreviewRow(
-                  label: 'Union',
-                  value: _choiceValues['local_body'] ?? 'Not selected',
+                  label: context.trs('union_label'),
+                  value:
+                      _choiceValues['local_body'] ??
+                      context.trs('not_selected_value'),
                 ),
                 _PreviewRow(
-                  label: 'Ward number',
-                  value: _choiceValues['ward'] ?? 'Not selected',
+                  label: context.trs('ward_number_label'),
+                  value:
+                      _choiceValues['ward'] ?? context.trs('not_selected_value'),
                 ),
               ],
               const Divider(height: 24),
               ..._requiredDocumentsFor(cardType).map((docType) {
                 return _PreviewRow(
                   label: _documentLabelFor(cardType, docType),
-                  value: _pickedFiles[docType] ?? 'Missing',
+                  value: _pickedFiles[docType] ?? context.trs('missing_value'),
                 );
               }),
             ],
@@ -309,7 +324,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Back to form'),
+            child: Text(context.trs('back_to_form_action')),
           ),
         ],
       ),
@@ -321,8 +336,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     final selectedType = _selectedCardType(provider);
     if (selectedType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a card type'),
+        SnackBar(
+          content: Text(context.trs('please_select_card_type')),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -349,10 +364,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
         curve: Curves.easeOut,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please upload every required document before submitting.',
-          ),
+        SnackBar(
+          content: Text(context.trs('please_upload_all_documents')),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -361,8 +374,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
 
     if (!formValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete all required form fields.'),
+        SnackBar(
+          content: Text(context.trs('please_complete_all_fields')),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -373,10 +386,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
             selectedType.code == CardTypeCode.family) &&
         !_isFarmerAddressComplete()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please select division, district, upazila, union, and ward.',
-          ),
+        SnackBar(
+          content: Text(context.trs('please_select_address_fields')),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -401,8 +412,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Application submitted successfully!'),
+        SnackBar(
+          content: Text(context.trs('application_submitted_success')),
           backgroundColor: AppTheme.successGreen,
         ),
       );
@@ -410,7 +421,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.error ?? 'Failed to submit application'),
+          content: Text(
+            provider.error ?? context.trs('application_submit_failed'),
+          ),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -424,7 +437,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('Apply for Card')),
+      appBar: AppBar(title: Text(context.tr('apply_for_card_title'))),
       body: provider.isLoading && provider.cardTypes.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -432,9 +445,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  const Text(
-                    'Select Card',
-                    style: TextStyle(
+                  Text(
+                    context.tr('select_card_title'),
+                    style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimary,
@@ -463,8 +476,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                   if (selectedType != null && _requirementsAccepted) ...[
                     const SizedBox(height: 12),
                     _SectionHeader(
-                      title: '${selectedType.name} application form',
-                      subtitle: 'Fill the details required for this card type.',
+                      title: context.trp('application_form_title', {
+                        'name': selectedType.name,
+                      }),
+                      subtitle: context.tr('fill_details_subtitle'),
                     ),
                     const SizedBox(height: 12),
                     ..._fieldsFor(selectedType).expand((field) {
@@ -472,16 +487,16 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                       if (selectedType.code == CardTypeCode.education &&
                           field.key == 'ssc_institute_eiin') {
                         widgets.add(
-                          const _SubsectionHeader(
-                            title: 'SSC examination information',
+                          _SubsectionHeader(
+                            title: context.tr('ssc_exam_info_title'),
                           ),
                         );
                       }
                       if (selectedType.code == CardTypeCode.education &&
                           field.key == 'hsc_institute_eiin') {
                         widgets.add(
-                          const _SubsectionHeader(
-                            title: 'HSC examination information',
+                          _SubsectionHeader(
+                            title: context.tr('hsc_exam_info_title'),
                           ),
                         );
                       }
@@ -546,9 +561,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                     const SizedBox(height: 10),
                     _SectionHeader(
                       key: _documentsKey,
-                      title: 'Required documents',
-                      subtitle:
-                          'Upload and preview documents before submitting.',
+                      title: context.tr('required_documents_title'),
+                      subtitle: context.tr(
+                        'upload_preview_documents_subtitle',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ..._requiredDocumentsFor(selectedType).map(
@@ -566,7 +582,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                     OutlinedButton.icon(
                       onPressed: () => _showPreview(selectedType),
                       icon: const Icon(Icons.visibility_rounded),
-                      label: const Text('Preview Application'),
+                      label: Text(context.tr('preview_application_action')),
                     ),
                   ],
                   const SizedBox(height: 22),
@@ -585,7 +601,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                             )
                           : const Icon(Icons.send_rounded),
                       label: Text(
-                        _isSubmitting ? 'Submitting...' : 'Submit Application',
+                        _isSubmitting
+                            ? context.tr('submitting_label')
+                            : context.tr('submit_application_action'),
                       ),
                     ),
                   ),
@@ -666,7 +684,7 @@ class _ApplicationFieldInput extends StatelessWidget {
         },
         validator: (selected) {
           if (field.required && (selected == null || selected.trim().isEmpty)) {
-            return 'This field is required';
+            return context.trs('field_required_full');
           }
           return null;
         },
@@ -683,7 +701,7 @@ class _ApplicationFieldInput extends StatelessWidget {
       ),
       validator: (value) {
         if (field.required && (value == null || value.trim().isEmpty)) {
-          return 'This field is required';
+          return context.trs('field_required_full');
         }
         return null;
       },
@@ -797,18 +815,17 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
       future: _geoFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const _LocationStatusBox(
+          return _LocationStatusBox(
             icon: Icons.hourglass_top_rounded,
-            message: 'Loading Bangladesh location data...',
+            message: context.tr('loading_location_data'),
           );
         }
 
         final data = snapshot.data;
         if (snapshot.hasError || data == null || data.divisions.isEmpty) {
-          return const _LocationStatusBox(
+          return _LocationStatusBox(
             icon: Icons.cloud_off_rounded,
-            message:
-                'Could not load verified location data. Check internet and try again.',
+            message: context.tr('location_data_load_error'),
             isError: true,
           );
         }
@@ -820,7 +837,7 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
         return Column(
           children: [
             _AddressDropdown(
-              label: 'Division',
+              label: context.tr('division_label'),
               selectedId: widget.values['division_id'],
               options: data.divisions,
               onChanged: (location) => _setLocation(
@@ -831,7 +848,7 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
             ),
             const SizedBox(height: 12),
             _AddressDropdown(
-              label: 'District',
+              label: context.tr('district_label'),
               selectedId: widget.values['district_id'],
               options: districts,
               onChanged: (location) => _setLocation(
@@ -842,7 +859,7 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
             ),
             const SizedBox(height: 12),
             _AddressDropdown(
-              label: 'Upazila',
+              label: context.tr('upazila_label'),
               selectedId: widget.values['upazila_id'],
               options: upazilas,
               onChanged: (location) => _setLocation(
@@ -853,7 +870,7 @@ class _FarmerAddressFieldsState extends State<_FarmerAddressFields> {
             ),
             const SizedBox(height: 12),
             _AddressDropdown(
-              label: 'Union',
+              label: context.tr('union_label'),
               selectedId: widget.values['local_body_id'],
               options: unions,
               onChanged: (location) => _setLocation(
@@ -972,7 +989,7 @@ class _AddressDropdown extends StatelessWidget {
           : null,
       validator: (selected) {
         if (selected == null || selected.trim().isEmpty) {
-          return 'This field is required';
+          return context.trs('field_required_full');
         }
         return null;
       },
@@ -991,14 +1008,14 @@ class _WardDropdown extends StatelessWidget {
     return TextFormField(
       initialValue: value,
       keyboardType: TextInputType.text,
-      decoration: const InputDecoration(
-        labelText: 'Ward number',
-        prefixIcon: Icon(Icons.location_on_rounded),
+      decoration: InputDecoration(
+        labelText: context.tr('ward_number_label'),
+        prefixIcon: const Icon(Icons.location_on_rounded),
       ),
       onChanged: onChanged,
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'This field is required';
+          return context.trs('field_required_full');
         }
         return null;
       },
@@ -1134,7 +1151,9 @@ class _CardTypeTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${cardType.requiredDocuments.length} documents required',
+                    context.trp('documents_required_count', {
+                      'count': '${cardType.requiredDocuments.length}',
+                    }),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondary,
@@ -1215,7 +1234,7 @@ class _SelectedCardHeader extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(onPressed: onChange, child: const Text('Change')),
+          TextButton(onPressed: onChange, child: Text(context.tr('change_action'))),
         ],
       ),
     );
@@ -1286,8 +1305,10 @@ class _DocumentRequirementTile extends StatelessWidget {
                 Text(
                   pickedFileName ??
                       (hasDocument
-                          ? 'Uploaded document available'
-                          : 'Blank required option - $formatLabel'),
+                          ? context.tr('uploaded_document_available')
+                          : context.trp('blank_required_option', {
+                              'format': formatLabel,
+                            })),
                   style: TextStyle(
                     fontSize: 12,
                     color: isMissing
@@ -1299,16 +1320,24 @@ class _DocumentRequirementTile extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: hasDocument ? 'Preview document' : 'Preview unavailable',
+            tooltip: hasDocument
+                ? context.tr('preview_document_tooltip')
+                : context.tr('preview_unavailable_tooltip'),
             onPressed: hasDocument
                 ? () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Opening preview for $label')),
+                      SnackBar(
+                        content: Text(
+                          context.trsp('opening_preview_for', {'label': label}),
+                        ),
+                      ),
                     );
                     _showDocumentPreview(
                       context,
                       label: label,
-                      fileName: pickedFileName ?? 'Selected document',
+                      fileName:
+                          pickedFileName ??
+                          context.trs('selected_document_fallback'),
                       filePath: pickedFilePath!,
                     );
                   }
@@ -1316,7 +1345,9 @@ class _DocumentRequirementTile extends StatelessWidget {
             icon: const Icon(Icons.visibility_rounded),
           ),
           IconButton(
-            tooltip: hasDocument ? 'Replace document' : 'Upload document',
+            tooltip: hasDocument
+                ? context.tr('replace_document_tooltip')
+                : context.tr('upload_document_tooltip'),
             onPressed: isUploading ? null : onUpload,
             icon: isUploading
                 ? const SizedBox(
@@ -1391,9 +1422,9 @@ void _showDocumentPreview(
                       File(filePath),
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const _DocumentFileSummary(
+                        return _DocumentFileSummary(
                           icon: Icons.broken_image_rounded,
-                          title: 'Preview unavailable',
+                          title: context.tr('preview_unavailable_tooltip'),
                         );
                       },
                     ),
@@ -1402,9 +1433,9 @@ void _showDocumentPreview(
               else if (isPdf)
                 _PdfPagePreview(filePath: filePath)
               else
-                const _DocumentFileSummary(
+                _DocumentFileSummary(
                   icon: Icons.description_rounded,
-                  title: 'File selected',
+                  title: context.tr('file_selected_label'),
                 ),
               const SizedBox(height: 14),
               Text(
@@ -1427,7 +1458,7 @@ void _showDocumentPreview(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(sheetContext).pop(),
-                  child: const Text('Close Preview'),
+                  child: Text(context.tr('close_preview_action')),
                 ),
               ),
             ],
@@ -1496,17 +1527,17 @@ class _PdfPagePreview extends StatelessWidget {
       future: _renderFirstPage(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const _DocumentFileSummary(
+          return _DocumentFileSummary(
             icon: Icons.hourglass_top_rounded,
-            title: 'Loading PDF preview...',
+            title: context.tr('loading_pdf_preview'),
           );
         }
 
         final bytes = snapshot.data;
         if (snapshot.hasError || bytes == null) {
-          return const _DocumentFileSummary(
+          return _DocumentFileSummary(
             icon: Icons.picture_as_pdf_rounded,
-            title: 'PDF preview unavailable',
+            title: context.tr('pdf_preview_unavailable'),
           );
         }
 

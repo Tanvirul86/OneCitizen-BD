@@ -650,6 +650,634 @@ class AppStrings {
       AppLanguage.en: 'Approve',
       AppLanguage.bn: 'অনুমোদন করুন',
     },
+
+    // ── Citizen shell (bottom nav) ───────────────────────────────────────
+    'citizen_nav_applications': {
+      AppLanguage.en: 'Applications',
+      AppLanguage.bn: 'আবেদনসমূহ',
+    },
+    'citizen_nav_funds': {AppLanguage.en: 'Funds', AppLanguage.bn: 'তহবিল'},
+    'citizen_nav_profile': {
+      AppLanguage.en: 'Profile',
+      AppLanguage.bn: 'প্রোফাইল',
+    },
+
+    // ── Citizen dashboard ─────────────────────────────────────────────────
+    'complete_profile_title': {
+      AppLanguage.en: 'Complete Your Profile',
+      AppLanguage.bn: 'আপনার প্রোফাইল সম্পূর্ণ করুন',
+    },
+    'complete_profile_subtitle': {
+      AppLanguage.en:
+          'Profile completion is required to check eligibility for welfare cards.',
+      AppLanguage.bn:
+          'কল্যাণ কার্ডের যোগ্যতা যাচাই করতে প্রোফাইল সম্পূর্ণ করা আবশ্যক।',
+    },
+    'complete_now_action': {
+      AppLanguage.en: 'Complete Now',
+      AppLanguage.bn: 'এখনই সম্পূর্ণ করুন',
+    },
+    'docs_need_reupload_title': {
+      AppLanguage.en: '{count} Document(s) Need Re-upload',
+      AppLanguage.bn: '{count}টি ডকুমেন্ট পুনরায় আপলোড করা প্রয়োজন',
+    },
+    'docs_need_reupload_subtitle': {
+      AppLanguage.en:
+          '{doc} was marked invalid for your {card} request. Open the request to re-upload it.',
+      AppLanguage.bn:
+          'আপনার {card} আবেদনের জন্য {doc} অবৈধ চিহ্নিত করা হয়েছে। পুনরায় আপলোড করতে আবেদনটি খুলুন।',
+    },
+    'review_request_action': {
+      AppLanguage.en: 'Review Request',
+      AppLanguage.bn: 'আবেদন পর্যালোচনা করুন',
+    },
+    'quick_action_title': {
+      AppLanguage.en: 'Quick Action',
+      AppLanguage.bn: 'দ্রুত পদক্ষেপ',
+    },
+    'apply_for_card_title': {
+      AppLanguage.en: 'Apply for Card',
+      AppLanguage.bn: 'কার্ডের জন্য আবেদন করুন',
+    },
+    'apply_for_card_hint': {
+      AppLanguage.en:
+          'Select a card, review required documents, fill the form, upload files, and preview before submit.',
+      AppLanguage.bn:
+          'একটি কার্ড নির্বাচন করুন, প্রয়োজনীয় ডকুমেন্ট দেখুন, ফর্ম পূরণ করুন, ফাইল আপলোড করুন এবং জমা দেওয়ার আগে প্রিভিউ দেখুন।',
+    },
+    'my_applications_title': {
+      AppLanguage.en: 'My Applications',
+      AppLanguage.bn: 'আমার আবেদনসমূহ',
+    },
+    'view_all_action': {AppLanguage.en: 'View All', AppLanguage.bn: 'সব দেখুন'},
+    'no_applications_yet': {
+      AppLanguage.en: 'No applications yet',
+      AppLanguage.bn: 'এখনো কোনো আবেদন নেই',
+    },
+    'no_applications_yet_subtitle': {
+      AppLanguage.en:
+          'Start one guided application and upload every required document there.',
+      AppLanguage.bn:
+          'একটি নির্দেশিত আবেদন শুরু করুন এবং সেখানে প্রয়োজনীয় সব ডকুমেন্ট আপলোড করুন।',
+    },
+
+    // ── Apply for card ────────────────────────────────────────────────────
+    'select_card_title': {
+      AppLanguage.en: 'Select Card',
+      AppLanguage.bn: 'কার্ড নির্বাচন করুন',
+    },
+    'card_requirements_title': {
+      AppLanguage.en: '{name} requirements',
+      AppLanguage.bn: '{name}-এর প্রয়োজনীয়তা',
+    },
+    'documents_required_label': {
+      AppLanguage.en: 'Documents required:',
+      AppLanguage.bn: 'প্রয়োজনীয় ডকুমেন্ট:',
+    },
+    'proceed_action': {
+      AppLanguage.en: 'Proceed',
+      AppLanguage.bn: 'এগিয়ে যান',
+    },
+    'application_preview_title': {
+      AppLanguage.en: 'Application Preview',
+      AppLanguage.bn: 'আবেদনের প্রিভিউ',
+    },
+    'card_type_label': {
+      AppLanguage.en: 'Card type',
+      AppLanguage.bn: 'কার্ডের ধরন',
+    },
+    'not_filled_value': {
+      AppLanguage.en: 'Not filled',
+      AppLanguage.bn: 'পূরণ করা হয়নি',
+    },
+    'division_label': {AppLanguage.en: 'Division', AppLanguage.bn: 'বিভাগ'},
+    'district_label': {AppLanguage.en: 'District', AppLanguage.bn: 'জেলা'},
+    'upazila_label': {AppLanguage.en: 'Upazila', AppLanguage.bn: 'উপজেলা'},
+    'union_label': {AppLanguage.en: 'Union', AppLanguage.bn: 'ইউনিয়ন'},
+    'ward_number_label': {
+      AppLanguage.en: 'Ward number',
+      AppLanguage.bn: 'ওয়ার্ড নম্বর',
+    },
+    'not_selected_value': {
+      AppLanguage.en: 'Not selected',
+      AppLanguage.bn: 'নির্বাচন করা হয়নি',
+    },
+    'missing_value': {
+      AppLanguage.en: 'Missing',
+      AppLanguage.bn: 'অনুপস্থিত',
+    },
+    'back_to_form_action': {
+      AppLanguage.en: 'Back to form',
+      AppLanguage.bn: 'ফর্মে ফিরে যান',
+    },
+    'please_select_card_type': {
+      AppLanguage.en: 'Please select a card type',
+      AppLanguage.bn: 'অনুগ্রহ করে একটি কার্ডের ধরন নির্বাচন করুন',
+    },
+    'please_upload_all_documents': {
+      AppLanguage.en:
+          'Please upload every required document before submitting.',
+      AppLanguage.bn: 'জমা দেওয়ার আগে সব প্রয়োজনীয় ডকুমেন্ট আপলোড করুন।',
+    },
+    'please_complete_all_fields': {
+      AppLanguage.en: 'Please complete all required form fields.',
+      AppLanguage.bn: 'অনুগ্রহ করে ফর্মের সব প্রয়োজনীয় ঘর পূরণ করুন।',
+    },
+    'please_select_address_fields': {
+      AppLanguage.en:
+          'Please select division, district, upazila, union, and ward.',
+      AppLanguage.bn:
+          'অনুগ্রহ করে বিভাগ, জেলা, উপজেলা, ইউনিয়ন ও ওয়ার্ড নির্বাচন করুন।',
+    },
+    'application_submitted_success': {
+      AppLanguage.en: 'Application submitted successfully!',
+      AppLanguage.bn: 'আবেদন সফলভাবে জমা হয়েছে!',
+    },
+    'application_submit_failed': {
+      AppLanguage.en: 'Failed to submit application',
+      AppLanguage.bn: 'আবেদন জমা দেওয়া ব্যর্থ হয়েছে',
+    },
+    'document_uploaded_success': {
+      AppLanguage.en: 'Document uploaded successfully',
+      AppLanguage.bn: 'ডকুমেন্ট সফলভাবে আপলোড হয়েছে',
+    },
+    'upload_failed_generic': {
+      AppLanguage.en: 'Upload failed',
+      AppLanguage.bn: 'আপলোড ব্যর্থ হয়েছে',
+    },
+    'submitting_label': {
+      AppLanguage.en: 'Submitting...',
+      AppLanguage.bn: 'জমা দেওয়া হচ্ছে...',
+    },
+    'submit_application_action': {
+      AppLanguage.en: 'Submit Application',
+      AppLanguage.bn: 'আবেদন জমা দিন',
+    },
+    'application_form_title': {
+      AppLanguage.en: '{name} application form',
+      AppLanguage.bn: '{name} আবেদন ফর্ম',
+    },
+    'fill_details_subtitle': {
+      AppLanguage.en: 'Fill the details required for this card type.',
+      AppLanguage.bn: 'এই কার্ডের জন্য প্রয়োজনীয় তথ্য পূরণ করুন।',
+    },
+    'ssc_exam_info_title': {
+      AppLanguage.en: 'SSC examination information',
+      AppLanguage.bn: 'এসএসসি পরীক্ষার তথ্য',
+    },
+    'hsc_exam_info_title': {
+      AppLanguage.en: 'HSC examination information',
+      AppLanguage.bn: 'এইচএসসি পরীক্ষার তথ্য',
+    },
+    'required_documents_title': {
+      AppLanguage.en: 'Required documents',
+      AppLanguage.bn: 'প্রয়োজনীয় ডকুমেন্ট',
+    },
+    'upload_preview_documents_subtitle': {
+      AppLanguage.en: 'Upload and preview documents before submitting.',
+      AppLanguage.bn: 'জমা দেওয়ার আগে ডকুমেন্ট আপলোড ও প্রিভিউ করুন।',
+    },
+    'preview_application_action': {
+      AppLanguage.en: 'Preview Application',
+      AppLanguage.bn: 'আবেদন প্রিভিউ করুন',
+    },
+    'field_required_full': {
+      AppLanguage.en: 'This field is required',
+      AppLanguage.bn: 'এই ঘরটি পূরণ করা আবশ্যক',
+    },
+    'loading_location_data': {
+      AppLanguage.en: 'Loading Bangladesh location data...',
+      AppLanguage.bn: 'বাংলাদেশের ঠিকানার তথ্য লোড হচ্ছে...',
+    },
+    'location_data_load_error': {
+      AppLanguage.en:
+          'Could not load verified location data. Check internet and try again.',
+      AppLanguage.bn:
+          'যাচাইকৃত ঠিকানার তথ্য লোড করা যায়নি। ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।',
+    },
+    'documents_required_count': {
+      AppLanguage.en: '{count} documents required',
+      AppLanguage.bn: '{count}টি ডকুমেন্ট প্রয়োজন',
+    },
+    'change_action': {
+      AppLanguage.en: 'Change',
+      AppLanguage.bn: 'পরিবর্তন করুন',
+    },
+    'extensions_only_format': {
+      AppLanguage.en: '{ext} only',
+      AppLanguage.bn: 'শুধুমাত্র {ext}',
+    },
+    'uploaded_document_available': {
+      AppLanguage.en: 'Uploaded document available',
+      AppLanguage.bn: 'আপলোড করা ডকুমেন্ট রয়েছে',
+    },
+    'blank_required_option': {
+      AppLanguage.en: 'Blank required option - {format}',
+      AppLanguage.bn: 'পূরণ করা হয়নি - {format}',
+    },
+    'preview_document_tooltip': {
+      AppLanguage.en: 'Preview document',
+      AppLanguage.bn: 'ডকুমেন্ট প্রিভিউ করুন',
+    },
+    'preview_unavailable_tooltip': {
+      AppLanguage.en: 'Preview unavailable',
+      AppLanguage.bn: 'প্রিভিউ উপলব্ধ নেই',
+    },
+    'replace_document_tooltip': {
+      AppLanguage.en: 'Replace document',
+      AppLanguage.bn: 'ডকুমেন্ট প্রতিস্থাপন করুন',
+    },
+    'upload_document_tooltip': {
+      AppLanguage.en: 'Upload document',
+      AppLanguage.bn: 'ডকুমেন্ট আপলোড করুন',
+    },
+    'opening_preview_for': {
+      AppLanguage.en: 'Opening preview for {label}',
+      AppLanguage.bn: '{label}-এর প্রিভিউ খোলা হচ্ছে',
+    },
+    'file_selected_label': {
+      AppLanguage.en: 'File selected',
+      AppLanguage.bn: 'ফাইল নির্বাচিত হয়েছে',
+    },
+    'close_preview_action': {
+      AppLanguage.en: 'Close Preview',
+      AppLanguage.bn: 'প্রিভিউ বন্ধ করুন',
+    },
+    'loading_pdf_preview': {
+      AppLanguage.en: 'Loading PDF preview...',
+      AppLanguage.bn: 'পিডিএফ প্রিভিউ লোড হচ্ছে...',
+    },
+    'pdf_preview_unavailable': {
+      AppLanguage.en: 'PDF preview unavailable',
+      AppLanguage.bn: 'পিডিএফ প্রিভিউ উপলব্ধ নেই',
+    },
+    'selected_document_fallback': {
+      AppLanguage.en: 'Selected document',
+      AppLanguage.bn: 'নির্বাচিত ডকুমেন্ট',
+    },
+
+    // ── My applications / application detail ────────────────────────────
+    'no_applications_submitted_yet': {
+      AppLanguage.en: 'No applications submitted yet.',
+      AppLanguage.bn: 'এখনো কোনো আবেদন জমা দেওয়া হয়নি।',
+    },
+    'no_applications_with_status': {
+      AppLanguage.en: 'No applications with this status.',
+      AppLanguage.bn: 'এই অবস্থার কোনো আবেদন নেই।',
+    },
+    'apply_for_new_card_action': {
+      AppLanguage.en: 'Apply for a new card',
+      AppLanguage.bn: 'নতুন কার্ডের জন্য আবেদন করুন',
+    },
+    'submitted_date_prefix': {
+      AppLanguage.en: 'Submitted: {date}',
+      AppLanguage.bn: 'জমা দেওয়া হয়েছে: {date}',
+    },
+    'status_pending': {AppLanguage.en: 'Pending', AppLanguage.bn: 'অপেক্ষমাণ'},
+    'status_resubmit': {
+      AppLanguage.en: 'Resubmit',
+      AppLanguage.bn: 'পুনরায় জমা দিন',
+    },
+    'please_resubmit_document': {
+      AppLanguage.en: 'Please resubmit this document.',
+      AppLanguage.bn: 'অনুগ্রহ করে এই ডকুমেন্টটি পুনরায় জমা দিন।',
+    },
+    'document_validation_status_title': {
+      AppLanguage.en: 'Document Validation Status',
+      AppLanguage.bn: 'ডকুমেন্ট যাচাইয়ের অবস্থা',
+    },
+    'no_documents_uploaded_yet': {
+      AppLanguage.en: 'No documents uploaded yet.',
+      AppLanguage.bn: 'এখনো কোনো ডকুমেন্ট আপলোড করা হয়নি।',
+    },
+    'application_id_prefix': {
+      AppLanguage.en: 'Application ID: {id}',
+      AppLanguage.bn: 'আবেদন আইডি: {id}',
+    },
+    'submitted_on_prefix': {
+      AppLanguage.en: 'Submitted On: {date}',
+      AppLanguage.bn: 'জমা দেওয়ার তারিখ: {date}',
+    },
+    'last_updated_prefix': {
+      AppLanguage.en: 'Last Updated: {date}',
+      AppLanguage.bn: 'সর্বশেষ আপডেট: {date}',
+    },
+    'application_details_title': {
+      AppLanguage.en: 'Application Details',
+      AppLanguage.bn: 'আবেদনের বিস্তারিত',
+    },
+    'reupload_action': {
+      AppLanguage.en: 'Re-upload',
+      AppLanguage.bn: 'পুনরায় আপলোড করুন',
+    },
+
+    // ── Document upload ──────────────────────────────────────────────────
+    'document_upload_title': {
+      AppLanguage.en: 'Document Upload',
+      AppLanguage.bn: 'ডকুমেন্ট আপলোড',
+    },
+    'card_documents_title': {
+      AppLanguage.en: '{name} Documents',
+      AppLanguage.bn: '{name} ডকুমেন্ট',
+    },
+    'document_progress_title': {
+      AppLanguage.en: 'Document Progress',
+      AppLanguage.bn: 'ডকুমেন্ট অগ্রগতি',
+    },
+    'uploaded_label': {
+      AppLanguage.en: 'Uploaded',
+      AppLanguage.bn: 'আপলোড হয়েছে',
+    },
+    'verified_label': {
+      AppLanguage.en: 'Verified',
+      AppLanguage.bn: 'যাচাইকৃত',
+    },
+    'accepted_formats_hint': {
+      AppLanguage.en: 'Accepted formats: PDF, JPG, PNG. Max size 5MB per file.',
+      AppLanguage.bn: 'গ্রহণযোগ্য ফরম্যাট: PDF, JPG, PNG। প্রতি ফাইল সর্বোচ্চ ৫MB।',
+    },
+    'upload_failed_retry': {
+      AppLanguage.en: 'Upload failed. Please try again.',
+      AppLanguage.bn: 'আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+    },
+    'status_not_uploaded': {
+      AppLanguage.en: 'Not Uploaded',
+      AppLanguage.bn: 'আপলোড করা হয়নি',
+    },
+    'tap_upload_hint': {
+      AppLanguage.en: 'Tap upload to add this document',
+      AppLanguage.bn: 'এই ডকুমেন্ট যোগ করতে আপলোডে ট্যাপ করুন',
+    },
+    'status_pending_review': {
+      AppLanguage.en: 'Pending Review',
+      AppLanguage.bn: 'পর্যালোচনাধীন',
+    },
+    'pending_review_subtext': {
+      AppLanguage.en: 'Uploaded — awaiting admin verification',
+      AppLanguage.bn: 'আপলোড হয়েছে — অ্যাডমিনের যাচাইয়ের অপেক্ষায়',
+    },
+    'document_accepted_subtext': {
+      AppLanguage.en: 'This document has been accepted',
+      AppLanguage.bn: 'এই ডকুমেন্টটি গৃহীত হয়েছে',
+    },
+    'please_reupload_valid_document': {
+      AppLanguage.en: 'Please re-upload a valid document',
+      AppLanguage.bn: 'অনুগ্রহ করে একটি বৈধ ডকুমেন্ট পুনরায় আপলোড করুন',
+    },
+    'view_action': {AppLanguage.en: 'View', AppLanguage.bn: 'দেখুন'},
+    'opening_document_preview': {
+      AppLanguage.en: 'Opening document preview…',
+      AppLanguage.bn: 'ডকুমেন্ট প্রিভিউ খোলা হচ্ছে…',
+    },
+    'replace_action': {
+      AppLanguage.en: 'Replace',
+      AppLanguage.bn: 'প্রতিস্থাপন করুন',
+    },
+    'upload_action': {
+      AppLanguage.en: 'Upload',
+      AppLanguage.bn: 'আপলোড করুন',
+    },
+
+    // ── Eligibility check ─────────────────────────────────────────────────
+    'check_eligibility_title': {
+      AppLanguage.en: 'Check Eligibility',
+      AppLanguage.bn: 'যোগ্যতা যাচাই করুন',
+    },
+    'eligibility_approved_title': {
+      AppLanguage.en: 'Eligibility Approved',
+      AppLanguage.bn: 'যোগ্যতা অনুমোদিত হয়েছে',
+    },
+    'eligibility_request_submitted_title': {
+      AppLanguage.en: 'Request Submitted',
+      AppLanguage.bn: 'অনুরোধ জমা দেওয়া হয়েছে',
+    },
+    'eligibility_request_rejected_title': {
+      AppLanguage.en: 'Request Rejected',
+      AppLanguage.bn: 'অনুরোধ প্রত্যাখ্যান করা হয়েছে',
+    },
+    'eligibility_approved_message': {
+      AppLanguage.en:
+          'Your eligibility has been confirmed by the admin. You can now apply for the cards you are eligible for.',
+      AppLanguage.bn:
+          'অ্যাডমিন আপনার যোগ্যতা নিশ্চিত করেছেন। এখন আপনি যোগ্য কার্ডগুলোর জন্য আবেদন করতে পারবেন।',
+    },
+    'eligibility_pending_message': {
+      AppLanguage.en:
+          'Your eligibility request has been submitted successfully. An admin will review your details and notify you of the decision.',
+      AppLanguage.bn:
+          'আপনার যোগ্যতা যাচাইয়ের অনুরোধ সফলভাবে জমা হয়েছে। একজন অ্যাডমিন আপনার তথ্য পর্যালোচনা করে সিদ্ধান্ত জানাবেন।',
+    },
+    'eligibility_rejected_message': {
+      AppLanguage.en:
+          'Your eligibility request was not approved. Please contact your local authority for assistance.',
+      AppLanguage.bn:
+          'আপনার যোগ্যতার অনুরোধ অনুমোদিত হয়নি। সহায়তার জন্য আপনার স্থানীয় কর্তৃপক্ষের সাথে যোগাযোগ করুন।',
+    },
+    'eligibility_notify_hint': {
+      AppLanguage.en:
+          'You will receive a notification once the admin reviews your request.',
+      AppLanguage.bn:
+          'অ্যাডমিন আপনার অনুরোধ পর্যালোচনা করলে আপনি একটি নোটিফিকেশন পাবেন।',
+    },
+    'apply_for_a_card_action': {
+      AppLanguage.en: 'Apply for a Card',
+      AppLanguage.bn: 'একটি কার্ডের জন্য আবেদন করুন',
+    },
+    'edit_resubmit_action': {
+      AppLanguage.en: 'Edit & Resubmit',
+      AppLanguage.bn: 'সম্পাদনা ও পুনরায় জমা দিন',
+    },
+    'eligibility_form_hint': {
+      AppLanguage.en:
+          'Choose one card type, then fill only the fields required for that card.',
+      AppLanguage.bn:
+          'একটি কার্ডের ধরন নির্বাচন করুন, তারপর শুধু সেই কার্ডের জন্য প্রয়োজনীয় ঘরগুলো পূরণ করুন।',
+    },
+    'select_card_type_title': {
+      AppLanguage.en: 'Select Card Type',
+      AppLanguage.bn: 'কার্ডের ধরন নির্বাচন করুন',
+    },
+    'occupation_label': {
+      AppLanguage.en: 'Occupation',
+      AppLanguage.bn: 'পেশা',
+    },
+    'occupation_required': {
+      AppLanguage.en: 'Occupation is required',
+      AppLanguage.bn: 'পেশা উল্লেখ করা আবশ্যক',
+    },
+    'monthly_income_label': {
+      AppLanguage.en: 'Monthly Household Income (BDT)',
+      AppLanguage.bn: 'মাসিক পারিবারিক আয় (টাকা)',
+    },
+    'income_hint_example': {
+      AppLanguage.en: 'e.g. 10000',
+      AppLanguage.bn: 'যেমন ১০০০০',
+    },
+    'income_required': {
+      AppLanguage.en: 'Income is required',
+      AppLanguage.bn: 'আয়ের তথ্য আবশ্যক',
+    },
+    'farmer_card_eligibility_subtitle': {
+      AppLanguage.en: 'Must be ≤ 0.50 acres land, monthly income ≤ BDT 12,000',
+      AppLanguage.bn: 'জমি সর্বোচ্চ ০.৫০ একর, মাসিক আয় সর্বোচ্চ ১২,০০০ টাকা হতে হবে',
+    },
+    'land_owned_label': {
+      AppLanguage.en: 'Land Owned (Acres)',
+      AppLanguage.bn: 'জমির পরিমাণ (একর)',
+    },
+    'land_hint_example': {
+      AppLanguage.en: 'e.g. 0.50 (enter 0 if none)',
+      AppLanguage.bn: 'যেমন ০.৫০ (না থাকলে ০ লিখুন)',
+    },
+    'land_required': {
+      AppLanguage.en: 'Land information is required',
+      AppLanguage.bn: 'জমির তথ্য আবশ্যক',
+    },
+    'enter_valid_number': {
+      AppLanguage.en: 'Enter a valid number',
+      AppLanguage.bn: 'সঠিক সংখ্যা লিখুন',
+    },
+    'has_farmer_cert_title': {
+      AppLanguage.en: 'I have an Agricultural Farmer Certificate',
+      AppLanguage.bn: 'আমার কৃষি কৃষক সনদ আছে',
+    },
+    'farmer_cert_subtitle': {
+      AppLanguage.en: 'Issued by local union/ward parishad',
+      AppLanguage.bn: 'স্থানীয় ইউনিয়ন/ওয়ার্ড পরিষদ কর্তৃক প্রদত্ত',
+    },
+    'has_ward_cert_title': {
+      AppLanguage.en: 'I have a Ward/Union Certificate',
+      AppLanguage.bn: 'আমার ওয়ার্ড/ইউনিয়ন সনদ আছে',
+    },
+    'ward_cert_subtitle': {
+      AppLanguage.en: 'Confirming land holding and residence',
+      AppLanguage.bn: 'জমি ও বসবাসের প্রমাণকারী',
+    },
+    'education_card_eligibility_subtitle': {
+      AppLanguage.en: 'Requires GPA 5.00 in both SSC and HSC',
+      AppLanguage.bn: 'SSC ও HSC উভয় পরীক্ষায় GPA ৫.০০ প্রয়োজন',
+    },
+    'ssc_gpa_optional_label': {
+      AppLanguage.en: 'SSC GPA (leave blank if not applicable)',
+      AppLanguage.bn: 'SSC জিপিএ (প্রযোজ্য না হলে খালি রাখুন)',
+    },
+    'gpa_hint_example': {
+      AppLanguage.en: 'e.g. 5.00',
+      AppLanguage.bn: 'যেমন ৫.০০',
+    },
+    'gpa_range_error': {
+      AppLanguage.en: 'Enter GPA between 0.00 and 5.00',
+      AppLanguage.bn: '০.০০ থেকে ৫.০০-এর মধ্যে জিপিএ লিখুন',
+    },
+    'hsc_gpa_optional_label': {
+      AppLanguage.en: 'HSC GPA (leave blank if not applicable)',
+      AppLanguage.bn: 'HSC জিপিএ (প্রযোজ্য না হলে খালি রাখুন)',
+    },
+    'submit_eligibility_request_action': {
+      AppLanguage.en: 'Submit Eligibility Request',
+      AppLanguage.bn: 'যোগ্যতা যাচাইয়ের অনুরোধ জমা দিন',
+    },
+    'eligibility_review_time_note': {
+      AppLanguage.en:
+          'Your information will be reviewed by the admin within 2–3 working days.',
+      AppLanguage.bn: 'আপনার তথ্য অ্যাডমিন ২-৩ কর্মদিবসের মধ্যে পর্যালোচনা করবেন।',
+    },
+    'eligibility_submit_failed': {
+      AppLanguage.en: 'Submission failed. Please try again.',
+      AppLanguage.bn: 'জমা দেওয়া ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+    },
+
+    // ── Profile completion ───────────────────────────────────────────────
+    'skip_action': {AppLanguage.en: 'Skip', AppLanguage.bn: 'বাদ দিন'},
+    'profile_completion_hint': {
+      AppLanguage.en:
+          'These details are used to check your eligibility for the Farmer, Family, and Education cards.',
+      AppLanguage.bn:
+          'এই তথ্যগুলো কৃষক, পারিবারিক ও শিক্ষা কার্ডের যোগ্যতা যাচাইয়ে ব্যবহৃত হয়।',
+    },
+    'date_of_birth_label': {
+      AppLanguage.en: 'Date of Birth',
+      AppLanguage.bn: 'জন্ম তারিখ',
+    },
+    'select_date_placeholder': {
+      AppLanguage.en: 'Select date',
+      AppLanguage.bn: 'তারিখ নির্বাচন করুন',
+    },
+    'gender_label': {AppLanguage.en: 'Gender', AppLanguage.bn: 'লিঙ্গ'},
+    'gender_male': {AppLanguage.en: 'Male', AppLanguage.bn: 'পুরুষ'},
+    'gender_female': {AppLanguage.en: 'Female', AppLanguage.bn: 'মহিলা'},
+    'gender_other': {AppLanguage.en: 'Other', AppLanguage.bn: 'অন্যান্য'},
+    'address_label': {AppLanguage.en: 'Address', AppLanguage.bn: 'ঠিকানা'},
+    'address_required': {
+      AppLanguage.en: 'Address is required',
+      AppLanguage.bn: 'ঠিকানা আবশ্যক',
+    },
+    'ssc_gpa_label': {AppLanguage.en: 'SSC GPA', AppLanguage.bn: 'SSC জিপিএ'},
+    'hsc_gpa_label': {AppLanguage.en: 'HSC GPA', AppLanguage.bn: 'HSC জিপিএ'},
+    'save_continue_action': {
+      AppLanguage.en: 'Save & Continue',
+      AppLanguage.bn: 'সংরক্ষণ করে এগিয়ে যান',
+    },
+    'please_select_dob': {
+      AppLanguage.en: 'Please select your date of birth',
+      AppLanguage.bn: 'অনুগ্রহ করে আপনার জন্ম তারিখ নির্বাচন করুন',
+    },
+    'failed_save_profile': {
+      AppLanguage.en: 'Failed to save profile',
+      AppLanguage.bn: 'প্রোফাইল সংরক্ষণ ব্যর্থ হয়েছে',
+    },
+
+    // ── Profile ───────────────────────────────────────────────────────────
+    'change_password_title': {
+      AppLanguage.en: 'Change Password',
+      AppLanguage.bn: 'পাসওয়ার্ড পরিবর্তন করুন',
+    },
+    'current_password_label': {
+      AppLanguage.en: 'Current Password',
+      AppLanguage.bn: 'বর্তমান পাসওয়ার্ড',
+    },
+    'new_password_label': {
+      AppLanguage.en: 'New Password',
+      AppLanguage.bn: 'নতুন পাসওয়ার্ড',
+    },
+    'at_least_6_chars': {
+      AppLanguage.en: 'At least 6 characters',
+      AppLanguage.bn: 'কমপক্ষে ৬ অক্ষর',
+    },
+    'save_action': {AppLanguage.en: 'Save', AppLanguage.bn: 'সংরক্ষণ করুন'},
+    'password_changed_success': {
+      AppLanguage.en: 'Password changed successfully',
+      AppLanguage.bn: 'পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে',
+    },
+    'failed_change_password': {
+      AppLanguage.en: 'Failed to change password',
+      AppLanguage.bn: 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে',
+    },
+    'phone_field_label': {AppLanguage.en: 'Phone', AppLanguage.bn: 'ফোন'},
+    'edit_profile_action': {
+      AppLanguage.en: 'Edit Profile',
+      AppLanguage.bn: 'প্রোফাইল সম্পাদনা করুন',
+    },
+
+    // ── Distribution history (citizen) ──────────────────────────────────
+    'distribution_history_title': {
+      AppLanguage.en: 'Distribution History',
+      AppLanguage.bn: 'বিতরণের ইতিহাস',
+    },
+    'no_fund_disbursements_yet': {
+      AppLanguage.en: 'No fund disbursements yet.',
+      AppLanguage.bn: 'এখনো কোনো তহবিল বিতরণ হয়নি।',
+    },
+
+    // ── Shared widgets (citizen/admin) ──────────────────────────────────
+    'try_again_action': {
+      AppLanguage.en: 'Try Again',
+      AppLanguage.bn: 'আবার চেষ্টা করুন',
+    },
+    'error_prefix': {
+      AppLanguage.en: 'Error: {message}',
+      AppLanguage.bn: 'ত্রুটি: {message}',
+    },
   };
 
   static String of(String key, AppLanguage language) {

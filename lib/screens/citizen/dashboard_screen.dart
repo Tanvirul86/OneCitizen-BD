@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
@@ -41,16 +42,16 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
     }
   }
 
-  String _statusLabel(ApplicationStatus s) {
+  String _statusLabel(BuildContext context, ApplicationStatus s) {
     switch (s) {
       case ApplicationStatus.submitted:
-        return 'Submitted';
+        return context.tr('status_submitted');
       case ApplicationStatus.underReview:
-        return 'Under Review';
+        return context.tr('status_under_review');
       case ApplicationStatus.approved:
-        return 'Approved';
+        return context.tr('stat_approved');
       case ApplicationStatus.rejected:
-        return 'Rejected';
+        return context.tr('stat_rejected');
     }
   }
 
@@ -148,7 +149,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                                     Text(
                                       user?.fullName.isNotEmpty == true
                                           ? user!.fullName
-                                          : 'Citizen',
+                                          : context.tr('role_citizen'),
                                       style: GoogleFonts.plusJakartaSans(
                                         color: Colors.white,
                                         fontSize: 20,
@@ -223,11 +224,10 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                   if (user != null && !user.profileComplete) ...[
                     _AlertCard(
                       icon: Icons.person_add_alt_1_rounded,
-                      title: 'Complete Your Profile',
-                      subtitle:
-                          'Profile completion is required to check eligibility for welfare cards.',
+                      title: context.tr('complete_profile_title'),
+                      subtitle: context.tr('complete_profile_subtitle'),
                       color: AppTheme.warningAmber,
-                      actionLabel: 'Complete Now',
+                      actionLabel: context.tr('complete_now_action'),
                       onAction: () =>
                           context.push('/citizen/profile-completion'),
                     ),
@@ -236,12 +236,15 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                   if (invalidDocs > 0 && affectedApplication != null) ...[
                     _AlertCard(
                       icon: Icons.warning_amber_rounded,
-                      title:
-                          '$invalidDocs Document${invalidDocs > 1 ? 's' : ''} Need Re-upload',
-                      subtitle:
-                          '${invalidDocument!.docType.replaceAll('_', ' ')} was marked invalid for your ${affectedApplication.cardTypeName} request. Open the request to re-upload it.',
+                      title: context.trp('docs_need_reupload_title', {
+                        'count': '$invalidDocs',
+                      }),
+                      subtitle: context.trp('docs_need_reupload_subtitle', {
+                        'doc': invalidDocument!.docType.replaceAll('_', ' '),
+                        'card': affectedApplication.cardTypeName,
+                      }),
                       color: AppTheme.errorRed,
-                      actionLabel: 'Review Request',
+                      actionLabel: context.tr('review_request_action'),
                       onAction: () => context.push(
                         '/citizen/applications/${affectedApplication.id}',
                       ),
@@ -251,7 +254,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
 
                   // ── Quick Actions ──────────────────────────────────────
                   Text(
-                    'Quick Action',
+                    context.tr('quick_action_title'),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 17,
                       fontWeight: FontWeight.w800,
@@ -263,9 +266,8 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     height: 116,
                     child: _ActionCard(
                       icon: Icons.add_card_rounded,
-                      title: 'Apply for Card',
-                      subtitle:
-                          'Select a card, review required documents, fill the form, upload files, and preview before submit.',
+                      title: context.tr('apply_for_card_title'),
+                      subtitle: context.tr('apply_for_card_hint'),
                       gradient: const LinearGradient(
                         colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
                         begin: Alignment.topLeft,
@@ -282,7 +284,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'My Applications',
+                        context.tr('my_applications_title'),
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -292,7 +294,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       TextButton(
                         onPressed: () => context.go('/citizen/applications'),
                         child: Text(
-                          'View All',
+                          context.tr('view_all_action'),
                           style: GoogleFonts.plusJakartaSans(
                             color: AppTheme.primaryGreen,
                             fontWeight: FontWeight.w600,
@@ -309,10 +311,9 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                   else if (appProvider.applications.isEmpty)
                     _EmptyBox(
                       icon: Icons.assignment_outlined,
-                      title: 'No applications yet',
-                      subtitle:
-                          'Start one guided application and upload every required document there.',
-                      actionLabel: 'Apply for Card',
+                      title: context.tr('no_applications_yet'),
+                      subtitle: context.tr('no_applications_yet_subtitle'),
+                      actionLabel: context.tr('apply_for_card_title'),
                       onAction: () => context.push('/citizen/apply'),
                     )
                   else
@@ -320,7 +321,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       (app) => _AppCard(
                         app: app,
                         statusColor: _statusColor(app.status),
-                        statusLabel: _statusLabel(app.status),
+                        statusLabel: _statusLabel(context, app.status),
                         onTap: () =>
                             context.push('/citizen/applications/${app.id}'),
                       ),
