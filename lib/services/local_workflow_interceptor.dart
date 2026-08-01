@@ -386,6 +386,7 @@ class LocalWorkflowInterceptor extends Interceptor {
     {
       'id': 'farmer', 'code': 'farmer', 'name': 'Farmer Card',
       'eligibility_criteria': 'Submit your documents for administrative review.',
+      'disbursement_amount': 5000,
       'required_documents': ['nid_copy', 'union_paurosova_certificate', 'recent_photo', 'agricultural_certificate'],
       'application_fields': [
         {'key': 'first_name', 'label': 'First name', 'required': true},
@@ -402,6 +403,7 @@ class LocalWorkflowInterceptor extends Interceptor {
     {
       'id': 'family', 'code': 'family', 'name': 'Family Card',
       'eligibility_criteria': 'Submit your documents for administrative review.',
+      'disbursement_amount': 8000,
       'required_documents': ['nid_copy', 'union_paurosova_certificate', 'recent_photo', 'income_certificate'],
       'application_fields': [
         {'key': 'first_name', 'label': 'First name', 'required': true},
@@ -419,6 +421,7 @@ class LocalWorkflowInterceptor extends Interceptor {
     {
       'id': 'education', 'code': 'education', 'name': 'Education Card',
       'eligibility_criteria': 'Submit your documents for administrative review.',
+      'disbursement_amount': 12000,
       'required_documents': ['nid_birth_certificate', 'ssc_registration_card', 'ssc_admit_card', 'ssc_certificate', 'hsc_registration_card', 'hsc_admit_card', 'hsc_certificate', 'recent_photo'],
       'application_fields': [
         {'key': 'student_first_name', 'label': 'Student first name', 'required': true},
