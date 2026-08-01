@@ -556,6 +556,50 @@ class AppStrings {
       AppLanguage.en: 'Failed to disburse funds',
       AppLanguage.bn: 'তহবিল বিতরণ ব্যর্থ হয়েছে',
     },
+    'distribution_mode_individual': {
+      AppLanguage.en: 'Individual',
+      AppLanguage.bn: 'একক',
+    },
+    'distribution_mode_bulk': {
+      AppLanguage.en: 'By Card Type',
+      AppLanguage.bn: 'কার্ড অনুযায়ী',
+    },
+    'select_card_type_error': {
+      AppLanguage.en: 'Please select a card type',
+      AppLanguage.bn: 'একটি কার্ডের ধরন নির্বাচন করুন',
+    },
+    'no_approved_holders_for_card': {
+      AppLanguage.en: 'No approved holders for this card type yet.',
+      AppLanguage.bn: 'এই কার্ডের জন্য এখনো কোনো অনুমোদিত হোল্ডার নেই।',
+    },
+    'bulk_recipients_summary': {
+      AppLanguage.en:
+          '{count} approved {name} holders will each receive ৳{amount}.',
+      AppLanguage.bn:
+          '{count} জন অনুমোদিত {name} হোল্ডার প্রত্যেকে ৳{amount} পাবেন।',
+    },
+    'bulk_distribute_action': {
+      AppLanguage.en: 'Distribute to All ({count})',
+      AppLanguage.bn: 'সবাইকে পাঠান ({count})',
+    },
+    'bulk_distribute_confirm_title': {
+      AppLanguage.en: 'Confirm Bulk Distribution',
+      AppLanguage.bn: 'বাল্ক বিতরণ নিশ্চিত করুন',
+    },
+    'bulk_distribute_confirm_body': {
+      AppLanguage.en:
+          'Send ৳{amount} to each of the {count} approved {name} holders (total ৳{total})? This cannot be undone.',
+      AppLanguage.bn:
+          '{count} জন অনুমোদিত {name} হোল্ডারের প্রত্যেককে ৳{amount} করে (মোট ৳{total}) পাঠাতে চান? এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+    },
+    'confirm_send_action': {
+      AppLanguage.en: 'Yes, Send',
+      AppLanguage.bn: 'হ্যাঁ, পাঠান',
+    },
+    'bulk_distribute_result': {
+      AppLanguage.en: '{success} sent successfully, {failed} failed.',
+      AppLanguage.bn: '{success} জনকে সফলভাবে পাঠানো হয়েছে, {failed} জন ব্যর্থ হয়েছে।',
+    },
 
     // ── Distribution records ─────────────────────────────────────────────
     'no_distribution_records': {
