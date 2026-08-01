@@ -5,11 +5,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/widgets/document_sample_preview.dart';
 import 'package:provider/provider.dart';
 
@@ -142,6 +144,57 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     }
   }
 
+  /// Seeds application fields with matching profile data already collected
+  /// at registration/profile-completion, so the citizen isn't asked to
+  /// retype it — only fields the controller doesn't already hold a value
+  /// for are touched, so it never overwrites something the citizen typed.
+  void _prefillFromProfile(CardType cardType) {
+    final user = context.read<AuthProvider>().user;
+    if (user == null) return;
+    final prefix = cardType.code.name;
+
+    void setText(String key, String? value) {
+      if (value == null || value.isEmpty) return;
+      final controller = _controllerFor('${prefix}_$key');
+      if (controller.text.isEmpty) controller.text = value;
+    }
+
+    void setChoice(String key, String? value) {
+      if (value == null || value.isEmpty) return;
+      final storeKey = '${prefix}_$key';
+      if ((_choiceValues[storeKey] ?? '').isEmpty) {
+        _choiceValues[storeKey] = value;
+        _controllerFor(storeKey).text = value;
+      }
+    }
+
+    final dob = user.dateOfBirth == null
+        ? null
+        : DateFormat('dd/MM/yyyy').format(user.dateOfBirth!);
+
+    switch (cardType.code) {
+      case CardTypeCode.farmer:
+      case CardTypeCode.family:
+        setText('first_name', user.firstName);
+        setText('last_name', user.lastName);
+        setText('nid_card_number', user.nid);
+        setText('date_of_birth', dob);
+        setText('phone_number', user.phone);
+        setText('village_road', user.address);
+        if (cardType.code == CardTypeCode.farmer) {
+          setText('cultivated_land_amount', user.landAcres?.toString());
+          if (user.landAcres != null) setChoice('land_unit', 'Acre');
+        } else {
+          setText('monthly_income', user.income?.toString());
+        }
+      case CardTypeCode.education:
+        setText('student_first_name', user.firstName);
+        setText('student_last_name', user.lastName);
+        setText('date_of_birth', dob);
+        setText('nid_birth_certificate_number', user.nid);
+    }
+  }
+
   void _changeCard() {
     setState(() {
       _selectedCardTypeId = null;
@@ -262,12 +315,12 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
+              final isNewCard = _selectedCardTypeId != cardType.id;
               setState(() {
-                if (_selectedCardTypeId != cardType.id) {
-                  _clearApplicationInput();
-                }
+                if (isNewCard) _clearApplicationInput();
                 _selectedCardTypeId = cardType.id;
                 _requirementsAccepted = true;
+                if (isNewCard) _prefillFromProfile(cardType);
               });
             },
             child: Text(context.trs('proceed_action')),
