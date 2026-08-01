@@ -17,12 +17,16 @@ enum _SampleTemplate { idCard, certificate, photo, marksheet }
 /// become available.
 const Map<String, String> _imageAssetFor = {
   'nid_copy': 'assets/images/samples/NID.jpeg',
+  'nid_birth_certificate': 'assets/images/samples/birth.jpeg',
   'ssc_registration_card': 'assets/images/samples/ssc_reg.jpeg',
   'ssc_admit_card': 'assets/images/samples/ssc_admit.jpeg',
   'ssc_certificate': 'assets/images/samples/ssc_certi.jpeg',
   'hsc_registration_card': 'assets/images/samples/hsc_reg.jpeg',
   'hsc_admit_card': 'assets/images/samples/hsc_admit.jpeg',
   'hsc_certificate': 'assets/images/samples/hsc_certi.jpeg',
+  'agricultural_certificate': 'assets/images/samples/agriculture.jpeg',
+  'income_certificate': 'assets/images/samples/income.jpeg',
+  'union_paurosova_certificate': 'assets/images/samples/union_parishad.jpeg',
 };
 
 const Map<String, _SampleTemplate> _templateFor = {
