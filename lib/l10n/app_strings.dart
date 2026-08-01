@@ -610,6 +610,10 @@ class AppStrings {
       AppLanguage.en: '{count} recipients',
       AppLanguage.bn: '{count} জন পেয়েছেন',
     },
+    'citizens_count_label': {
+      AppLanguage.en: '{count} citizens',
+      AppLanguage.bn: '{count} জন নাগরিক',
+    },
 
     // ── Analytics ─────────────────────────────────────────────────────────
     'pending_documents': {
