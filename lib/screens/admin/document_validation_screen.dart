@@ -22,6 +22,8 @@ class DocumentValidationScreen extends StatefulWidget {
 }
 
 class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
+  bool _showReviewed = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,7 +33,7 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
   }
 
   Future<void> _loadDocuments() {
-    return context.read<AdminProvider>().loadPendingDocuments(
+    return context.read<AdminProvider>().loadDocuments(
       citizenId: widget.filter?.citizenId,
       citizenEmail: widget.filter?.citizenEmail,
     );
@@ -104,188 +106,230 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
+    final docs = _showReviewed
+        ? provider.reviewedDocuments
+        : provider.pendingDocuments;
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
       appBar: widget.standalone
           ? AppBar(title: Text(context.tr('admin_nav_document_validation')))
           : null,
-      body: RefreshIndicator(
-        onRefresh: _loadDocuments,
-        child: provider.isLoadingDocuments
-            ? const Center(child: CircularProgressIndicator())
-            : provider.documentsError != null
-            ? ErrorMessage(
-                message: provider.documentsError!,
-                onRetry: _loadDocuments,
-              )
-            : provider.pendingDocuments.isEmpty
-            ? EmptyListMessage(
-                message: context.tr('no_documents_to_review'),
-                icon: Icons.fact_check_outlined,
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: provider.pendingDocuments.length,
-                itemBuilder: (context, index) {
-                  final doc = provider.pendingDocuments[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(context.tr('doc_validation_tab_pending')),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(context.tr('doc_validation_tab_reviewed')),
+                ),
+              ],
+              selected: {_showReviewed},
+              onSelectionChanged: (s) =>
+                  setState(() => _showReviewed = s.first),
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadDocuments,
+              child: provider.isLoadingDocuments
+                  ? const Center(child: CircularProgressIndicator())
+                  : provider.documentsError != null
+                  ? ErrorMessage(
+                      message: provider.documentsError!,
+                      onRetry: _loadDocuments,
+                    )
+                  : docs.isEmpty
+                  ? EmptyListMessage(
+                      message: context.tr(
+                        _showReviewed
+                            ? 'no_reviewed_documents'
+                            : 'no_documents_to_review',
+                      ),
+                      icon: Icons.fact_check_outlined,
+                    )
+                  : ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                doc.isValid == true
-                                    ? Icons.check_circle
-                                    : doc.isValid == false
-                                    ? Icons.cancel
-                                    : Icons.hourglass_empty,
-                                color: doc.isValid == true
-                                    ? Colors.green
-                                    : doc.isValid == false
-                                    ? Colors.red
-                                    : Colors.orange,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  documentTypeLabel(doc.docType),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: AppTheme.textPrimary,
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      doc.isValid == true
+                                          ? Icons.check_circle
+                                          : doc.isValid == false
+                                          ? Icons.cancel
+                                          : Icons.hourglass_empty,
+                                      color: doc.isValid == true
+                                          ? Colors.green
+                                          : doc.isValid == false
+                                          ? Colors.red
+                                          : Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        documentTypeLabel(doc.docType),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  context.trp('citizen_prefix', {
+                                    'name': doc.citizenName ?? doc.citizenId,
+                                  }),
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.trp('citizen_prefix', {
-                              'name': doc.citizenName ?? doc.citizenId,
-                            }),
-                            style: TextStyle(color: AppTheme.textSecondary),
-                          ),
-                          if (doc.remark != null)
-                            Text(
-                              context.trp('remark_prefix', {
-                                'remark': doc.remark!,
-                              }),
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () => _viewDocument(doc),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Image.network(
-                                    doc.fileUrl,
-                                    height: 140,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (
-                                          context,
-                                          child,
-                                          progress,
-                                        ) => progress == null
-                                        ? child
-                                        : Container(
-                                            height: 140,
-                                            color: AppTheme.surfaceLight,
-                                            child: const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
+                                if (doc.remark != null)
+                                  Text(
+                                    context.trp('remark_prefix', {
+                                      'remark': doc.remark!,
+                                    }),
+                                    style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                const SizedBox(height: 12),
+                                GestureDetector(
+                                  onTap: () => _viewDocument(doc),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Image.network(
+                                          doc.fileUrl,
+                                          height: 140,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder:
+                                              (
+                                                context,
+                                                child,
+                                                progress,
+                                              ) => progress == null
+                                              ? child
+                                              : Container(
+                                                  height: 140,
+                                                  color: AppTheme.surfaceLight,
+                                                  child: const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ),
+                                                ),
+                                          errorBuilder:
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => Container(
+                                                height: 140,
+                                                width: double.infinity,
+                                                color: AppTheme.surfaceLight,
+                                                child: const Icon(
+                                                  Icons.broken_image,
+                                                  color: AppTheme.textSecondary,
+                                                ),
+                                              ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.55,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
                                             ),
                                           ),
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              height: 140,
-                                              width: double.infinity,
-                                              color: AppTheme.surfaceLight,
-                                              child: const Icon(
-                                                Icons.broken_image,
-                                                color: AppTheme.textSecondary,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.zoom_in,
+                                                color: Colors.white,
+                                                size: 16,
                                               ),
-                                            ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.55,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.zoom_in,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          context.tr('view_document'),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                context.tr('view_document'),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _markInvalid(doc),
+                                        icon: const Icon(Icons.close, size: 18),
+                                        label: Text(
+                                          context.tr('invalid_action'),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                          side: const BorderSide(
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => _markValid(doc),
+                                        icon: const Icon(Icons.check, size: 18),
+                                        label: Text(context.tr('valid_action')),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _markInvalid(doc),
-                                  icon: const Icon(Icons.close, size: 18),
-                                  label: Text(context.tr('invalid_action')),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _markValid(doc),
-                                  icon: const Icon(Icons.check, size: 18),
-                                  label: Text(context.tr('valid_action')),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+            ),
+          ),
+        ],
       ),
     );
   }

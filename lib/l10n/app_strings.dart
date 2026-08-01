@@ -476,6 +476,18 @@ class AppStrings {
       AppLanguage.en: 'No documents to review.',
       AppLanguage.bn: 'পর্যালোচনার জন্য কোনো ডকুমেন্ট নেই।',
     },
+    'doc_validation_tab_pending': {
+      AppLanguage.en: 'Pending',
+      AppLanguage.bn: 'অপেক্ষমাণ',
+    },
+    'doc_validation_tab_reviewed': {
+      AppLanguage.en: 'Reviewed',
+      AppLanguage.bn: 'পর্যালোচিত',
+    },
+    'no_reviewed_documents': {
+      AppLanguage.en: 'No reviewed documents yet.',
+      AppLanguage.bn: 'এখনো কোনো পর্যালোচিত ডকুমেন্ট নেই।',
+    },
     'citizen_prefix': {
       AppLanguage.en: 'Citizen: {name}',
       AppLanguage.bn: 'নাগরিক: {name}',

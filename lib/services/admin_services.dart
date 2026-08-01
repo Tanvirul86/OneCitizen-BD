@@ -55,7 +55,7 @@ class AdminService {
   }
 
   // ── Document validation ─────────────────────────────────────────────────
-  Future<List<CitizenDocument>> getPendingDocuments({
+  Future<List<CitizenDocument>> getDocuments({
     String? citizenId,
     String? citizenEmail,
   }) async {
