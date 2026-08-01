@@ -48,6 +48,14 @@ class AppRouter {
         if (isLoggedIn && (location == '/login' || location == '/register')) {
           return homeForRole(authProvider.user?.role ?? UserRole.citizen);
         }
+        // A card application depends on profile fields (address, occupation,
+        // DOB) for eligibility, so block direct/deep-link access to the
+        // apply flow until the profile is complete.
+        if (isLoggedIn &&
+            location == '/citizen/apply' &&
+            authProvider.user?.profileComplete == false) {
+          return '/citizen/profile-completion';
+        }
         return null;
       },
       routes: [

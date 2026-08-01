@@ -7,6 +7,7 @@ import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/screens/citizen/document_upload_screen.dart';
+import 'package:onecitizen/utils/apply_card_navigation.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
@@ -124,7 +125,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                           if (_filter == null) ...[
                             const SizedBox(height: 12),
                             ElevatedButton(
-                              onPressed: () => context.push('/citizen/apply'),
+                              onPressed: () => goToApplyCard(context),
                               child: Text(
                                 context.tr('apply_for_new_card_action'),
                               ),

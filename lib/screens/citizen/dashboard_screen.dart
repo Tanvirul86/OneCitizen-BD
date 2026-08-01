@@ -8,6 +8,7 @@ import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
+import 'package:onecitizen/utils/apply_card_navigation.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
@@ -277,7 +278,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                         end: Alignment.bottomRight,
                       ),
                       badge: invalidDocs > 0 ? invalidDocs : null,
-                      onTap: () => context.push('/citizen/apply'),
+                      onTap: () => goToApplyCard(context),
                     ),
                   ),
                   const SizedBox(height: 28),
@@ -317,7 +318,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       title: context.tr('no_applications_yet'),
                       subtitle: context.tr('no_applications_yet_subtitle'),
                       actionLabel: context.tr('apply_for_card_title'),
-                      onAction: () => context.push('/citizen/apply'),
+                      onAction: () => goToApplyCard(context),
                     )
                   else
                     ...recentApps.map(
