@@ -10,6 +10,7 @@ import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/widgets/document_sample_preview.dart';
 import 'package:provider/provider.dart';
 
 class ApplyCardScreen extends StatefulWidget {
@@ -206,24 +207,36 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
               context.trs('documents_required_label'),
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
+            const SizedBox(height: 4),
+            Text(
+              context.trs('tap_to_see_sample_hint'),
+              style: const TextStyle(
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+                color: AppTheme.textSecondary,
+              ),
+            ),
             const SizedBox(height: 8),
             ..._requiredDocumentsFor(cardType).map(
-              (docType) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.description_rounded,
-                      size: 17,
-                      color: AppTheme.primaryGreen,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${_documentLabelFor(cardType, docType)} (${_formatRequirementFor(docType)})',
+              (docType) => InkWell(
+                onTap: () => showDocumentSample(dialogContext, docType),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.description_rounded,
+                        size: 17,
+                        color: AppTheme.primaryGreen,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${_documentLabelFor(cardType, docType)} (${_formatRequirementFor(docType)})',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
