@@ -1346,6 +1346,22 @@ class AppStrings {
       AppLanguage.en: 'Change Password',
       AppLanguage.bn: 'পাসওয়ার্ড পরিবর্তন করুন',
     },
+    'edit_name_title': {
+      AppLanguage.en: 'Edit Name',
+      AppLanguage.bn: 'নাম সম্পাদনা করুন',
+    },
+    'name_updated_success': {
+      AppLanguage.en: 'Name updated successfully',
+      AppLanguage.bn: 'নাম সফলভাবে পরিবর্তন হয়েছে',
+    },
+    'photo_updated_success': {
+      AppLanguage.en: 'Profile photo updated',
+      AppLanguage.bn: 'প্রোফাইল ছবি পরিবর্তন হয়েছে',
+    },
+    'failed_update_photo': {
+      AppLanguage.en: 'Failed to update photo',
+      AppLanguage.bn: 'ছবি পরিবর্তন করা যায়নি',
+    },
     'current_password_label': {
       AppLanguage.en: 'Current Password',
       AppLanguage.bn: 'বর্তমান পাসওয়ার্ড',

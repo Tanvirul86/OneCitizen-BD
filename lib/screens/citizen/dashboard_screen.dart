@@ -10,6 +10,7 @@ import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/utils/apply_card_navigation.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
 
@@ -131,21 +132,25 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Container(
-                                      width: 34,
-                                      height: 34,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.18,
-                                        ),
+                                    CircleAvatar(
+                                      radius: 17,
+                                      backgroundColor: Colors.white.withValues(
+                                        alpha: 0.18,
                                       ),
-                                      alignment: Alignment.center,
-                                      child: const Icon(
-                                        Icons.person_rounded,
-                                        color: Colors.white,
-                                        size: 20,
+                                      backgroundImage: avatarImageFor(
+                                        user?.profilePictureUrl,
                                       ),
+                                      child:
+                                          avatarImageFor(
+                                                user?.profilePictureUrl,
+                                              ) ==
+                                              null
+                                          ? const Icon(
+                                              Icons.person_rounded,
+                                              color: Colors.white,
+                                              size: 20,
+                                            )
+                                          : null,
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
@@ -273,7 +278,10 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                       title: context.tr('apply_for_card_title'),
                       subtitle: context.tr('apply_for_card_hint'),
                       gradient: const LinearGradient(
-                        colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
+                        colors: [
+                          AppTheme.primaryGreenDark,
+                          AppTheme.primaryGreenLight,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -339,7 +347,6 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
       ),
     );
   }
-
 }
 
 class _AlertCard extends StatelessWidget {

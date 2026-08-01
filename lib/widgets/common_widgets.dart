@@ -1,6 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
+
+/// [profilePicture] may be a real URL or a local device file path (this app
+/// has no media server, so uploaded profile photos are kept as on-device
+/// file paths) — pick the right [ImageProvider] for either case.
+ImageProvider? avatarImageFor(String? profilePicture) {
+  if (profilePicture == null || profilePicture.isEmpty) return null;
+  return profilePicture.startsWith('http')
+      ? NetworkImage(profilePicture)
+      : FileImage(File(profilePicture));
+}
 
 class EmptyListMessage extends StatelessWidget {
   const EmptyListMessage({
@@ -23,16 +35,13 @@ class EmptyListMessage extends StatelessWidget {
           Icon(
             icon ?? Icons.info_outline,
             size: 60,
-            color: AppTheme.textSecondary.withValues(alpha:0.5),
+            color: AppTheme.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: AppTheme.textSecondary,
-            ),
+            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
           ),
           if (onRetry != null)
             Padding(
@@ -53,11 +62,7 @@ class EmptyListMessage extends StatelessWidget {
 }
 
 class ErrorMessage extends StatelessWidget {
-  const ErrorMessage({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorMessage({super.key, required this.message, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;
@@ -71,16 +76,13 @@ class ErrorMessage extends StatelessWidget {
           Icon(
             Icons.error_outline,
             size: 60,
-            color: AppTheme.accentRed.withValues(alpha:0.5),
+            color: AppTheme.accentRed.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             context.trp('error_prefix', {'message': message}),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: AppTheme.accentRed,
-            ),
+            style: TextStyle(fontSize: 18, color: AppTheme.accentRed),
           ),
           if (onRetry != null)
             Padding(
