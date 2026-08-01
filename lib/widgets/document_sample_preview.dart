@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 
 /// Illustrative "what should this document look like" previews shown when a
@@ -27,6 +28,14 @@ const Map<String, String> _imageAssetFor = {
   'agricultural_certificate': 'assets/images/samples/agriculture.jpeg',
   'income_certificate': 'assets/images/samples/income.jpeg',
   'union_paurosova_certificate': 'assets/images/samples/union_parishad.jpeg',
+};
+
+/// "Recent photo" samples differ by applicant type, so this is keyed by
+/// card type rather than document type.
+const Map<CardTypeCode, String> _recentPhotoImageFor = {
+  CardTypeCode.farmer: 'assets/images/samples/farmer.jpeg',
+  CardTypeCode.family: 'assets/images/samples/family.jpeg',
+  CardTypeCode.education: 'assets/images/samples/student.jpeg',
 };
 
 const Map<String, _SampleTemplate> _templateFor = {
@@ -165,11 +174,7 @@ const Map<String, _CertificateContent> _certificateContent = {
   'land_ownership': _CertificateContent(
     issuer: 'ভূমি অফিস',
     title: 'জমির মালিকানার দলিল',
-    body: [
-      'দাগ নং: ১২৩',
-      'খতিয়ান নং: ৪৫৬',
-      'জমির পরিমাণ: ১.৫০ একর',
-    ],
+    body: ['দাগ নং: ১২৩', 'খতিয়ান নং: ৪৫৬', 'জমির পরিমাণ: ১.৫০ একর'],
     signerLabel: 'সাব-রেজিস্ট্রার',
   ),
   'ward_union_certificate': _CertificateContent(
@@ -245,22 +250,37 @@ const Map<String, _MarksheetContent> _marksheetContent = {
 };
 
 /// Shows an illustrative sample for [docType] so a citizen unsure what a
-/// required document looks like can confirm before uploading.
-void showDocumentSample(BuildContext context, String docType) {
+/// required document looks like can confirm before uploading. [cardTypeCode]
+/// picks the right "recent photo" sample, since that document type is
+/// shared across card types but the sample photo differs by applicant.
+void showDocumentSample(
+  BuildContext context,
+  String docType, {
+  CardTypeCode? cardTypeCode,
+}) {
   final template = _templateFor[docType] ?? _SampleTemplate.certificate;
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _DocumentSampleSheet(docType: docType, template: template),
+    builder: (_) => _DocumentSampleSheet(
+      docType: docType,
+      template: template,
+      cardTypeCode: cardTypeCode,
+    ),
   );
 }
 
 class _DocumentSampleSheet extends StatelessWidget {
-  const _DocumentSampleSheet({required this.docType, required this.template});
+  const _DocumentSampleSheet({
+    required this.docType,
+    required this.template,
+    this.cardTypeCode,
+  });
 
   final String docType;
   final _SampleTemplate template;
+  final CardTypeCode? cardTypeCode;
 
   String _hintKey() {
     switch (template) {
@@ -312,7 +332,13 @@ class _DocumentSampleSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Center(child: _SampleArt(docType: docType, template: template)),
+              Center(
+                child: _SampleArt(
+                  docType: docType,
+                  template: template,
+                  cardTypeCode: cardTypeCode,
+                ),
+              ),
               const SizedBox(height: 16),
               Text(
                 context.trs(_hintKey()),
@@ -369,14 +395,21 @@ class _SampleWatermark extends StatelessWidget {
 }
 
 class _SampleArt extends StatelessWidget {
-  const _SampleArt({required this.docType, required this.template});
+  const _SampleArt({
+    required this.docType,
+    required this.template,
+    this.cardTypeCode,
+  });
 
   final String docType;
   final _SampleTemplate template;
+  final CardTypeCode? cardTypeCode;
 
   @override
   Widget build(BuildContext context) {
-    final imageAsset = _imageAssetFor[docType];
+    final imageAsset = docType == 'recent_photo'
+        ? _recentPhotoImageFor[cardTypeCode]
+        : _imageAssetFor[docType];
     if (imageAsset != null) {
       return _RealSampleImage(
         assetPath: imageAsset,
@@ -661,7 +694,11 @@ class _CertificateArt extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(width: 60, height: 1, color: AppTheme.textTertiary),
+                          Container(
+                            width: 60,
+                            height: 1,
+                            color: AppTheme.textTertiary,
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             content.signerLabel,
@@ -743,10 +780,26 @@ class _PhotoArt extends StatelessWidget {
                 ),
               ),
               // Camera-frame corner guides.
-              const Positioned(top: 8, left: 8, child: _CornerBracket(corner: _Corner.topLeft)),
-              const Positioned(top: 8, right: 8, child: _CornerBracket(corner: _Corner.topRight)),
-              const Positioned(bottom: 8, left: 8, child: _CornerBracket(corner: _Corner.bottomLeft)),
-              const Positioned(bottom: 8, right: 8, child: _CornerBracket(corner: _Corner.bottomRight)),
+              const Positioned(
+                top: 8,
+                left: 8,
+                child: _CornerBracket(corner: _Corner.topLeft),
+              ),
+              const Positioned(
+                top: 8,
+                right: 8,
+                child: _CornerBracket(corner: _Corner.topRight),
+              ),
+              const Positioned(
+                bottom: 8,
+                left: 8,
+                child: _CornerBracket(corner: _Corner.bottomLeft),
+              ),
+              const Positioned(
+                bottom: 8,
+                right: 8,
+                child: _CornerBracket(corner: _Corner.bottomRight),
+              ),
               Positioned(top: 8, right: 34, child: const _SampleBadge()),
               Positioned(
                 left: 0,
@@ -898,7 +951,10 @@ class _MarksheetArt extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceLight,
                       borderRadius: BorderRadius.circular(4),
@@ -909,14 +965,20 @@ class _MarksheetArt extends StatelessWidget {
                           flex: 2,
                           child: Text(
                             'বিষয়',
-                            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         const Expanded(
                           child: Text(
                             'নম্বর',
                             textAlign: TextAlign.right,
-                            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ],
@@ -924,14 +986,20 @@ class _MarksheetArt extends StatelessWidget {
                   ),
                   for (final subject in content.subjects)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 7,
+                        horizontal: 8,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
                             flex: 2,
                             child: Text(
                               subject.$1,
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ),
                           Expanded(
