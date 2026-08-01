@@ -391,9 +391,10 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
               ],
               const Divider(height: 24),
               ..._requiredDocumentsFor(cardType).map((docType) {
-                return _PreviewRow(
+                return _DocumentPreviewRow(
                   label: _documentLabelFor(cardType, docType),
-                  value: _pickedFiles[docType] ?? context.trs('missing_value'),
+                  fileName: _pickedFiles[docType],
+                  filePath: _pickedFilePaths[docType],
                 );
               }),
             ],
@@ -1580,29 +1581,30 @@ class _DocumentFileSummary extends StatelessWidget {
   }
 }
 
+const _documentPreviewChannel = MethodChannel(
+  'bd.onecitizen.onecitizen/document_preview',
+);
+
+Future<Uint8List> _renderPdfFirstPage(String filePath) async {
+  final bytes = await _documentPreviewChannel.invokeMethod<Uint8List>(
+    'renderPdfFirstPage',
+    {'path': filePath},
+  );
+  if (bytes == null || bytes.isEmpty) {
+    throw StateError('No PDF preview was returned.');
+  }
+  return bytes;
+}
+
 class _PdfPagePreview extends StatelessWidget {
   const _PdfPagePreview({required this.filePath});
 
-  static const _channel = MethodChannel(
-    'bd.onecitizen.onecitizen/document_preview',
-  );
-
   final String filePath;
-
-  Future<Uint8List> _renderFirstPage() async {
-    final bytes = await _channel.invokeMethod<Uint8List>('renderPdfFirstPage', {
-      'path': filePath,
-    });
-    if (bytes == null || bytes.isEmpty) {
-      throw StateError('No PDF preview was returned.');
-    }
-    return bytes;
-  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Uint8List>(
-      future: _renderFirstPage(),
+      future: _renderPdfFirstPage(filePath),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return _DocumentFileSummary(
@@ -1662,6 +1664,123 @@ class _PreviewRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DocumentPreviewRow extends StatelessWidget {
+  const _DocumentPreviewRow({
+    required this.label,
+    required this.fileName,
+    required this.filePath,
+  });
+
+  final String label;
+  final String? fileName;
+  final String? filePath;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = fileName;
+    final path = filePath;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (name == null || path == null)
+            Text(
+              context.trs('missing_value'),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.errorRed,
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () => _showDocumentPreview(
+                context,
+                label: label,
+                fileName: name,
+                filePath: path,
+              ),
+              child: _DocumentThumbnail(fileName: name, filePath: path),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DocumentThumbnail extends StatelessWidget {
+  const _DocumentThumbnail({required this.fileName, required this.filePath});
+
+  final String fileName;
+  final String filePath;
+
+  @override
+  Widget build(BuildContext context) {
+    final extension = fileName.split('.').last.toLowerCase();
+    final isImage = const {'jpg', 'jpeg', 'png'}.contains(extension);
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 48,
+        height: 48,
+        color: AppTheme.surfaceLight,
+        child: isImage
+            ? Image.file(
+                File(filePath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image_rounded,
+                  color: AppTheme.textTertiary,
+                ),
+              )
+            : _PdfThumbnail(filePath: filePath),
+      ),
+    );
+  }
+}
+
+class _PdfThumbnail extends StatelessWidget {
+  const _PdfThumbnail({required this.filePath});
+
+  final String filePath;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List>(
+      future: _renderPdfFirstPage(filePath),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+        final bytes = snapshot.data;
+        if (snapshot.hasError || bytes == null) {
+          return const Icon(
+            Icons.picture_as_pdf_rounded,
+            color: AppTheme.primaryGreen,
+          );
+        }
+        return Image.memory(bytes, fit: BoxFit.cover);
+      },
     );
   }
 }
