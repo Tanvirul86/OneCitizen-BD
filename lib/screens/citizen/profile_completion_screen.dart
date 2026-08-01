@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -76,7 +77,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_dateOfBirth == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your date of birth'), backgroundColor: Colors.red),
+        SnackBar(content: Text(context.trs('please_select_dob')), backgroundColor: Colors.red),
       );
       return;
     }
@@ -101,7 +102,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       context.go('/citizen');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Failed to save profile'), backgroundColor: Colors.red),
+        SnackBar(content: Text(auth.errorMessage ?? context.trs('failed_save_profile')), backgroundColor: Colors.red),
       );
     }
   }
@@ -111,8 +112,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
       appBar: AppBar(
-        title: const Text('Complete Your Profile'),
-        actions: [TextButton(onPressed: () => context.go('/citizen'), child: const Text('Skip', style: TextStyle(color: Colors.white)))],
+        title: Text(context.tr('complete_profile_title')),
+        actions: [TextButton(onPressed: () => context.go('/citizen'), child: Text(context.tr('skip_action'), style: const TextStyle(color: Colors.white)))],
       ),
       body: SafeArea(
         child: Form(
@@ -127,15 +128,15 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.25)),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded, color: AppTheme.primaryGreen, size: 20),
-                    SizedBox(width: 10),
+                    const Icon(Icons.info_outline_rounded, color: AppTheme.primaryGreen, size: 20),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'These details are used to check your eligibility for the Farmer, Family, and Education cards.',
-                        style: TextStyle(fontSize: 13, color: AppTheme.primaryGreen, height: 1.5),
+                        context.tr('profile_completion_hint'),
+                        style: const TextStyle(fontSize: 13, color: AppTheme.primaryGreen, height: 1.5),
                       ),
                     ),
                   ],
@@ -145,50 +146,50 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               InkWell(
                 onTap: _selectDate,
                 child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Date of Birth', prefixIcon: Icon(Icons.calendar_today)),
-                  child: Text(_dateOfBirth == null ? 'Select date' : DateFormat('dd MMM yyyy').format(_dateOfBirth!)),
+                  decoration: InputDecoration(labelText: context.tr('date_of_birth_label'), prefixIcon: const Icon(Icons.calendar_today)),
+                  child: Text(_dateOfBirth == null ? context.tr('select_date_placeholder') : DateFormat('dd MMM yyyy').format(_dateOfBirth!)),
                 ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _gender,
-                decoration: const InputDecoration(labelText: 'Gender', prefixIcon: Icon(Icons.wc)),
-                items: const [
-                  DropdownMenuItem(value: 'male', child: Text('Male')),
-                  DropdownMenuItem(value: 'female', child: Text('Female')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                decoration: InputDecoration(labelText: context.tr('gender_label'), prefixIcon: const Icon(Icons.wc)),
+                items: [
+                  DropdownMenuItem(value: 'male', child: Text(context.tr('gender_male'))),
+                  DropdownMenuItem(value: 'female', child: Text(context.tr('gender_female'))),
+                  DropdownMenuItem(value: 'other', child: Text(context.tr('gender_other'))),
                 ],
                 onChanged: (v) => setState(() => _gender = v),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Address', prefixIcon: Icon(Icons.location_on)),
+                decoration: InputDecoration(labelText: context.tr('address_label'), prefixIcon: const Icon(Icons.location_on)),
                 maxLines: 2,
-                validator: (v) => (v == null || v.isEmpty) ? 'Address is required' : null,
+                validator: (v) => (v == null || v.isEmpty) ? context.trs('address_required') : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Occupation>(
                 initialValue: _occupation,
-                decoration: const InputDecoration(labelText: 'Occupation', prefixIcon: Icon(Icons.work)),
+                decoration: InputDecoration(labelText: context.tr('occupation_label'), prefixIcon: const Icon(Icons.work)),
                 items: Occupation.values
                     .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))
                     .toList(),
                 onChanged: _onOccupationChanged,
-                validator: (v) => v == null ? 'Occupation is required' : null,
+                validator: (v) => v == null ? context.trs('occupation_required') : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _incomeController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Monthly Household Income (BDT)', prefixIcon: Icon(Icons.money)),
+                decoration: InputDecoration(labelText: context.tr('monthly_income_label'), prefixIcon: const Icon(Icons.money)),
               ),
               if (_occupation == Occupation.farmer) ...[
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _landController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Land Owned (Acres)', prefixIcon: Icon(Icons.terrain)),
+                  decoration: InputDecoration(labelText: context.tr('land_owned_label'), prefixIcon: const Icon(Icons.terrain)),
                 ),
               ],
               if (_occupation == Occupation.student) ...[
@@ -196,13 +197,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                 TextFormField(
                   controller: _sscController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'SSC GPA', prefixIcon: Icon(Icons.school)),
+                  decoration: InputDecoration(labelText: context.tr('ssc_gpa_label'), prefixIcon: const Icon(Icons.school)),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _hscController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'HSC GPA', prefixIcon: Icon(Icons.school_outlined)),
+                  decoration: InputDecoration(labelText: context.tr('hsc_gpa_label'), prefixIcon: const Icon(Icons.school_outlined)),
                 ),
               ],
               const SizedBox(height: 24),
@@ -213,7 +214,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                   style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                   child: _isLoading
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Save & Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : Text(context.tr('save_continue_action'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

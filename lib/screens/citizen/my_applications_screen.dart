@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
@@ -30,6 +31,19 @@ class MyApplicationsScreen extends StatefulWidget {
   State<MyApplicationsScreen> createState() => _MyApplicationsScreenState();
 }
 
+String _statusLabel(BuildContext context, ApplicationStatus status) {
+  switch (status) {
+    case ApplicationStatus.submitted:
+      return context.tr('status_submitted');
+    case ApplicationStatus.underReview:
+      return context.tr('status_under_review');
+    case ApplicationStatus.approved:
+      return context.tr('stat_approved');
+    case ApplicationStatus.rejected:
+      return context.tr('stat_rejected');
+  }
+}
+
 class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   ApplicationStatus? _filter;
 
@@ -50,7 +64,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('My Applications')),
+      appBar: AppBar(title: Text(context.tr('my_applications_title'))),
       body: Column(
         children: [
           SizedBox(
@@ -60,13 +74,13 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: [
                 _FilterChip(
-                  label: 'All',
+                  label: context.tr('filter_all'),
                   selected: _filter == null,
                   onTap: () => setState(() => _filter = null),
                 ),
                 ...ApplicationStatus.values.map(
                   (s) => _FilterChip(
-                    label: applicationStatusToString(s),
+                    label: _statusLabel(context, s),
                     selected: _filter == s,
                     onTap: () => setState(() => _filter = s),
                     color: statusColor(s),
@@ -100,8 +114,8 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                           const SizedBox(height: 16),
                           Text(
                             _filter == null
-                                ? 'No applications submitted yet.'
-                                : 'No applications with this status.',
+                                ? context.tr('no_applications_submitted_yet')
+                                : context.tr('no_applications_with_status'),
                             style: TextStyle(
                               fontSize: 18,
                               color: AppTheme.textSecondary,
@@ -111,7 +125,9 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                             const SizedBox(height: 12),
                             ElevatedButton(
                               onPressed: () => context.push('/citizen/apply'),
-                              child: const Text('Apply for a new card'),
+                              child: Text(
+                                context.tr('apply_for_new_card_action'),
+                              ),
                             ),
                           ],
                         ],
@@ -146,10 +162,14 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              'Submitted: ${DateFormat('dd MMM yyyy').format(application.submittedAt)}',
+                              context.trp('submitted_date_prefix', {
+                                'date': DateFormat(
+                                  'dd MMM yyyy',
+                                ).format(application.submittedAt),
+                              }),
                             ),
                             trailing: StatusBadge(
-                              label: application.status.name,
+                              label: _statusLabel(context, application.status),
                               color: color,
                             ),
                             onTap: () => context.push(
@@ -269,15 +289,17 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
 
     if (application == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Application Details')),
+        appBar: AppBar(title: Text(context.tr('application_details_title'))),
         body: Center(
-          child: Text(appProvider.detailError ?? 'Application not found.'),
+          child: Text(
+            appProvider.detailError ?? context.tr('application_not_found'),
+          ),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Application Details')),
+      appBar: AppBar(title: Text(context.tr('application_details_title'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -308,24 +330,34 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                         ),
                       ),
                       StatusBadge(
-                        label: application.status.name,
+                        label: _statusLabel(context, application.status),
                         color: statusColor(application.status),
                       ),
                     ],
                   ),
                   const Divider(height: 24),
                   Text(
-                    'Application ID: ${application.id}',
+                    context.trp('application_id_prefix', {
+                      'id': application.id,
+                    }),
                     style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Submitted On: ${DateFormat('dd MMM yyyy').format(application.submittedAt)}',
+                    context.trp('submitted_on_prefix', {
+                      'date': DateFormat(
+                        'dd MMM yyyy',
+                      ).format(application.submittedAt),
+                    }),
                     style: const TextStyle(color: AppTheme.textSecondary),
                   ),
                   if (application.updatedAt != null)
                     Text(
-                      'Last Updated: ${DateFormat('dd MMM yyyy').format(application.updatedAt!)}',
+                      context.trp('last_updated_prefix', {
+                        'date': DateFormat(
+                          'dd MMM yyyy',
+                        ).format(application.updatedAt!),
+                      }),
                     ),
                   if (application.adminRemark != null) ...[
                     const SizedBox(height: 12),
@@ -362,13 +394,13 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Document Validation Status',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              context.tr('document_validation_status_title'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             if (_requiredDocumentsFor(application, appProvider).isEmpty)
-              const Text('No documents uploaded yet.')
+              Text(context.tr('no_documents_uploaded_yet'))
             else
               ..._requiredDocumentsFor(application, appProvider).map((docType) {
                 final document = _documentFor(
@@ -412,25 +444,25 @@ class _DocumentValidationTile extends StatelessWidget {
   final String cardTypeName;
   final List<String> requiredDocuments;
 
-  _DocumentValidationState get _state {
+  _DocumentValidationState _state(BuildContext context) {
     switch (applicationStatus) {
       case ApplicationStatus.submitted:
-        return const _DocumentValidationState(
-          label: 'Submitted',
+        return _DocumentValidationState(
+          label: context.tr('status_submitted'),
           helperText: null,
           icon: Icons.upload_file_rounded,
           color: AppTheme.infoBlue,
         );
       case ApplicationStatus.underReview:
-        return const _DocumentValidationState(
-          label: 'Pending',
+        return _DocumentValidationState(
+          label: context.tr('status_pending'),
           helperText: null,
           icon: Icons.hourglass_top_rounded,
           color: AppTheme.warningAmber,
         );
       case ApplicationStatus.approved:
-        return const _DocumentValidationState(
-          label: 'Approved',
+        return _DocumentValidationState(
+          label: context.tr('stat_approved'),
           helperText: null,
           icon: Icons.check_circle_rounded,
           color: AppTheme.successGreen,
@@ -438,25 +470,25 @@ class _DocumentValidationTile extends StatelessWidget {
       case ApplicationStatus.rejected:
         if (document?.isValid == false) {
           return _DocumentValidationState(
-            label: 'Rejected',
+            label: context.tr('stat_rejected'),
             helperText: document?.remark?.trim().isNotEmpty == true
                 ? document!.remark
-                : 'Please resubmit this document.',
+                : context.tr('please_resubmit_document'),
             icon: Icons.cancel_rounded,
             color: AppTheme.errorRed,
           );
         }
         if (document?.isValid == true) {
-          return const _DocumentValidationState(
-            label: 'Approved',
+          return _DocumentValidationState(
+            label: context.tr('stat_approved'),
             helperText: null,
             icon: Icons.check_circle_rounded,
             color: AppTheme.successGreen,
           );
         }
-        return const _DocumentValidationState(
-          label: 'Resubmit',
-          helperText: 'Please resubmit this document.',
+        return _DocumentValidationState(
+          label: context.tr('status_resubmit'),
+          helperText: context.tr('please_resubmit_document'),
           icon: Icons.refresh_rounded,
           color: AppTheme.errorRed,
         );
@@ -465,7 +497,7 @@ class _DocumentValidationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = _state;
+    final state = _state(context);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -528,7 +560,7 @@ class _DocumentValidationTile extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.upload_file_rounded, size: 16),
-                    label: const Text('Re-upload'),
+                    label: Text(context.tr('reupload_action')),
                   ),
                 ],
               ],
