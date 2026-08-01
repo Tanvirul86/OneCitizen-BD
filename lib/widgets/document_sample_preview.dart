@@ -12,6 +12,13 @@ import 'package:onecitizen/models/document.dart';
 
 enum _SampleTemplate { idCard, certificate, photo, marksheet }
 
+/// Document types with a real sample image asset — rendered in place of the
+/// vector mockup below. Add more entries here as real sample scans/photos
+/// become available.
+const Map<String, String> _imageAssetFor = {
+  'nid_copy': 'assets/images/samples/NID.jpeg',
+};
+
 const Map<String, _SampleTemplate> _templateFor = {
   'nid_copy': _SampleTemplate.idCard,
   'nid_birth_certificate': _SampleTemplate.idCard,
@@ -359,6 +366,27 @@ class _SampleArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageAsset = _imageAssetFor[docType];
+    if (imageAsset != null) {
+      return _RealSampleImage(
+        assetPath: imageAsset,
+        fallback: _VectorSampleArt(docType: docType, template: template),
+      );
+    }
+    return _VectorSampleArt(docType: docType, template: template);
+  }
+}
+
+/// The illustrated vector mockup, used directly when no real sample image
+/// exists for [docType] yet, and as the fallback if one fails to load.
+class _VectorSampleArt extends StatelessWidget {
+  const _VectorSampleArt({required this.docType, required this.template});
+
+  final String docType;
+  final _SampleTemplate template;
+
+  @override
+  Widget build(BuildContext context) {
     switch (template) {
       case _SampleTemplate.idCard:
         final content = _idCardContent[docType];
@@ -378,6 +406,30 @@ class _SampleArt extends StatelessWidget {
             ? const SizedBox.shrink()
             : _MarksheetArt(content: content);
     }
+  }
+}
+
+/// Renders a real sample document image (e.g. a photo of an actual sample
+/// NID card), falling back to the vector mockup if the asset is missing.
+class _RealSampleImage extends StatelessWidget {
+  const _RealSampleImage({required this.assetPath, required this.fallback});
+
+  final String assetPath;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.586,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          assetPath,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => fallback,
+        ),
+      ),
+    );
   }
 }
 
