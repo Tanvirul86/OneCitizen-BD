@@ -606,6 +606,10 @@ class AppStrings {
       AppLanguage.en: 'No distribution records.',
       AppLanguage.bn: 'কোনো বিতরণ রেকর্ড নেই।',
     },
+    'recipients_count_label': {
+      AppLanguage.en: '{count} recipients',
+      AppLanguage.bn: '{count} জন পেয়েছেন',
+    },
 
     // ── Analytics ─────────────────────────────────────────────────────────
     'pending_documents': {
