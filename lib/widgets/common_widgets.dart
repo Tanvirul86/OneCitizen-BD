@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 
 class EmptyListMessage extends StatelessWidget {
   const EmptyListMessage({
@@ -39,9 +40,9 @@ class EmptyListMessage extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text(
-                  'Try Again',
-                  style: TextStyle(fontSize: 16),
+                label: Text(
+                  context.tr('try_again_action'),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
             ),
@@ -74,7 +75,7 @@ class ErrorMessage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error: $message',
+            context.trp('error_prefix', {'message': message}),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,
@@ -87,9 +88,9 @@ class ErrorMessage extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text(
-                  'Try Again',
-                  style: TextStyle(fontSize: 16),
+                label: Text(
+                  context.tr('try_again_action'),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
             ),

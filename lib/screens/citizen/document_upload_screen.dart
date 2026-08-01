@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:provider/provider.dart';
@@ -44,7 +45,11 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     setState(() => _uploading.remove(docType));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? 'Document uploaded successfully' : 'Upload failed. Please try again.'),
+        content: Text(
+          success
+              ? context.trs('document_uploaded_success')
+              : context.trs('upload_failed_retry'),
+        ),
         backgroundColor: success ? Colors.green : Colors.red,
         behavior: SnackBarBehavior.floating,
       ),
@@ -68,8 +73,10 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       appBar: AppBar(
         title: Text(
           widget.args == null
-              ? 'Document Upload'
-              : '${widget.args!.cardTypeName} Documents',
+              ? context.tr('document_upload_title')
+              : context.trp('card_documents_title', {
+                  'name': widget.args!.cardTypeName,
+                }),
         ),
       ),
       body: appProvider.isLoading
@@ -93,20 +100,20 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Document Progress',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        Text(
+                          context.tr('document_progress_title'),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            _ProgressStat(value: '$uploaded/$total', label: 'Uploaded'),
+                            _ProgressStat(value: '$uploaded/$total', label: context.tr('uploaded_label')),
                             const SizedBox(width: 24),
-                            _ProgressStat(value: '$valid', label: 'Verified'),
+                            _ProgressStat(value: '$valid', label: context.tr('verified_label')),
                             const SizedBox(width: 24),
                             _ProgressStat(
                               value: '${total - uploaded}',
-                              label: 'Pending',
+                              label: context.tr('status_pending'),
                               highlight: (total - uploaded) > 0,
                             ),
                           ],
@@ -132,14 +139,14 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Accepted formats: PDF, JPG, PNG. Max size 5MB per file.',
-                            style: TextStyle(fontSize: 12, color: Colors.blue),
+                            context.tr('accepted_formats_hint'),
+                            style: const TextStyle(fontSize: 12, color: Colors.blue),
                           ),
                         ),
                       ],
@@ -238,29 +245,30 @@ class _DocumentCard extends StatelessWidget {
       iconBg = AppTheme.surfaceLight;
       iconColor = AppTheme.textSecondary;
       statusIcon = Icons.upload_file_rounded;
-      statusText = 'Not Uploaded';
-      statusSubtext = 'Tap upload to add this document';
+      statusText = context.tr('status_not_uploaded');
+      statusSubtext = context.tr('tap_upload_hint');
     } else if (isPending) {
       borderColor = Colors.orange.withValues(alpha: 0.5);
       iconBg = Colors.orange.withValues(alpha: 0.1);
       iconColor = Colors.orange;
       statusIcon = Icons.hourglass_top_rounded;
-      statusText = 'Pending Review';
-      statusSubtext = 'Uploaded — awaiting admin verification';
+      statusText = context.tr('status_pending_review');
+      statusSubtext = context.tr('pending_review_subtext');
     } else if (isValid == true) {
       borderColor = Colors.green.withValues(alpha: 0.5);
       iconBg = Colors.green.withValues(alpha: 0.1);
       iconColor = Colors.green;
       statusIcon = Icons.check_circle_rounded;
-      statusText = 'Verified';
-      statusSubtext = 'This document has been accepted';
+      statusText = context.tr('verified_label');
+      statusSubtext = context.tr('document_accepted_subtext');
     } else {
       borderColor = Colors.red.withValues(alpha: 0.5);
       iconBg = Colors.red.withValues(alpha: 0.1);
       iconColor = Colors.red;
       statusIcon = Icons.cancel_rounded;
-      statusText = 'Invalid';
-      statusSubtext = document?.remark ?? 'Please re-upload a valid document';
+      statusText = context.tr('invalid_action');
+      statusSubtext =
+          document?.remark ?? context.tr('please_reupload_valid_document');
     }
 
     return Container(
@@ -336,14 +344,14 @@ class _DocumentCard extends StatelessWidget {
                   TextButton.icon(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Opening document preview…'),
+                        SnackBar(
+                          content: Text(context.trs('opening_document_preview')),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
                     },
                     icon: const Icon(Icons.visibility_outlined, size: 16),
-                    label: const Text('View', style: TextStyle(fontSize: 13)),
+                    label: Text(context.tr('view_action'), style: const TextStyle(fontSize: 13)),
                     style: TextButton.styleFrom(
                       foregroundColor: AppTheme.primaryGreen,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -364,10 +372,10 @@ class _DocumentCard extends StatelessWidget {
                     icon: Icon(isUploaded ? Icons.upload_rounded : Icons.add_rounded, size: 16),
                     label: Text(
                       isInvalid
-                          ? 'Re-upload'
+                          ? context.tr('reupload_action')
                           : isUploaded
-                              ? 'Replace'
-                              : 'Upload',
+                              ? context.tr('replace_action')
+                              : context.tr('upload_action'),
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: FilledButton.styleFrom(
