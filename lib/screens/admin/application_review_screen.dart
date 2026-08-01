@@ -40,8 +40,16 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminProvider>().loadApplicationDetail(widget.applicationId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = context.read<AdminProvider>();
+      await provider.loadApplicationDetail(widget.applicationId);
+      final app = provider.selectedApplication;
+      if (app != null) {
+        await provider.loadDocuments(
+          citizenId: app.applicantId,
+          citizenEmail: app.applicantEmail,
+        );
+      }
     });
   }
 
@@ -141,6 +149,13 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
 
     final isPending =
         app.status.name == 'submitted' || app.status.name == 'underReview';
+    final appDocuments = provider.documents
+        .where((d) => d.applicationId == app.id)
+        .toList();
+    // Approval requires every document to be explicitly marked Valid — a
+    // single Invalid, or any still unreviewed, must block approval.
+    final canApprove =
+        appDocuments.isNotEmpty && appDocuments.every((d) => d.isValid == true);
 
     final color = statusColor(app.status);
     return Scaffold(
@@ -268,6 +283,39 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
               label: Text(context.tr('review_citizen_documents')),
             ),
             if (isPending) ...[
+              if (!canApprove) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warningAmber.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppTheme.warningAmber.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: AppTheme.warningAmber,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          context.tr('documents_must_be_reviewed_hint'),
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -285,7 +333,9 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: _isSubmitting ? null : _approve,
+                      onPressed: (_isSubmitting || !canApprove)
+                          ? null
+                          : _approve,
                       icon: const Icon(Icons.check_rounded),
                       label: Text(context.tr('approve_action')),
                       style: ElevatedButton.styleFrom(
