@@ -9,6 +9,7 @@ import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
+import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
 
 class CitizenDashboardScreen extends StatefulWidget {
@@ -183,6 +184,8 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                 ],
               ),
               actions: [
+                const LanguageToggle(onDark: true),
+                const SizedBox(width: 4),
                 Stack(
                   children: [
                     IconButton(
