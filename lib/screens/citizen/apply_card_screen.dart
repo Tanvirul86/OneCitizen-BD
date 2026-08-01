@@ -235,6 +235,18 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                           '${_documentLabelFor(cardType, docType)} (${_formatRequirementFor(docType)})',
                         ),
                       ),
+                      IconButton(
+                        onPressed: () =>
+                            showDocumentSample(dialogContext, docType),
+                        icon: const Icon(Icons.visibility_outlined, size: 18),
+                        color: AppTheme.primaryGreen,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                      ),
                     ],
                   ),
                 ),
