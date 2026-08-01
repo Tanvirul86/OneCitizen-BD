@@ -272,7 +272,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
             const SizedBox(height: 8),
             ..._requiredDocumentsFor(cardType).map(
               (docType) => InkWell(
-                onTap: () => showDocumentSample(dialogContext, docType),
+                onTap: () => showDocumentSample(
+                  dialogContext,
+                  docType,
+                  cardTypeCode: cardType.code,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
@@ -289,8 +293,11 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: () =>
-                            showDocumentSample(dialogContext, docType),
+                        onPressed: () => showDocumentSample(
+                          dialogContext,
+                          docType,
+                          cardTypeCode: cardType.code,
+                        ),
                         icon: const Icon(Icons.visibility_outlined, size: 18),
                         color: AppTheme.primaryGreen,
                         visualDensity: VisualDensity.compact,
@@ -386,7 +393,8 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                 _PreviewRow(
                   label: context.trs('ward_number_label'),
                   value:
-                      _choiceValues['ward'] ?? context.trs('not_selected_value'),
+                      _choiceValues['ward'] ??
+                      context.trs('not_selected_value'),
                 ),
               ],
               const Divider(height: 24),
@@ -478,9 +486,12 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
       for (final field in _fieldsFor(selectedType))
         field.key:
             _choiceValues['${selectedType.code.name}_${field.key}'] ??
-            _controllerFor('${selectedType.code.name}_${field.key}').text.trim(),
+            _controllerFor(
+              '${selectedType.code.name}_${field.key}',
+            ).text.trim(),
       for (final entry in _choiceValues.entries)
-        if (!entry.key.startsWith('${selectedType.code.name}_')) entry.key: entry.value,
+        if (!entry.key.startsWith('${selectedType.code.name}_'))
+          entry.key: entry.value,
     };
     final success = await provider.submitApplication(
       cardTypeId: selectedType.id,
@@ -641,9 +652,7 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                     _SectionHeader(
                       key: _documentsKey,
                       title: context.tr('required_documents_title'),
-                      subtitle: context.tr(
-                        'upload_preview_documents_subtitle',
-                      ),
+                      subtitle: context.tr('upload_preview_documents_subtitle'),
                     ),
                     const SizedBox(height: 12),
                     ..._requiredDocumentsFor(selectedType).map(
@@ -1313,7 +1322,10 @@ class _SelectedCardHeader extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(onPressed: onChange, child: Text(context.tr('change_action'))),
+          TextButton(
+            onPressed: onChange,
+            child: Text(context.tr('change_action')),
+          ),
         ],
       ),
     );
