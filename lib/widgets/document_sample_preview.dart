@@ -17,6 +17,12 @@ enum _SampleTemplate { idCard, certificate, photo, marksheet }
 /// become available.
 const Map<String, String> _imageAssetFor = {
   'nid_copy': 'assets/images/samples/NID.jpeg',
+  'ssc_registration_card': 'assets/images/samples/ssc_reg.jpeg',
+  'ssc_admit_card': 'assets/images/samples/ssc_admit.jpeg',
+  'ssc_certificate': 'assets/images/samples/ssc_certi.jpeg',
+  'hsc_registration_card': 'assets/images/samples/hsc_reg.jpeg',
+  'hsc_admit_card': 'assets/images/samples/hsc_admit.jpeg',
+  'hsc_certificate': 'assets/images/samples/hsc_certi.jpeg',
 };
 
 const Map<String, _SampleTemplate> _templateFor = {
@@ -419,8 +425,11 @@ class _RealSampleImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.586,
+    // Height-bounded rather than a fixed aspect ratio, since real samples
+    // range from landscape ID cards to portrait certificate/admit-card pages.
+    return SizedBox(
+      height: 340,
+      width: double.infinity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.asset(
