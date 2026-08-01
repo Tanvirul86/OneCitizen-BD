@@ -733,6 +733,10 @@ class AppStrings {
       AppLanguage.en: 'Complete Now',
       AppLanguage.bn: 'এখনই সম্পূর্ণ করুন',
     },
+    'complete_profile_before_apply': {
+      AppLanguage.en: 'Please complete your profile before applying for a card.',
+      AppLanguage.bn: 'কার্ডের জন্য আবেদন করার আগে আপনার প্রোফাইল সম্পূর্ণ করুন।',
+    },
     'docs_need_reupload_title': {
       AppLanguage.en: '{count} Document(s) Need Re-upload',
       AppLanguage.bn: '{count}টি ডকুমেন্ট পুনরায় আপলোড করা প্রয়োজন',

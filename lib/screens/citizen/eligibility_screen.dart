@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/utils/apply_card_navigation.dart';
 import 'package:provider/provider.dart';
 
 class EligibilityScreen extends StatefulWidget {
@@ -197,7 +197,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           if (isApproved) ...[
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => context.push('/citizen/apply'),
+              onPressed: () => goToApplyCard(context),
               icon: const Icon(Icons.add_card),
               label: Text(context.tr('apply_for_a_card_action')),
               style: ElevatedButton.styleFrom(
