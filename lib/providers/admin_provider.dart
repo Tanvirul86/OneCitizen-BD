@@ -184,6 +184,36 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
+  /// Pays the same fixed [amount] to every approved application of
+  /// [cardTypeId] in one action, instead of disbursing one holder at a time.
+  Future<({int success, int failed})> distributeToCardType({
+    required String cardTypeId,
+    required double amount,
+    required DistributionMethod method,
+    String? note,
+  }) async {
+    final targets = applications.where(
+      (a) => a.cardTypeId == cardTypeId && a.status == ApplicationStatus.approved,
+    );
+
+    var success = 0;
+    var failed = 0;
+    for (final app in targets) {
+      final ok = await createDistribution(
+        applicationId: app.id,
+        method: method,
+        amount: amount,
+        note: note,
+      );
+      if (ok) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+    return (success: success, failed: failed);
+  }
+
   // Citizen accounts
   List<User> citizens = [];
   bool isLoadingCitizens = false;

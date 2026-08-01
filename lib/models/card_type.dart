@@ -30,6 +30,7 @@ class CardType {
     required this.eligibilityCriteria,
     this.requiredDocuments = const [],
     this.applicationFields = const [],
+    this.disbursementAmount = 0,
   });
 
   final String id;
@@ -39,12 +40,18 @@ class CardType {
   final List<String> requiredDocuments;
   final List<CardTypeApplicationField> applicationFields;
 
+  /// Fixed per-citizen amount (BDT) used when disbursing funds to every
+  /// approved holder of this card type at once.
+  final double disbursementAmount;
+
   factory CardType.fromJson(Map<String, dynamic> json) {
     return CardType(
       id: json['id']?.toString() ?? '',
       code: cardTypeCodeFromString(json['code'] as String?),
       name: json['name'] as String? ?? '',
       eligibilityCriteria: json['eligibility_criteria'] as String? ?? '',
+      disbursementAmount:
+          (json['disbursement_amount'] as num?)?.toDouble() ?? 0,
       requiredDocuments:
           (json['required_documents'] as List<dynamic>?)
               ?.map((e) => e.toString())
