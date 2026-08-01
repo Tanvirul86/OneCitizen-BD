@@ -85,11 +85,16 @@ class AdminProvider extends ChangeNotifier {
   }
 
   // Document validation
-  List<CitizenDocument> pendingDocuments = [];
+  List<CitizenDocument> documents = [];
   bool isLoadingDocuments = false;
   String? documentsError;
 
-  Future<void> loadPendingDocuments({
+  List<CitizenDocument> get pendingDocuments =>
+      documents.where((d) => d.isValid == null).toList();
+  List<CitizenDocument> get reviewedDocuments =>
+      documents.where((d) => d.isValid != null).toList();
+
+  Future<void> loadDocuments({
     String? citizenId,
     String? citizenEmail,
   }) async {
@@ -97,7 +102,7 @@ class AdminProvider extends ChangeNotifier {
     documentsError = null;
     notifyListeners();
     try {
-      pendingDocuments = await _adminService.getPendingDocuments(
+      documents = await _adminService.getDocuments(
         citizenId: citizenId,
         citizenEmail: citizenEmail,
       );
@@ -120,14 +125,8 @@ class AdminProvider extends ChangeNotifier {
         isValid: isValid,
         remark: remark,
       );
-      final idx = pendingDocuments.indexWhere((d) => d.id == id);
-      if (idx >= 0) {
-        if (doc.isValid == null) {
-          pendingDocuments[idx] = doc;
-        } else {
-          pendingDocuments.removeAt(idx);
-        }
-      }
+      final idx = documents.indexWhere((d) => d.id == id);
+      if (idx >= 0) documents[idx] = doc;
       notifyListeners();
       return true;
     } catch (e) {

@@ -290,7 +290,6 @@ class LocalWorkflowInterceptor extends Interceptor {
           .where(
             (doc) =>
                 doc['application_id'] != null &&
-                doc['is_valid'] == null &&
                 (query['citizen_id'] == null ||
                     doc['citizen_id'] == query['citizen_id']) &&
                 (query['citizen_email'] == null ||
