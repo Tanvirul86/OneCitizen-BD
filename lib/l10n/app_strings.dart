@@ -734,6 +734,46 @@ class AppStrings {
       AppLanguage.en: 'Documents required:',
       AppLanguage.bn: 'প্রয়োজনীয় ডকুমেন্ট:',
     },
+    'tap_to_see_sample_hint': {
+      AppLanguage.en: 'Tap a document to see a sample',
+      AppLanguage.bn: 'নমুনা দেখতে যেকোনো ডকুমেন্টে ট্যাপ করুন',
+    },
+    'document_sample_sheet_title': {
+      AppLanguage.en: 'Sample: {name}',
+      AppLanguage.bn: 'নমুনা: {name}',
+    },
+    'document_sample_badge': {
+      AppLanguage.en: 'SAMPLE',
+      AppLanguage.bn: 'নমুনা',
+    },
+    'document_sample_hint_id_card': {
+      AppLanguage.en:
+          'Submit a clear scan/photo where the photo, name, and number are all readable.',
+      AppLanguage.bn:
+          'ছবি, নাম ও নম্বর স্পষ্টভাবে দেখা যায় এমন একটি স্ক্যান/ছবি জমা দিন।',
+    },
+    'document_sample_hint_certificate': {
+      AppLanguage.en:
+          'Submit a clear scan/photo of the full page, including the office seal and signature.',
+      AppLanguage.bn:
+          'অফিসের সিলমোহর ও স্বাক্ষরসহ সম্পূর্ণ পাতার একটি স্পষ্ট স্ক্যান/ছবি জমা দিন।',
+    },
+    'document_sample_hint_photo': {
+      AppLanguage.en:
+          'A recent photo on a plain white/light background, facing the camera, without sunglasses or a cap.',
+      AppLanguage.bn:
+          'সাদা বা হালকা ব্যাকগ্রাউন্ডে সম্মুখ থেকে তোলা সাম্প্রতিক ছবি (রোদচশমা/টুপি ছাড়া) জমা দিন।',
+    },
+    'document_sample_hint_marksheet': {
+      AppLanguage.en:
+          'Submit a clear scan/photo of the full marksheet with all subject-wise marks visible.',
+      AppLanguage.bn:
+          'সকল বিষয়ের নম্বরসহ সম্পূর্ণ মার্কশিটের একটি স্পষ্ট স্ক্যান/ছবি জমা দিন।',
+    },
+    'close_action': {
+      AppLanguage.en: 'Close',
+      AppLanguage.bn: 'বন্ধ করুন',
+    },
     'proceed_action': {
       AppLanguage.en: 'Proceed',
       AppLanguage.bn: 'এগিয়ে যান',
