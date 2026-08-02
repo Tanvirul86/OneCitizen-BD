@@ -10,6 +10,7 @@ class CitizenDocument {
     this.uploadedAt,
     this.citizenName,
     this.applicationId,
+    this.cardTypeId,
   });
 
   final String id;
@@ -21,6 +22,7 @@ class CitizenDocument {
   final DateTime? uploadedAt;
   final String? citizenName;
   final String? applicationId;
+  final String? cardTypeId;
 
   factory CitizenDocument.fromJson(Map<String, dynamic> json) {
     return CitizenDocument(
@@ -35,6 +37,7 @@ class CitizenDocument {
           : null,
       citizenName: json['citizen_name'] as String?,
       applicationId: json['application_id']?.toString(),
+      cardTypeId: json['card_type_id']?.toString(),
     );
   }
 }

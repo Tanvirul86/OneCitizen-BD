@@ -488,6 +488,10 @@ class AppStrings {
       AppLanguage.en: 'No reviewed documents yet.',
       AppLanguage.bn: 'এখনো কোনো পর্যালোচিত ডকুমেন্ট নেই।',
     },
+    'card_documents_summary': {
+      AppLanguage.en: '{total} docs • {pending} pending',
+      AppLanguage.bn: '{total}টি নথি • {pending}টি পর্যালোচনাধীন',
+    },
     'citizen_prefix': {
       AppLanguage.en: 'Citizen: {name}',
       AppLanguage.bn: 'নাগরিক: {name}',
