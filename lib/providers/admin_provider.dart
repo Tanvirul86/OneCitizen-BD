@@ -94,10 +94,7 @@ class AdminProvider extends ChangeNotifier {
   List<CitizenDocument> get reviewedDocuments =>
       documents.where((d) => d.isValid != null).toList();
 
-  Future<void> loadDocuments({
-    String? citizenId,
-    String? citizenEmail,
-  }) async {
+  Future<void> loadDocuments({String? citizenId, String? citizenEmail}) async {
     isLoadingDocuments = true;
     documentsError = null;
     notifyListeners();
@@ -141,6 +138,30 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingDistributions = false;
   String? distributionsError;
 
+  /// Once an application receives a distribution, it can't receive another
+  /// until this many days have passed.
+  static const distributionCooldownDays = 30;
+
+  DateTime? lastDistributionDateFor(String applicationId) {
+    final dates = distributions
+        .where((d) => d.applicationId == applicationId)
+        .map((d) => d.distributionDate);
+    if (dates.isEmpty) return null;
+    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
+  bool isEligibleForDistribution(String applicationId) {
+    final last = lastDistributionDateFor(applicationId);
+    if (last == null) return true;
+    return DateTime.now().difference(last).inDays >= distributionCooldownDays;
+  }
+
+  DateTime? eligibleAgainOn(String applicationId) {
+    return lastDistributionDateFor(
+      applicationId,
+    )?.add(const Duration(days: distributionCooldownDays));
+  }
+
   Future<void> loadDistributions({
     String? cardTypeId,
     DistributionMethod? method,
@@ -167,6 +188,12 @@ class AdminProvider extends ChangeNotifier {
     required double amount,
     String? note,
   }) async {
+    if (!isEligibleForDistribution(applicationId)) {
+      distributionsError =
+          'This application is on a $distributionCooldownDays-day cooldown since its last distribution.';
+      notifyListeners();
+      return false;
+    }
     try {
       final dist = await _adminService.createDistribution(
         applicationId: applicationId,
@@ -193,7 +220,10 @@ class AdminProvider extends ChangeNotifier {
     String? note,
   }) async {
     final targets = applications.where(
-      (a) => a.cardTypeId == cardTypeId && a.status == ApplicationStatus.approved,
+      (a) =>
+          a.cardTypeId == cardTypeId &&
+          a.status == ApplicationStatus.approved &&
+          isEligibleForDistribution(a.id),
     );
 
     var success = 0;
