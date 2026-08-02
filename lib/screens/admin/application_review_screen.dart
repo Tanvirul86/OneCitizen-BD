@@ -277,6 +277,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                   citizenId: app.applicantId,
                   citizenEmail: app.applicantEmail,
                   citizenName: app.applicantName,
+                  applicationId: app.id,
                 ),
               ),
               icon: const Icon(Icons.fact_check_rounded),
