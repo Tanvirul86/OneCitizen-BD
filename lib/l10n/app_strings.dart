@@ -600,6 +600,18 @@ class AppStrings {
       AppLanguage.en: '{success} sent successfully, {failed} failed.',
       AppLanguage.bn: '{success} জনকে সফলভাবে পাঠানো হয়েছে, {failed} জন ব্যর্থ হয়েছে।',
     },
+    'on_cooldown_until_label': {
+      AppLanguage.en: 'on cooldown until {date}',
+      AppLanguage.bn: '{date} পর্যন্ত অপেক্ষা করতে হবে',
+    },
+    'recipient_on_cooldown_error': {
+      AppLanguage.en: 'This card holder recently received funds and cannot receive more until {date}.',
+      AppLanguage.bn: 'এই কার্ডধারী সম্প্রতি টাকা পেয়েছেন, {date} পর্যন্ত আবার পাঠানো যাবে না।',
+    },
+    'recipients_on_cooldown_note': {
+      AppLanguage.en: '{count} approved holder(s) excluded — they received funds recently and are on a {days}-day cooldown.',
+      AppLanguage.bn: '{count} জন অনুমোদিত হোল্ডার বাদ পড়েছেন — তারা সম্প্রতি টাকা পেয়েছেন এবং {days} দিনের cooldown এ আছেন।',
+    },
 
     // ── Distribution records ─────────────────────────────────────────────
     'no_distribution_records': {
