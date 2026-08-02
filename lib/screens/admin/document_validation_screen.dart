@@ -106,9 +106,13 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
-    final docs = _showReviewed
+    final scopedDocs = _showReviewed
         ? provider.reviewedDocuments
         : provider.pendingDocuments;
+    final applicationId = widget.filter?.applicationId;
+    final docs = applicationId == null
+        ? scopedDocs
+        : scopedDocs.where((d) => d.applicationId == applicationId).toList();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
@@ -340,11 +344,17 @@ class DocumentValidationFilterArgs {
     this.citizenId,
     this.citizenEmail,
     this.citizenName,
+    this.applicationId,
   });
 
   final String? citizenId;
   final String? citizenEmail;
   final String? citizenName;
+
+  /// When set, only documents attached to this specific application are
+  /// shown — a citizen may have applied for multiple cards, each needing
+  /// its own set of documents reviewed independently.
+  final String? applicationId;
 }
 
 class _DocumentViewerScreen extends StatefulWidget {
