@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
+import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:provider/provider.dart';
 
@@ -23,12 +25,14 @@ class DocumentValidationScreen extends StatefulWidget {
 
 class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
   bool _showReviewed = false;
+  String? _selectedCardTypeId;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDocuments();
+      context.read<ApplicationProvider>().loadCardTypes();
     });
   }
 
@@ -37,6 +41,23 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
       citizenId: widget.filter?.citizenId,
       citizenEmail: widget.filter?.citizenEmail,
     );
+  }
+
+  ({IconData icon, Color color}) _styleFor(CardTypeCode code) {
+    switch (code) {
+      case CardTypeCode.farmer:
+        return (
+          icon: Icons.agriculture_rounded,
+          color: const Color(0xFF059669),
+        );
+      case CardTypeCode.family:
+        return (
+          icon: Icons.family_restroom_rounded,
+          color: const Color(0xFF2563EB),
+        );
+      case CardTypeCode.education:
+        return (icon: Icons.school_rounded, color: const Color(0xFF7C3AED));
+    }
   }
 
   Future<void> _viewDocument(CitizenDocument doc) async {
@@ -106,235 +127,347 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
-    final scopedDocs = _showReviewed
-        ? provider.reviewedDocuments
-        : provider.pendingDocuments;
+    final cardTypes = context.watch<ApplicationProvider>().cardTypes;
     final applicationId = widget.filter?.applicationId;
-    final docs = applicationId == null
-        ? scopedDocs
-        : scopedDocs.where((d) => d.applicationId == applicationId).toList();
+    final showCardTypeSummary =
+        applicationId == null && _selectedCardTypeId == null;
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
       appBar: widget.standalone
           ? AppBar(title: Text(context.tr('admin_nav_document_validation')))
           : null,
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(
-                  value: false,
-                  label: Text(context.tr('doc_validation_tab_pending')),
+      body: showCardTypeSummary
+          ? _buildCardTypeSummary(provider, cardTypes)
+          : _buildDocumentList(provider, applicationId),
+    );
+  }
+
+  Widget _buildCardTypeSummary(
+    AdminProvider provider,
+    List<CardType> cardTypes,
+  ) {
+    if (cardTypes.isEmpty || provider.isLoadingDocuments) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return RefreshIndicator(
+      onRefresh: _loadDocuments,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: cardTypes.length,
+        itemBuilder: (context, index) {
+          final cardType = cardTypes[index];
+          final docsForCard = provider.documents
+              .where((d) => d.cardTypeId == cardType.id)
+              .toList();
+          final pendingCount = docsForCard
+              .where((d) => d.isValid == null)
+              .length;
+          final style = _styleFor(cardType.code);
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => setState(() => _selectedCardTypeId = cardType.id),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: style.color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(style.icon, color: style.color, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        cardType.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      context.trp('card_documents_summary', {
+                        'total': '${docsForCard.length}',
+                        'pending': '$pendingCount',
+                      }),
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: pendingCount > 0
+                            ? AppTheme.warningAmber
+                            : AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppTheme.textTertiary,
+                    ),
+                  ],
                 ),
-                ButtonSegment(
-                  value: true,
-                  label: Text(context.tr('doc_validation_tab_reviewed')),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDocumentList(AdminProvider provider, String? applicationId) {
+    final scopedDocs = _showReviewed
+        ? provider.reviewedDocuments
+        : provider.pendingDocuments;
+    final docs = applicationId != null
+        ? scopedDocs.where((d) => d.applicationId == applicationId).toList()
+        : scopedDocs.where((d) => d.cardTypeId == _selectedCardTypeId).toList();
+    final showBackHeader = applicationId == null && _selectedCardTypeId != null;
+
+    return Column(
+      children: [
+        if (showBackHeader)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 12, 16, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => setState(() => _selectedCardTypeId = null),
+                ),
+                Expanded(
+                  child: Text(
+                    context
+                            .watch<ApplicationProvider>()
+                            .cardTypes
+                            .where((c) => c.id == _selectedCardTypeId)
+                            .firstOrNull
+                            ?.name ??
+                        '',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
                 ),
               ],
-              selected: {_showReviewed},
-              onSelectionChanged: (s) =>
-                  setState(() => _showReviewed = s.first),
             ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadDocuments,
-              child: provider.isLoadingDocuments
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.documentsError != null
-                  ? ErrorMessage(
-                      message: provider.documentsError!,
-                      onRetry: _loadDocuments,
-                    )
-                  : docs.isEmpty
-                  ? EmptyListMessage(
-                      message: context.tr(
-                        _showReviewed
-                            ? 'no_reviewed_documents'
-                            : 'no_documents_to_review',
-                      ),
-                      icon: Icons.fact_check_outlined,
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final doc = docs[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      doc.isValid == true
-                                          ? Icons.check_circle
-                                          : doc.isValid == false
-                                          ? Icons.cancel
-                                          : Icons.hourglass_empty,
-                                      color: doc.isValid == true
-                                          ? Colors.green
-                                          : doc.isValid == false
-                                          ? Colors.red
-                                          : Colors.orange,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        documentTypeLabel(doc.docType),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: AppTheme.textPrimary,
-                                        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: SegmentedButton<bool>(
+            segments: [
+              ButtonSegment(
+                value: false,
+                label: Text(context.tr('doc_validation_tab_pending')),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text(context.tr('doc_validation_tab_reviewed')),
+              ),
+            ],
+            selected: {_showReviewed},
+            onSelectionChanged: (s) => setState(() => _showReviewed = s.first),
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _loadDocuments,
+            child: provider.isLoadingDocuments
+                ? const Center(child: CircularProgressIndicator())
+                : provider.documentsError != null
+                ? ErrorMessage(
+                    message: provider.documentsError!,
+                    onRetry: _loadDocuments,
+                  )
+                : docs.isEmpty
+                ? EmptyListMessage(
+                    message: context.tr(
+                      _showReviewed
+                          ? 'no_reviewed_documents'
+                          : 'no_documents_to_review',
+                    ),
+                    icon: Icons.fact_check_outlined,
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    doc.isValid == true
+                                        ? Icons.check_circle
+                                        : doc.isValid == false
+                                        ? Icons.cancel
+                                        : Icons.hourglass_empty,
+                                    color: doc.isValid == true
+                                        ? Colors.green
+                                        : doc.isValid == false
+                                        ? Colors.red
+                                        : Colors.orange,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      documentTypeLabel(doc.docType),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: AppTheme.textPrimary,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                context.trp('citizen_prefix', {
+                                  'name': doc.citizenName ?? doc.citizenId,
+                                }),
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                              if (doc.remark != null)
                                 Text(
-                                  context.trp('citizen_prefix', {
-                                    'name': doc.citizenName ?? doc.citizenId,
+                                  context.trp('remark_prefix', {
+                                    'remark': doc.remark!,
                                   }),
-                                  style: TextStyle(
-                                    color: AppTheme.textSecondary,
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
                                   ),
                                 ),
-                                if (doc.remark != null)
-                                  Text(
-                                    context.trp('remark_prefix', {
-                                      'remark': doc.remark!,
-                                    }),
-                                    style: const TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                const SizedBox(height: 12),
-                                GestureDetector(
-                                  onTap: () => _viewDocument(doc),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        Image.network(
-                                          doc.fileUrl,
-                                          height: 140,
-                                          width: double.infinity,
-                                          fit: BoxFit.cover,
-                                          loadingBuilder:
-                                              (
-                                                context,
-                                                child,
-                                                progress,
-                                              ) => progress == null
-                                              ? child
-                                              : Container(
+                              const SizedBox(height: 12),
+                              GestureDetector(
+                                onTap: () => _viewDocument(doc),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Image.network(
+                                        doc.fileUrl,
+                                        height: 140,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder:
+                                            (
+                                              context,
+                                              child,
+                                              progress,
+                                            ) => progress == null
+                                            ? child
+                                            : Container(
+                                                height: 140,
+                                                color: AppTheme.surfaceLight,
+                                                child: const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                ),
+                                              ),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
                                                   height: 140,
+                                                  width: double.infinity,
                                                   color: AppTheme.surfaceLight,
-                                                  child: const Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
+                                                  child: const Icon(
+                                                    Icons.broken_image,
+                                                    color:
+                                                        AppTheme.textSecondary,
                                                   ),
                                                 ),
-                                          errorBuilder:
-                                              (
-                                                context,
-                                                error,
-                                                stackTrace,
-                                              ) => Container(
-                                                height: 140,
-                                                width: double.infinity,
-                                                color: AppTheme.surfaceLight,
-                                                child: const Icon(
-                                                  Icons.broken_image,
-                                                  color: AppTheme.textSecondary,
-                                                ),
-                                              ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.55,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.55,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.zoom_in,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.zoom_in,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              context.tr('view_document'),
+                                              style: const TextStyle(
                                                 color: Colors.white,
-                                                size: 16,
+                                                fontSize: 12,
                                               ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                context.tr('view_document'),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () => _markInvalid(doc),
-                                        icon: const Icon(Icons.close, size: 18),
-                                        label: Text(
-                                          context.tr('invalid_action'),
-                                        ),
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                          side: const BorderSide(
-                                            color: Colors.red,
-                                          ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _markInvalid(doc),
+                                      icon: const Icon(Icons.close, size: 18),
+                                      label: Text(context.tr('invalid_action')),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                        side: const BorderSide(
+                                          color: Colors.red,
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed: () => _markValid(doc),
-                                        icon: const Icon(Icons.check, size: 18),
-                                        label: Text(context.tr('valid_action')),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                        ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _markValid(doc),
+                                      icon: const Icon(Icons.check, size: 18),
+                                      label: Text(context.tr('valid_action')),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-            ),
+                        ),
+                      );
+                    },
+                  ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
