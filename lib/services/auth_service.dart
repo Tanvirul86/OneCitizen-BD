@@ -78,6 +78,10 @@ class AuthService {
         await _auth.signOut();
         throw AuthException('This account has been deactivated.');
       }
+      if (user.isFrozen) {
+        await _auth.signOut();
+        throw AuthException('This account has been frozen. Please contact support.');
+      }
       return user;
     } on FirebaseAuthException catch (e) {
       throw AuthException(_authErrorMessage(e));
