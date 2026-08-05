@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 
@@ -15,10 +16,28 @@ ImageProvider? avatarImageFor(String? profilePicture) {
       : FileImage(File(profilePicture));
 }
 
+const _documentPreviewChannel = MethodChannel('bd.onecitizen.onecitizen/document_preview');
+
+/// Renders the first page of a locally-saved PDF to PNG bytes via the same
+/// native channel the apply-for-card flow uses to preview a picked file
+/// before upload.
+Future<Uint8List> _renderPdfFirstPage(String filePath) async {
+  final bytes = await _documentPreviewChannel.invokeMethod<Uint8List>(
+    'renderPdfFirstPage',
+    {'path': filePath},
+  );
+  if (bytes == null || bytes.isEmpty) {
+    throw StateError('No PDF preview was returned.');
+  }
+  return bytes;
+}
+
 /// Renders a document's `fileUrl`, which is either a `data:` URI (documents
 /// are stored as base64 in the Realtime Database — there's no Firebase
 /// Storage on the Spark plan) or, for anything not uploaded that way, a
-/// regular network URL.
+/// regular network URL. PDFs stored as `data:` URIs are written to a temp
+/// file and rendered via the native PDF-preview channel, since
+/// `Image.memory` can only decode raster image bytes.
 Widget documentImage(
   String fileUrl, {
   double? height,
@@ -27,14 +46,50 @@ Widget documentImage(
   Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
 }) {
   if (fileUrl.startsWith('data:')) {
-    return Builder(
-      builder: (context) {
-        try {
-          final bytes = base64Decode(fileUrl.split(',').last);
-          return Image.memory(bytes, height: height, width: width, fit: fit, errorBuilder: errorBuilder);
-        } catch (error, stackTrace) {
-          return errorBuilder?.call(context, error, stackTrace) ?? const Icon(Icons.broken_image);
+    final isPdf = fileUrl.startsWith('data:application/pdf');
+    final bytes = () {
+      try {
+        return base64Decode(fileUrl.split(',').last);
+      } catch (_) {
+        return null;
+      }
+    }();
+    if (bytes == null) {
+      return Builder(
+        builder: (context) =>
+            errorBuilder?.call(context, StateError('Invalid document data.'), null) ??
+            const Icon(Icons.broken_image),
+      );
+    }
+    if (!isPdf) {
+      return Image.memory(bytes, height: height, width: width, fit: fit, errorBuilder: errorBuilder);
+    }
+    return FutureBuilder<Uint8List>(
+      future: () async {
+        final tempFile = await File(
+          '${Directory.systemTemp.path}/doc_preview_${identityHashCode(fileUrl)}.pdf',
+        ).writeAsBytes(bytes);
+        return _renderPdfFirstPage(tempFile.path);
+      }(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return SizedBox(
+            height: height,
+            width: width,
+            child: const Center(child: CircularProgressIndicator()),
+          );
         }
+        if (snapshot.hasError || snapshot.data == null) {
+          return errorBuilder?.call(context, snapshot.error ?? StateError('No preview'), null) ??
+              const Icon(Icons.picture_as_pdf_rounded);
+        }
+        return Image.memory(
+          snapshot.data!,
+          height: height,
+          width: width,
+          fit: fit,
+          errorBuilder: errorBuilder,
+        );
       },
     );
   }
