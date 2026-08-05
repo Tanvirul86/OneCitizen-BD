@@ -1,0 +1,1 @@
+{"database":{"rules":"database.rules.json"},"flutter":{"platforms":{"android":{"default":{"projectId":"onecitizen-bd","appId":"1:826851356915:android:13e07c84e4cf9c9c8bc786","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"onecitizen-bd","configurations":{"android":"1:826851356915:android:13e07c84e4cf9c9c8bc786"}}}}}}

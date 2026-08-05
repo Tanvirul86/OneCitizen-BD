@@ -134,18 +134,11 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                       child: Stack(
                                         alignment: Alignment.center,
                                         children: [
-                                          Image.network(
+                                          documentImage(
                                             doc.fileUrl,
                                             height: 140,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
-                                            loadingBuilder: (context, child, progress) => progress == null
-                                                ? child
-                                                : Container(
-                                                    height: 140,
-                                                    color: AppTheme.surfaceLight,
-                                                    child: const Center(child: CircularProgressIndicator()),
-                                                  ),
                                             errorBuilder: (context, error, stackTrace) => Container(
                                               height: 140,
                                               width: double.infinity,
@@ -259,11 +252,9 @@ class _DocumentViewerScreenState extends State<_DocumentViewerScreen> {
               minScale: 0.8,
               maxScale: 5,
               child: Center(
-                child: Image.network(
+                child: documentImage(
                   doc.fileUrl,
                   fit: BoxFit.contain,
-                  loadingBuilder: (context, child, progress) =>
-                      progress == null ? child : const CircularProgressIndicator(),
                   errorBuilder: (context, error, stackTrace) => const Icon(
                     Icons.broken_image,
                     color: Colors.white54,

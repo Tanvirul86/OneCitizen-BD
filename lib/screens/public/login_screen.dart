@@ -9,7 +9,9 @@ import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.successMessage});
+
+  final String? successMessage;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -36,6 +38,18 @@ class _LoginScreenState extends State<LoginScreen>
     );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
+
+    if (widget.successMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.successMessage!),
+            backgroundColor: AppTheme.primaryGreen,
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -163,8 +177,16 @@ class _LoginScreenState extends State<LoginScreen>
                                       labelText: 'Email address',
                                       prefixIcon: Icon(Icons.email_outlined),
                                     ),
-                                    validator: (v) =>
-                                        (v == null || v.isEmpty) ? 'Please enter your email' : null,
+                                    validator: (v) {
+                                      if (v == null || v.isEmpty) {
+                                        return 'Please enter your email';
+                                      }
+                                      if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$')
+                                          .hasMatch(v)) {
+                                        return 'Enter a valid email address';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(

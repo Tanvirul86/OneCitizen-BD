@@ -6,7 +6,12 @@ import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 class ProfileCompletionScreen extends StatefulWidget {
-  const ProfileCompletionScreen({super.key});
+  const ProfileCompletionScreen({super.key, this.isPostRegistration = false});
+
+  /// True when reached right after registration — in that case, saving the
+  /// profile signs the citizen out and sends them to sign in explicitly,
+  /// instead of continuing straight into the dashboard.
+  final bool isPostRegistration;
 
   @override
   State<ProfileCompletionScreen> createState() => _ProfileCompletionScreenState();
@@ -87,7 +92,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      context.go('/citizen');
+      if (widget.isPostRegistration) {
+        await auth.logout();
+        if (!mounted) return;
+        context.go('/login', extra: 'Registration successful! Please sign in.');
+      } else {
+        context.go('/citizen');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? 'Failed to save profile'), backgroundColor: Colors.red),
@@ -101,7 +112,23 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       backgroundColor: AppTheme.surfaceLight,
       appBar: AppBar(
         title: const Text('Complete Your Profile'),
-        actions: [TextButton(onPressed: () => context.go('/citizen'), child: const Text('Skip', style: TextStyle(color: Colors.white)))],
+        actions: [
+          TextButton(
+            onPressed: () async {
+              if (widget.isPostRegistration) {
+                await context.read<AuthProvider>().logout();
+                if (!context.mounted) return;
+                context.go(
+                  '/login',
+                  extra: 'Registration successful! Please sign in.',
+                );
+              } else {
+                context.go('/citizen');
+              }
+            },
+            child: const Text('Skip', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Form(

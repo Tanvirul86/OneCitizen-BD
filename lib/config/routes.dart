@@ -46,12 +46,22 @@ class AppRouter {
         if (isLoggedIn && (location == '/login' || location == '/register')) {
           return homeForRole(authProvider.user?.role ?? UserRole.citizen);
         }
+        if (isLoggedIn &&
+            authProvider.user?.role == UserRole.citizen &&
+            authProvider.needsProfileCompletion() &&
+            location != '/citizen/profile-completion') {
+          return '/citizen/profile-completion';
+        }
         return null;
       },
       routes: [
         GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
         GoRoute(path: '/home', builder: (context, state) => const PublicHomeScreen()),
-        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) =>
+              LoginScreen(successMessage: state.extra as String?),
+        ),
         GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
         GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
 
@@ -68,7 +78,12 @@ class AppRouter {
         ),
 
         // Citizen standalone routes (outside shell so back button works)
-        GoRoute(path: '/citizen/profile-completion', builder: (context, state) => const ProfileCompletionScreen()),
+        GoRoute(
+          path: '/citizen/profile-completion',
+          builder: (context, state) => ProfileCompletionScreen(
+            isPostRegistration: state.extra == true,
+          ),
+        ),
         GoRoute(path: '/citizen/documents', builder: (context, state) => const DocumentUploadScreen()),
         GoRoute(path: '/citizen/eligibility', builder: (context, state) => const EligibilityScreen()),
         GoRoute(

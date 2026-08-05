@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      context.go('/citizen/profile-completion');
+      context.go('/citizen/profile-completion', extra: true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -130,7 +130,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _nidController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'NID Number', prefixIcon: Icon(Icons.badge_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? 'NID is required' : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'NID is required';
+                          if (!RegExp(r'^\d{10}$|^\d{13}$|^\d{17}$').hasMatch(v)) {
+                            return 'NID must be 10, 13, or 17 digits';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -157,14 +163,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Email is required' : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Email is required';
+                          if (!RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$').hasMatch(v)) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Phone number is required' : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Phone number is required';
+                          if (!RegExp(r'^(\+?880|0)1[3-9]\d{8}$').hasMatch(v)) {
+                            return 'Enter a valid BD phone number';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(

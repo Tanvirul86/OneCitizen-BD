@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/auth_service.dart';
@@ -53,6 +52,8 @@ class AuthProvider extends ChangeNotifier {
         phone: phone,
         password: password,
       );
+      // Stay signed in just long enough to complete the profile — the
+      // profile-completion screen logs the user out once it's done.
       status = AuthStatus.authenticated;
       notifyListeners();
       return true;
@@ -79,14 +80,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      if (e is DioException) {
-        final data = e.response?.data;
-        errorMessage = (data is Map && data['detail'] != null)
-            ? data['detail'] as String
-            : 'Invalid email or password.';
-      } else {
-        errorMessage = e.toString();
-      }
+      errorMessage = e.toString();
       status = AuthStatus.error;
       notifyListeners();
       return false;
@@ -94,6 +88,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> updateProfile(Map<String, dynamic> data) async {
+    errorMessage = null;
     try {
       user = await _authService.updateProfile(data);
       notifyListeners();
@@ -109,6 +104,7 @@ class AuthProvider extends ChangeNotifier {
     required String oldPassword,
     required String newPassword,
   }) async {
+    errorMessage = null;
     try {
       await _authService.changePassword(
         oldPassword: oldPassword,

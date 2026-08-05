@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:onecitizen/app.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
-import 'package:onecitizen/services/api_client.dart';
 import 'package:onecitizen/services/auth_service.dart';
-import 'package:onecitizen/services/storage_service.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +21,7 @@ void main() {
   }
 
   testWidgets('full citizen + admin walkthrough', (tester) async {
-    final storageService = StorageService();
-    final apiClient = ApiClient(storageService: storageService);
-    final authService = AuthService(apiClient: apiClient, storageService: storageService);
-    final authProvider = AuthProvider(authService: authService);
+    final authProvider = AuthProvider(authService: AuthService());
     await authProvider.checkSession();
 
     await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));
@@ -67,26 +62,9 @@ void main() {
 
     debugPrint('--- STEP: citizen dashboard ---');
     expect(find.text('OneCitizen BD'), findsOneWidget);
-    expect(find.text('Check Eligibility'), findsOneWidget);
     expect(find.text('Apply for Card'), findsOneWidget);
-    expect(find.text('Upload Documents'), findsOneWidget);
-    expect(find.text('Distribution History'), findsOneWidget);
-
-    debugPrint('--- STEP: eligibility ---');
-    await tester.tap(find.text('Check Eligibility'));
-    await settle(tester);
-    expect(find.text('Farmer Card'), findsWidgets);
-    expect(find.text('Family Card'), findsWidgets);
-    expect(find.text('Education Card'), findsWidgets);
-    await tester.tap(find.byType(BackButton).first);
-    await settle(tester);
-
-    debugPrint('--- STEP: documents ---');
-    await tester.tap(find.text('Upload Documents'));
-    await settle(tester);
-    expect(find.text('Document Upload'), findsOneWidget);
-    await tester.tap(find.byType(BackButton).first);
-    await settle(tester);
+    expect(find.text('Check Eligibility'), findsNothing);
+    expect(find.text('Upload Docs'), findsNothing);
 
     debugPrint('--- STEP: apply for card ---');
     await tester.tap(find.text('Apply for Card'));

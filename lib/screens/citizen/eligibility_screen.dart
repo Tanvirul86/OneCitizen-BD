@@ -22,19 +22,13 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
   final _sscController = TextEditingController();
   final _hscController = TextEditingController();
   final _occupationController = TextEditingController();
-  final _otherWorkerOccupationController = TextEditingController();
-
-  String? _selectedWorkerOccupation;
 
   bool _hasFarmerCert = false;
   bool _hasWardCert = false;
-  bool _hasWorkerCertificate = false;
-  bool _hasLaborRegistration = false;
 
   bool get _isFarmer => _selectedCard == _EligibilityCardOption.farmer;
   bool get _isFamily => _selectedCard == _EligibilityCardOption.family;
   bool get _isEducation => _selectedCard == _EligibilityCardOption.education;
-  bool get _isWorker => _selectedCard == _EligibilityCardOption.worker;
 
   @override
   void initState() {
@@ -56,7 +50,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     _sscController.dispose();
     _hscController.dispose();
     _occupationController.dispose();
-    _otherWorkerOccupationController.dispose();
     super.dispose();
   }
 
@@ -65,12 +58,8 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
 
     final data = {
       'selected_card_type': _selectedCard!.code,
-      'occupation': _isFarmer
-          ? _occupationController.text.trim()
-          : _isWorker
-          ? _workerOccupationValue
-          : null,
-      'income': _isFarmer || _isFamily || _isWorker
+      'occupation': _isFarmer ? _occupationController.text.trim() : null,
+      'income': _isFarmer || _isFamily
           ? double.tryParse(_incomeController.text) ?? 0
           : null,
       'land_acres': _isFarmer || _isFamily
@@ -80,8 +69,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
       'hsc_gpa': _isEducation ? double.tryParse(_hscController.text) : null,
       'has_farmer_cert': _isFarmer && _hasFarmerCert,
       'has_ward_cert': (_isFarmer || _isFamily) && _hasWardCert,
-      'has_worker_certificate': _isWorker && _hasWorkerCertificate,
-      'has_labor_registration': _isWorker && _hasLaborRegistration,
     };
 
     final appProvider = context.read<ApplicationProvider>();
@@ -272,7 +259,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Card Type',
-              hintText: 'Choose Farmer, Family, Education, or Worker card',
+              hintText: 'Choose Farmer, Family, or Education card',
               prefixIcon: Icon(Icons.credit_card_rounded),
             ),
             items: _EligibilityCardOption.values
@@ -283,13 +270,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                   ),
                 )
                 .toList(),
-            onChanged: (option) => setState(() {
-              _selectedCard = option;
-              if (option != _EligibilityCardOption.worker) {
-                _selectedWorkerOccupation = null;
-                _otherWorkerOccupationController.clear();
-              }
-            }),
+            onChanged: (option) => setState(() => _selectedCard = option),
             validator: (value) =>
                 value == null ? 'Please select a card type' : null,
           ),
@@ -454,48 +435,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             ),
           ],
         );
-      case _EligibilityCardOption.worker:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeader(
-              title: 'Worker Card',
-              icon: Icons.engineering_rounded,
-              subtitle: 'For low-income registered workers',
-            ),
-            const SizedBox(height: 12),
-            _WorkerOccupationField(
-              value: _selectedWorkerOccupation,
-              otherController: _otherWorkerOccupationController,
-              onChanged: (value) {
-                setState(() {
-                  _selectedWorkerOccupation = value;
-                  if (value != _otherWorkerOccupationCode) {
-                    _otherWorkerOccupationController.clear();
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            _IncomeField(controller: _incomeController),
-            const SizedBox(height: 16),
-            _CheckCard(
-              title: 'I have a Worker/Employment Certificate',
-              subtitle: 'Issued by employer, union, or local authority',
-              value: _hasWorkerCertificate,
-              onChanged: (v) =>
-                  setState(() => _hasWorkerCertificate = v ?? false),
-            ),
-            const SizedBox(height: 8),
-            _CheckCard(
-              title: 'I am registered with a labor/worker organization',
-              subtitle: 'Registration, union, or worker ID available',
-              value: _hasLaborRegistration,
-              onChanged: (v) =>
-                  setState(() => _hasLaborRegistration = v ?? false),
-            ),
-          ],
-        );
     }
   }
 
@@ -516,42 +455,12 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     return null;
   }
 
-  String get _workerOccupationValue {
-    if (_selectedWorkerOccupation == _otherWorkerOccupationCode) {
-      return _otherWorkerOccupationController.text.trim();
-    }
-    return _selectedWorkerOccupation ?? '';
-  }
 }
-
-const _otherWorkerOccupationCode = 'other';
-
-const _workerOccupationOptions = [
-  'Garments worker',
-  'Construction worker',
-  'Rickshaw puller',
-  'Van puller',
-  'Day laborer',
-  'Domestic worker',
-  'Cleaner',
-  'Security guard',
-  'Street vendor',
-  'Transport helper',
-  'Factory worker',
-  'Agricultural laborer',
-  'Tea garden worker',
-  'Fisherman',
-  'Small shop assistant',
-  'Delivery worker',
-  'Hotel/restaurant worker',
-  'Other occupation',
-];
 
 enum _EligibilityCardOption {
   farmer('farmer', 'Farmer Card'),
   family('family', 'Family Card'),
-  education('education', 'Education Card'),
-  worker('worker', 'Worker Card');
+  education('education', 'Education Card');
 
   const _EligibilityCardOption(this.code, this.title);
 
@@ -575,67 +484,6 @@ class _OccupationField extends StatelessWidget {
       ),
       validator: (v) =>
           (v == null || v.trim().isEmpty) ? 'Occupation is required' : null,
-    );
-  }
-}
-
-class _WorkerOccupationField extends StatelessWidget {
-  const _WorkerOccupationField({
-    required this.value,
-    required this.otherController,
-    required this.onChanged,
-  });
-
-  final String? value;
-  final TextEditingController otherController;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final isOtherSelected = value == _otherWorkerOccupationCode;
-
-    return Column(
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Occupation',
-            hintText: 'Please select your occupation',
-            prefixIcon: Icon(Icons.work_outline),
-          ),
-          items: _workerOccupationOptions.map((occupation) {
-            final itemValue = occupation == 'Other occupation'
-                ? _otherWorkerOccupationCode
-                : occupation;
-            return DropdownMenuItem<String>(
-              value: itemValue,
-              child: Text(occupation, overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          validator: (selected) =>
-              selected == null ? 'Please select your occupation' : null,
-        ),
-        if (isOtherSelected) ...[
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: otherController,
-            decoration: const InputDecoration(
-              labelText: 'Other Occupation',
-              hintText: 'Write your occupation',
-              prefixIcon: Icon(Icons.edit_outlined),
-            ),
-            validator: (v) {
-              if (!isOtherSelected) return null;
-              if (v == null || v.trim().isEmpty) {
-                return 'Please write your occupation';
-              }
-              return null;
-            },
-          ),
-        ],
-      ],
     );
   }
 }
