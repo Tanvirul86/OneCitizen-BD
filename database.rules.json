@@ -39,7 +39,7 @@
       ".indexOn": "citizen_id",
       "$id": {
         ".read": "auth != null && (data.child('citizen_id').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.child('citizen_id').val() === auth.uid)"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.child('citizen_id').val() === auth.uid && (!data.exists() || data.child('citizen_id').val() === auth.uid)))"
       }
     },
 
