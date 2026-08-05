@@ -87,12 +87,14 @@ class AdminService {
     final snapshot = await _documents.get();
     var items = mapChildren(snapshot);
     if (citizenId != null && citizenId.isNotEmpty) {
+      // citizenId is an exact, authoritative match — email is redundant
+      // when both are supplied for the same citizen (e.g. from the
+      // application review screen), so it's intentionally not AND-ed in.
       items = items.where((d) => d['citizen_id'] == citizenId).toList();
-    }
-    if (citizenEmail != null && citizenEmail.isNotEmpty) {
+    } else if (citizenEmail != null && citizenEmail.isNotEmpty) {
       final query = citizenEmail.toLowerCase();
       items = items
-          .where((d) => (d['citizen_name'] as String? ?? '').toLowerCase().contains(query))
+          .where((d) => (d['citizen_email'] as String? ?? '').toLowerCase().contains(query))
           .toList();
     }
     _sortByDate(items, 'uploaded_at');
