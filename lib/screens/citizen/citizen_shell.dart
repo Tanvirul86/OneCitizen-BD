@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 
 class CitizenShell extends StatelessWidget {
   const CitizenShell({super.key, required this.child});
@@ -23,12 +24,12 @@ class CitizenShell extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryGreen,
         unselectedItemColor: AppTheme.textSecondary,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Applications'),
-          BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Funds'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.home), label: context.tr('admin_nav_dashboard')),
+          BottomNavigationBarItem(icon: const Icon(Icons.assignment), label: context.tr('citizen_nav_applications')),
+          BottomNavigationBarItem(icon: const Icon(Icons.payments), label: context.tr('citizen_nav_funds')),
+          BottomNavigationBarItem(icon: const Icon(Icons.notifications), label: context.tr('notifications_title')),
+          BottomNavigationBarItem(icon: const Icon(Icons.person), label: context.tr('citizen_nav_profile')),
         ],
       ),
       ),

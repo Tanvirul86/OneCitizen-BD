@@ -29,6 +29,8 @@ class CardType {
     required this.name,
     required this.eligibilityCriteria,
     this.requiredDocuments = const [],
+    this.applicationFields = const [],
+    this.disbursementAmount = 0,
   });
 
   final String id;
@@ -36,6 +38,11 @@ class CardType {
   final String name;
   final String eligibilityCriteria;
   final List<String> requiredDocuments;
+  final List<CardTypeApplicationField> applicationFields;
+
+  /// Fixed per-citizen amount (BDT) used when disbursing funds to every
+  /// approved holder of this card type at once.
+  final double disbursementAmount;
 
   factory CardType.fromJson(Map<String, dynamic> json) {
     return CardType(
@@ -43,8 +50,55 @@ class CardType {
       code: cardTypeCodeFromString(json['code'] as String?),
       name: json['name'] as String? ?? '',
       eligibilityCriteria: json['eligibility_criteria'] as String? ?? '',
-      requiredDocuments: (json['required_documents'] as List<dynamic>?)
+      disbursementAmount:
+          (json['disbursement_amount'] as num?)?.toDouble() ?? 0,
+      requiredDocuments:
+          (json['required_documents'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      applicationFields:
+          (json['application_fields'] as List<dynamic>?)
+              ?.whereType<Map>()
+              .map(
+                (field) => CardTypeApplicationField.fromJson(
+                  field.cast<String, dynamic>(),
+                ),
+              )
+              .toList() ??
+          [],
+    );
+  }
+}
+
+/// Field definitions are owned by the backend card-type configuration.
+class CardTypeApplicationField {
+  const CardTypeApplicationField({
+    required this.key,
+    required this.label,
+    required this.required,
+    this.hintText,
+    this.inputType,
+    this.options = const [],
+  });
+
+  final String key;
+  final String label;
+  final bool required;
+  final String? hintText;
+  final String? inputType;
+  final List<String> options;
+
+  factory CardTypeApplicationField.fromJson(Map<String, dynamic> json) {
+    return CardTypeApplicationField(
+      key: json['key']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      required: json['required'] as bool? ?? false,
+      hintText: json['hint']?.toString(),
+      inputType: json['input_type']?.toString(),
+      options:
+          (json['options'] as List<dynamic>?)
+              ?.map((option) => option.toString())
               .toList() ??
           [],
     );
@@ -79,7 +133,8 @@ class EligibilityResult {
 
   factory EligibilityResult.fromJson(Map<String, dynamic> json) {
     return EligibilityResult(
-      results: (json['results'] as List<dynamic>?)
+      results:
+          (json['results'] as List<dynamic>?)
               ?.map((e) => CardEligibility.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

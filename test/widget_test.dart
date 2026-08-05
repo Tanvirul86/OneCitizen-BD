@@ -8,7 +8,8 @@ void main() {
     final authProvider = AuthProvider(authService: AuthService());
 
     await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));
-    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
 
     expect(find.text('OneCitizen BD'), findsWidgets);
   });

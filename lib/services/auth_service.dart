@@ -22,8 +22,9 @@ class AuthService {
 
   DatabaseReference get _users => _database.ref('users');
 
-  Future<User> register({
-    required String nid,
+  /// Creates the account only — does not sign the user in. They must call
+  /// [login] afterward with the credentials they just registered.
+  Future<void> register({
     required String firstName,
     required String lastName,
     required String email,
@@ -38,7 +39,6 @@ class AuthService {
       final uid = credential.user!.uid;
       await _users.child(uid).set({
         'email': email,
-        'nid': nid,
         'first_name': firstName,
         'last_name': lastName,
         'phone': phone,
@@ -47,8 +47,7 @@ class AuthService {
         'is_active': true,
         'created_at': ServerValue.timestamp,
       });
-      final snapshot = await _users.child(uid).get();
-      return User.fromJson(withKey(uid, snapshot.value));
+      await _auth.signOut();
     } on FirebaseAuthException catch (e) {
       throw AuthException(_authErrorMessage(e));
     }

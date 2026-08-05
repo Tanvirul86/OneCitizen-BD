@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/distribution_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
@@ -28,7 +29,7 @@ class _DistributionHistoryScreenState extends State<DistributionHistoryScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('Distribution History')),
+      appBar: AppBar(title: Text(context.tr('distribution_history_title'))),
       body: RefreshIndicator(
         onRefresh: () => provider.loadDistributions(),
         child: provider.isLoading
@@ -36,7 +37,7 @@ class _DistributionHistoryScreenState extends State<DistributionHistoryScreen> {
             : provider.error != null
                 ? ErrorMessage(message: provider.error!, onRetry: () => provider.loadDistributions())
                 : provider.distributions.isEmpty
-                    ? const EmptyListMessage(message: 'No fund disbursements yet.', icon: Icons.payments_outlined)
+                    ? EmptyListMessage(message: context.tr('no_fund_disbursements_yet'), icon: Icons.payments_outlined)
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: provider.distributions.length,

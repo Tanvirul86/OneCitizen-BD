@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/utils/apply_card_navigation.dart';
 import 'package:provider/provider.dart';
 
 class EligibilityScreen extends StatefulWidget {
@@ -15,20 +17,14 @@ class EligibilityScreen extends StatefulWidget {
 class _EligibilityScreenState extends State<EligibilityScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  _EligibilityCardOption? _selectedCard;
-
   final _incomeController = TextEditingController();
   final _landController = TextEditingController();
   final _sscController = TextEditingController();
   final _hscController = TextEditingController();
-  final _occupationController = TextEditingController();
 
+  Occupation? _occupation;
   bool _hasFarmerCert = false;
   bool _hasWardCert = false;
-
-  bool get _isFarmer => _selectedCard == _EligibilityCardOption.farmer;
-  bool get _isFamily => _selectedCard == _EligibilityCardOption.family;
-  bool get _isEducation => _selectedCard == _EligibilityCardOption.education;
 
   @override
   void initState() {
@@ -39,8 +35,23 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
       _landController.text = user.landAcres?.toString() ?? '';
       _sscController.text = user.sscGpa?.toString() ?? '';
       _hscController.text = user.hscGpa?.toString() ?? '';
-      _occupationController.text = user.occupation ?? '';
+      _occupation = occupationFromString(user.occupation);
     }
+  }
+
+  void _onOccupationChanged(Occupation? value) {
+    setState(() {
+      _occupation = value;
+      if (value != Occupation.farmer) {
+        _landController.clear();
+        _hasFarmerCert = false;
+        _hasWardCert = false;
+      }
+      if (value != Occupation.student) {
+        _sscController.clear();
+        _hscController.clear();
+      }
+    });
   }
 
   @override
@@ -49,7 +60,6 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     _landController.dispose();
     _sscController.dispose();
     _hscController.dispose();
-    _occupationController.dispose();
     super.dispose();
   }
 
@@ -57,18 +67,13 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final data = {
-      'selected_card_type': _selectedCard!.code,
-      'occupation': _isFarmer ? _occupationController.text.trim() : null,
-      'income': _isFarmer || _isFamily
-          ? double.tryParse(_incomeController.text) ?? 0
-          : null,
-      'land_acres': _isFarmer || _isFamily
-          ? double.tryParse(_landController.text) ?? 0
-          : null,
-      'ssc_gpa': _isEducation ? double.tryParse(_sscController.text) : null,
-      'hsc_gpa': _isEducation ? double.tryParse(_hscController.text) : null,
-      'has_farmer_cert': _isFarmer && _hasFarmerCert,
-      'has_ward_cert': (_isFarmer || _isFamily) && _hasWardCert,
+      'occupation': _occupation != null ? occupationToString(_occupation!) : '',
+      'income': double.tryParse(_incomeController.text) ?? 0,
+      'land_acres': double.tryParse(_landController.text) ?? 0,
+      'ssc_gpa': double.tryParse(_sscController.text),
+      'hsc_gpa': double.tryParse(_hscController.text),
+      'has_farmer_cert': _hasFarmerCert,
+      'has_ward_cert': _hasWardCert,
     };
 
     final appProvider = context.read<ApplicationProvider>();
@@ -80,7 +85,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
         SnackBar(
           content: Text(
             appProvider.eligibilitySubmitError ??
-                'Submission failed. Please try again.',
+                context.trs('eligibility_submit_failed'),
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
@@ -96,7 +101,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      appBar: AppBar(title: const Text('Check Eligibility')),
+      appBar: AppBar(title: Text(context.tr('check_eligibility_title'))),
       body: submitted
           ? _buildPendingView(appProvider)
           : _buildForm(appProvider),
@@ -119,15 +124,15 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
         ? Icons.hourglass_top_rounded
         : Icons.cancel_rounded;
     final title = isApproved
-        ? 'Eligibility Approved'
+        ? context.tr('eligibility_approved_title')
         : isPending
-        ? 'Request Submitted'
-        : 'Request Rejected';
+        ? context.tr('eligibility_request_submitted_title')
+        : context.tr('eligibility_request_rejected_title');
     final message = isApproved
-        ? 'Your eligibility has been confirmed by the admin. You can now apply for the cards you are eligible for.'
+        ? context.tr('eligibility_approved_message')
         : isPending
-        ? 'Your eligibility request has been submitted successfully. An admin will review your details and notify you of the decision.'
-        : 'Your eligibility request was not approved. Please contact your local authority for assistance.';
+        ? context.tr('eligibility_pending_message')
+        : context.tr('eligibility_rejected_message');
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -171,18 +176,18 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.notifications_outlined,
                     color: Colors.orange,
                     size: 20,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'You will receive a notification once the admin reviews your request.',
-                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                      context.tr('eligibility_notify_hint'),
+                      style: const TextStyle(fontSize: 13, color: Colors.orange),
                     ),
                   ),
                 ],
@@ -192,9 +197,9 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           if (isApproved) ...[
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => context.push('/citizen/apply'),
+              onPressed: () => goToApplyCard(context),
               icon: const Icon(Icons.add_card),
-              label: const Text('Apply for a Card'),
+              label: Text(context.tr('apply_for_a_card_action')),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 28,
@@ -207,7 +212,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           TextButton(
             onPressed: () =>
                 context.read<ApplicationProvider>().resetEligibilityRequest(),
-            child: const Text('Edit & Resubmit'),
+            child: Text(context.tr('edit_resubmit_action')),
           ),
         ],
       ),
@@ -229,19 +234,19 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                 color: AppTheme.primaryGreen.withValues(alpha: 0.25),
               ),
             ),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: AppTheme.primaryGreen,
                   size: 20,
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Choose one card type, then fill only the fields required for that card.',
-                    style: TextStyle(
+                    context.tr('eligibility_form_hint'),
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppTheme.primaryGreen,
                       height: 1.5,
@@ -252,49 +257,140 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _SectionHeader(title: 'Select Card Type', icon: Icons.badge_outlined),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<_EligibilityCardOption>(
-            initialValue: _selectedCard,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Card Type',
-              hintText: 'Choose Farmer, Family, or Education card',
-              prefixIcon: Icon(Icons.credit_card_rounded),
-            ),
-            items: _EligibilityCardOption.values
-                .map(
-                  (option) => DropdownMenuItem(
-                    value: option,
-                    child: Text(option.title, overflow: TextOverflow.ellipsis),
-                  ),
-                )
-                .toList(),
-            onChanged: (option) => setState(() => _selectedCard = option),
-            validator: (value) =>
-                value == null ? 'Please select a card type' : null,
+          _SectionHeader(
+            title: context.tr('select_card_type_title'),
+            icon: Icons.badge_outlined,
           ),
-          if (_selectedCard != null) ...[
+          const SizedBox(height: 12),
+          DropdownButtonFormField<Occupation>(
+            initialValue: _occupation,
+            decoration: InputDecoration(
+              labelText: context.tr('occupation_label'),
+              prefixIcon: const Icon(Icons.work_outline),
+            ),
+            items: Occupation.values
+                .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))
+                .toList(),
+            onChanged: _onOccupationChanged,
+            validator: (v) => v == null ? context.trs('occupation_required') : null,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _incomeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: context.tr('monthly_income_label'),
+              hintText: context.tr('income_hint_example'),
+              prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+              suffixText: 'BDT',
+            ),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return context.trs('income_required');
+              if (double.tryParse(v) == null) return context.trs('amount_invalid');
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+
+          if (_occupation == Occupation.farmer) ...[
+            // Section: Farmer Card
+            _SectionHeader(
+              title: context.tr('card_farmer_title'),
+              icon: Icons.agriculture_rounded,
+              subtitle: context.tr('farmer_card_eligibility_subtitle'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _landController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: context.tr('land_owned_label'),
+                hintText: context.tr('land_hint_example'),
+                prefixIcon: const Icon(Icons.terrain_outlined),
+                suffixText: 'acres',
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return context.trs('land_required');
+                if (double.tryParse(v) == null) return context.trs('enter_valid_number');
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _CheckCard(
+              title: context.tr('has_farmer_cert_title'),
+              subtitle: context.tr('farmer_cert_subtitle'),
+              value: _hasFarmerCert,
+              onChanged: (v) => setState(() => _hasFarmerCert = v ?? false),
+            ),
+            const SizedBox(height: 8),
+            _CheckCard(
+              title: context.tr('has_ward_cert_title'),
+              subtitle: context.tr('ward_cert_subtitle'),
+              value: _hasWardCert,
+              onChanged: (v) => setState(() => _hasWardCert = v ?? false),
+            ),
             const SizedBox(height: 24),
-            _buildSelectedCardFields(),
           ],
-          const SizedBox(height: 36),
+
+          if (_occupation == Occupation.student) ...[
+            // Section: Education Card
+            _SectionHeader(
+              title: context.tr('card_education_title'),
+              icon: Icons.school_rounded,
+              subtitle: context.tr('education_card_eligibility_subtitle'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _sscController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: context.tr('ssc_gpa_optional_label'),
+                hintText: context.tr('gpa_hint_example'),
+                prefixIcon: const Icon(Icons.school_outlined),
+              ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty) {
+                  final gpa = double.tryParse(v);
+                  if (gpa == null || gpa < 0 || gpa > 5) return context.trs('gpa_range_error');
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _hscController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: context.tr('hsc_gpa_optional_label'),
+                hintText: context.tr('gpa_hint_example'),
+                prefixIcon: const Icon(Icons.school_rounded),
+              ),
+              validator: (v) {
+                if (v != null && v.isNotEmpty) {
+                  final gpa = double.tryParse(v);
+                  if (gpa == null || gpa < 0 || gpa > 5) return context.trs('gpa_range_error');
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 24),
+
+          // Submit button
           ElevatedButton.icon(
             onPressed: appProvider.isSubmittingEligibility ? null : _submit,
             icon: appProvider.isSubmittingEligibility
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : const Icon(Icons.send_rounded),
             label: Text(
               appProvider.isSubmittingEligibility
-                  ? 'Submitting...'
-                  : 'Submit Eligibility Request',
+                  ? context.tr('submitting_label')
+                  : context.tr('submit_eligibility_request_action'),
               style: const TextStyle(fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(
@@ -302,213 +398,14 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Your information will be reviewed by the admin within 2-3 working days.',
+          Text(
+            context.tr('eligibility_review_time_note'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 24),
         ],
       ),
-    );
-  }
-
-  Widget _buildSelectedCardFields() {
-    switch (_selectedCard!) {
-      case _EligibilityCardOption.farmer:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeader(
-              title: 'Farmer Card',
-              icon: Icons.agriculture_rounded,
-              subtitle:
-                  'Must be <= 0.50 acres land, monthly income <= BDT 12,000',
-            ),
-            const SizedBox(height: 12),
-            _OccupationField(controller: _occupationController),
-            const SizedBox(height: 16),
-            _IncomeField(controller: _incomeController),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _landController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Land Owned (Acres)',
-                hintText: 'e.g. 0.50 (enter 0 if none)',
-                prefixIcon: Icon(Icons.terrain_outlined),
-                suffixText: 'acres',
-              ),
-              validator: _requiredNumberValidator(
-                'Land information is required',
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CheckCard(
-              title: 'I have an Agricultural Farmer Certificate',
-              subtitle: 'Issued by local union/ward parishad',
-              value: _hasFarmerCert,
-              onChanged: (v) => setState(() => _hasFarmerCert = v ?? false),
-            ),
-            const SizedBox(height: 8),
-            _CheckCard(
-              title: 'I have a Ward/Union Certificate',
-              subtitle: 'Confirming land holding and residence',
-              value: _hasWardCert,
-              onChanged: (v) => setState(() => _hasWardCert = v ?? false),
-            ),
-          ],
-        );
-      case _EligibilityCardOption.family:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeader(
-              title: 'Family Card',
-              icon: Icons.family_restroom_rounded,
-              subtitle:
-                  'Must be <= 0.50 acres land, monthly income <= BDT 12,000',
-            ),
-            const SizedBox(height: 12),
-            _IncomeField(controller: _incomeController),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _landController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Land Owned (Acres)',
-                hintText: 'e.g. 0.50 (enter 0 if none)',
-                prefixIcon: Icon(Icons.terrain_outlined),
-                suffixText: 'acres',
-              ),
-              validator: _requiredNumberValidator(
-                'Land information is required',
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CheckCard(
-              title: 'I have a Ward/Union Certificate',
-              subtitle: 'Confirming household income, land, and residence',
-              value: _hasWardCert,
-              onChanged: (v) => setState(() => _hasWardCert = v ?? false),
-            ),
-          ],
-        );
-      case _EligibilityCardOption.education:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeader(
-              title: 'Education Card',
-              icon: Icons.school_rounded,
-              subtitle: 'Requires GPA 5.00 in both SSC and HSC',
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _sscController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'SSC GPA',
-                hintText: 'e.g. 5.00',
-                prefixIcon: Icon(Icons.school_outlined),
-              ),
-              validator: _gpaValidator,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _hscController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'HSC GPA',
-                hintText: 'e.g. 5.00',
-                prefixIcon: Icon(Icons.school_rounded),
-              ),
-              validator: _gpaValidator,
-            ),
-          ],
-        );
-    }
-  }
-
-  FormFieldValidator<String> _requiredNumberValidator(String requiredMessage) {
-    return (v) {
-      if (v == null || v.trim().isEmpty) return requiredMessage;
-      if (double.tryParse(v) == null) return 'Enter a valid number';
-      return null;
-    };
-  }
-
-  String? _gpaValidator(String? v) {
-    if (v == null || v.trim().isEmpty) return 'GPA is required';
-    final gpa = double.tryParse(v);
-    if (gpa == null || gpa < 0 || gpa > 5) {
-      return 'Enter GPA between 0.00 and 5.00';
-    }
-    return null;
-  }
-
-}
-
-enum _EligibilityCardOption {
-  farmer('farmer', 'Farmer Card'),
-  family('family', 'Family Card'),
-  education('education', 'Education Card');
-
-  const _EligibilityCardOption(this.code, this.title);
-
-  final String code;
-  final String title;
-}
-
-class _OccupationField extends StatelessWidget {
-  const _OccupationField({required this.controller});
-
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: 'Occupation',
-        hintText: 'e.g. Farmer, employee, daily worker',
-        prefixIcon: const Icon(Icons.work_outline),
-      ),
-      validator: (v) =>
-          (v == null || v.trim().isEmpty) ? 'Occupation is required' : null,
-    );
-  }
-}
-
-class _IncomeField extends StatelessWidget {
-  const _IncomeField({required this.controller});
-
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: const InputDecoration(
-        labelText: 'Monthly Household Income (BDT)',
-        hintText: 'e.g. 10000',
-        prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-        suffixText: 'BDT',
-      ),
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'Income is required';
-        if (double.tryParse(v) == null) return 'Enter a valid amount';
-        return null;
-      },
     );
   }
 }

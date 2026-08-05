@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/config/routes.dart';
+import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/distribution_provider.dart';
+import 'package:onecitizen/providers/locale_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/services/admin_services.dart';
 import 'package:onecitizen/services/citizen_services.dart';
@@ -24,6 +26,7 @@ class OneCitizenApp extends StatelessWidget {
     final distributionService = DistributionService();
     final notificationService = NotificationService();
     final adminService = AdminService();
+    final adminNotificationService = AdminNotificationService();
 
     return MultiProvider(
       providers: [
@@ -45,6 +48,10 @@ class OneCitizenApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AdminProvider(adminService: adminService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => AdminNotificationProvider(notificationService: adminNotificationService),
+        ),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..load()),
       ],
       child: MaterialApp.router(
         title: 'OneCitizen BD',

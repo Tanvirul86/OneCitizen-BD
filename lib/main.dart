@@ -14,5 +14,5 @@ Future<void> main() async {
   final authProvider = AuthProvider(authService: AuthService());
   await authProvider.checkSession();
 
-  runApp(OneCitizenApp(authProvider: authProvider));
+  runApp(OneCitizenApp(authProvider: authProvider, apiClient: apiClient));
 }

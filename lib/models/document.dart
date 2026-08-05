@@ -9,6 +9,8 @@ class CitizenDocument {
     this.remark,
     this.uploadedAt,
     this.citizenName,
+    this.applicationId,
+    this.cardTypeId,
   });
 
   final String id;
@@ -19,6 +21,8 @@ class CitizenDocument {
   final String? remark;
   final DateTime? uploadedAt;
   final String? citizenName;
+  final String? applicationId;
+  final String? cardTypeId;
 
   factory CitizenDocument.fromJson(Map<String, dynamic> json) {
     return CitizenDocument(
@@ -32,6 +36,8 @@ class CitizenDocument {
           ? DateTime.tryParse(json['uploaded_at'] as String)
           : null,
       citizenName: json['citizen_name'] as String?,
+      applicationId: json['application_id']?.toString(),
+      cardTypeId: json['card_type_id']?.toString(),
     );
   }
 }
@@ -41,6 +47,15 @@ const requiredDocumentTypes = <String>[
   'income_certificate',
   'land_ownership',
   'agricultural_certificate',
+  'union_paurosova_certificate',
+  'recent_photo',
+  'nid_birth_certificate',
+  'ssc_registration_card',
+  'ssc_admit_card',
+  'ssc_certificate',
+  'hsc_registration_card',
+  'hsc_admit_card',
+  'hsc_certificate',
   'ssc_marksheet',
   'hsc_marksheet',
   'ward_union_certificate',
@@ -56,6 +71,24 @@ String documentTypeLabel(String docType) {
       return 'Land Ownership Document';
     case 'agricultural_certificate':
       return 'Agricultural Certificate';
+    case 'union_paurosova_certificate':
+      return 'Union/Paurosova Certificate';
+    case 'recent_photo':
+      return 'Recently Taken Photo';
+    case 'nid_birth_certificate':
+      return 'NID/Birth Certificate';
+    case 'ssc_registration_card':
+      return 'SSC Registration Card';
+    case 'ssc_admit_card':
+      return 'SSC Admit Card';
+    case 'ssc_certificate':
+      return 'SSC Certificate';
+    case 'hsc_registration_card':
+      return 'HSC Registration Card';
+    case 'hsc_admit_card':
+      return 'HSC Admit Card';
+    case 'hsc_certificate':
+      return 'HSC Certificate';
     case 'ssc_marksheet':
       return 'SSC Marksheet';
     case 'hsc_marksheet':

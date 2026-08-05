@@ -70,13 +70,17 @@ class ApplicationProvider extends ChangeNotifier {
   Future<bool> uploadDocument({
     required String docType,
     required String filePath,
+    String? applicationId,
   }) async {
     try {
       final doc = await _documentService.uploadDocument(
         docType: docType,
         filePath: filePath,
+        applicationId: applicationId,
       );
-      final idx = documents.indexWhere((d) => d.docType == docType);
+      final idx = documents.indexWhere(
+        (d) => d.docType == docType && d.applicationId == applicationId,
+      );
       if (idx >= 0) {
         documents[idx] = doc;
       } else {
@@ -91,13 +95,19 @@ class ApplicationProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitApplication({required String cardTypeId}) async {
+  Future<bool> submitApplication({
+    required String cardTypeId,
+    required Map<String, String> applicationData,
+  }) async {
     isLoading = true;
     error = null;
     notifyListeners();
 
     try {
-      final app = await _applicationService.submitApplication(cardTypeId: cardTypeId);
+      final app = await _applicationService.submitApplication(
+        cardTypeId: cardTypeId,
+        applicationData: applicationData,
+      );
       applications.insert(0, app);
       isLoading = false;
       notifyListeners();

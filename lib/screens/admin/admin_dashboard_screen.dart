@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
+import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/application.dart';
+import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/screens/admin/new_applications_screen.dart';
+import 'package:onecitizen/screens/citizen/my_applications_screen.dart'
+    show statusColor;
+import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -18,15 +26,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminProvider>().loadAnalytics();
+      _refresh();
+      context.read<AdminNotificationProvider>().loadNotifications();
     });
   }
 
-  String _greeting() {
+  Future<void> _refresh() async {
+    final provider = context.read<AdminProvider>();
+    await Future.wait([provider.loadAnalytics(), provider.loadApplications()]);
+  }
+
+  String _greeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning 👋';
-    if (hour < 17) return 'Good afternoon 👋';
-    return 'Good evening 👋';
+    if (hour < 12) return context.tr('greeting_morning');
+    if (hour < 17) return context.tr('greeting_afternoon');
+    return context.tr('greeting_evening');
+  }
+
+  String _statusLabel(BuildContext context, ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.submitted:
+        return context.tr('status_request');
+      case ApplicationStatus.underReview:
+        return context.tr('status_under_review');
+      case ApplicationStatus.approved:
+        return context.tr('stat_approved');
+      case ApplicationStatus.rejected:
+        return context.tr('stat_rejected');
+    }
   }
 
   @override
@@ -34,6 +61,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final provider = context.watch<AdminProvider>();
     final user = context.watch<AuthProvider>().user;
     final analytics = provider.analytics ?? {};
+    final recentApplications = provider.applications.take(4).toList();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
@@ -41,212 +69,241 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               color: AppTheme.primaryGreen,
-              onRefresh: () => provider.loadAnalytics(),
+              onRefresh: _refresh,
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  // ── Hero header ─────────────────────────────────────────
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
-                    decoration: const BoxDecoration(gradient: AppTheme.heroGradient),
-                    child: Stack(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+                    decoration: const BoxDecoration(
+                      gradient: AppTheme.heroGradient,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Positioned(
-                          top: -30,
-                          right: -30,
-                          child: Container(
-                            width: 150,
-                            height: 150,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.06),
-                            ),
+                        Text(
+                          _greeting(context),
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white.withValues(alpha: 0.78),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 4),
+                        Row(
                           children: [
-                            Text(
-                              _greeting(),
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white.withValues(alpha: 0.75),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                            Expanded(
+                              child: Text(
+                                user?.fullName.isNotEmpty == true
+                                    ? user!.fullName
+                                    : context.tr('administrator'),
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              user?.fullName.isNotEmpty == true ? user!.fullName : 'Administrator',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.4,
+                            IconButton.filledTonal(
+                              tooltip: context.tr('admin_nav_new_applications'),
+                              onPressed: () =>
+                                  context.go('/admin/applications'),
+                              icon: const Icon(Icons.assignment_rounded),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.14,
+                                ),
+                                foregroundColor: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 18),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _HeroStat(
-                                    label: 'Pending Applications',
-                                    value: '${analytics['pending_review'] ?? 0}',
-                                  ),
-                                ),
-                                Container(width: 1, height: 34, color: Colors.white.withValues(alpha: 0.2)),
-                                Expanded(
-                                  child: _HeroStat(
-                                    label: 'Docs to Review',
-                                    value: '${analytics['pending_document_reviews'] ?? 0}',
-                                  ),
-                                ),
-                              ],
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _HeroStat(
+                                label: context.tr('hero_pending_applications'),
+                                value: '${analytics['pending_review'] ?? 0}',
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 34,
+                              color: Colors.white.withValues(alpha: 0.22),
+                            ),
+                            Expanded(
+                              child: _HeroStat(
+                                label: context.tr('hero_docs_to_review'),
+                                value:
+                                    '${analytics['pending_document_reviews'] ?? 0}',
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-
                   Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Stat cards ──────────────────────────────────
-                        GridView.count(
+                        GridView(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 1.1,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: 1.55,
+                              ),
                           children: [
-                            _StatCard(
-                              label: 'Total Applications',
+                            _MetricTile(
+                              label: context.tr('stat_total_applications'),
                               value: '${analytics['total_applications'] ?? 0}',
                               icon: Icons.assignment_rounded,
                               color: AppTheme.primaryGreen,
+                              onTap: () => context.go('/admin/applications'),
                             ),
-                            _StatCard(
-                              label: 'Approved',
-                              value: '${analytics['approved'] ?? 0}',
-                              icon: Icons.check_circle_rounded,
-                              color: AppTheme.successGreen,
-                            ),
-                            _StatCard(
-                              label: 'Pending Review',
+                            _MetricTile(
+                              label: context.tr('stat_pending_review'),
                               value: '${analytics['pending_review'] ?? 0}',
-                              icon: Icons.hourglass_empty_rounded,
+                              icon: Icons.pending_actions_rounded,
                               color: AppTheme.warningAmber,
+                              onTap: () => context.go(
+                                '/admin/applications',
+                                extra: ApplicationsFilterArgs(
+                                  statuses: const [
+                                    ApplicationStatus.submitted,
+                                    ApplicationStatus.underReview,
+                                  ],
+                                  scopeLabel: context.trs(
+                                    'stat_pending_review',
+                                  ),
+                                ),
+                              ),
                             ),
-                            _StatCard(
-                              label: 'Total Disbursed',
-                              value: '৳${analytics['total_disbursed'] ?? 0}',
-                              icon: Icons.payments_rounded,
-                              color: AppTheme.infoBlue,
+                            _MetricTile(
+                              label: context.tr('stat_approved'),
+                              value: '${analytics['approved'] ?? 0}',
+                              icon: Icons.verified_rounded,
+                              color: AppTheme.successGreen,
+                              onTap: () => context.go(
+                                '/admin/applications',
+                                extra: ApplicationsFilterArgs(
+                                  statuses: const [ApplicationStatus.approved],
+                                  scopeLabel: context.trs('stat_approved'),
+                                ),
+                              ),
+                            ),
+                            _MetricTile(
+                              label: context.tr('stat_rejected'),
+                              value: '${analytics['rejected'] ?? 0}',
+                              icon: Icons.cancel_rounded,
+                              color: AppTheme.errorRed,
+                              onTap: () => context.go(
+                                '/admin/applications',
+                                extra: ApplicationsFilterArgs(
+                                  statuses: const [ApplicationStatus.rejected],
+                                  scopeLabel: context.trs('stat_rejected'),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 28),
-
-                        // ── Quick actions ────────────────────────────────
+                        const SizedBox(height: 18),
+                        _SectionHeader(
+                          title: context.tr('admin_nav_new_applications'),
+                          actionLabel: context.tr('filter_all'),
+                          onAction: () => context.go('/admin/applications'),
+                        ),
+                        const SizedBox(height: 10),
+                        if (provider.isLoadingApplications &&
+                            recentApplications.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(18),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else if (recentApplications.isEmpty)
+                          _EmptyPanel(
+                            message: context.tr('no_applications_found'),
+                          )
+                        else
+                          ...recentApplications.map(
+                            (application) => _RecentApplicationTile(
+                              application: application,
+                              statusLabel: _statusLabel(
+                                context,
+                                application.status,
+                              ),
+                              onTap: () => context.push(
+                                '/admin/applications/${application.id}',
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 18),
                         Text(
-                          'Quick Actions',
+                          context.tr('quick_actions_title'),
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.92,
-                          children: [
-                            _ActionCard(
-                              icon: Icons.assignment_rounded,
-                              title: 'New Applications',
-                              subtitle: 'Review & decide',
-                              gradient: const LinearGradient(
-                                colors: [AppTheme.primaryGreenDark, AppTheme.primaryGreenLight],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/applications'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.fact_check_rounded,
-                              title: 'Document Validation',
-                              subtitle: 'Verify uploads',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF0369A1), Color(0xFF0EA5E9)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/documents'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.credit_card_rounded,
-                              title: 'Approved Cards',
-                              subtitle: 'View issued cards',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFBE185D), Color(0xFFEC4899)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/approved-cards'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.payments_rounded,
-                              title: 'Fund Distribution',
-                              subtitle: 'Disburse funds',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF5B21B6), Color(0xFF8B5CF6)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/distributions/new'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.receipt_long_rounded,
-                              title: 'Distribution Records',
-                              subtitle: 'Disbursement history',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFB45309), Color(0xFFF59E0B)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/distributions'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.people_rounded,
-                              title: 'Citizen Accounts',
-                              subtitle: 'Manage citizens',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/citizens'),
-                            ),
-                            _ActionCard(
-                              icon: Icons.bar_chart_rounded,
-                              title: 'Analytics',
-                              subtitle: 'Program insights',
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF334155), Color(0xFF64748B)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              onTap: () => context.go('/admin/analytics'),
-                            ),
-                          ],
+                        const SizedBox(height: 10),
+                        _ActionRow(
+                          icon: Icons.assignment_rounded,
+                          title: context.tr('admin_nav_new_applications'),
+                          subtitle: context.tr('action_review_decide'),
+                          color: AppTheme.primaryGreen,
+                          onTap: () => context.go('/admin/applications'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.fact_check_rounded,
+                          title: context.tr('admin_nav_document_validation'),
+                          subtitle: context.tr('action_verify_uploads'),
+                          color: AppTheme.infoBlue,
+                          onTap: () => context.go('/admin/documents'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.credit_card_rounded,
+                          title: context.tr('admin_nav_approved_cards'),
+                          subtitle: context.tr('action_view_issued_cards'),
+                          color: AppTheme.successGreen,
+                          onTap: () => context.go('/admin/approved-cards'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.payments_rounded,
+                          title: context.tr('admin_nav_fund_distribution'),
+                          subtitle: context.tr('action_disburse_funds'),
+                          color: AppTheme.warningAmber,
+                          onTap: () => context.go('/admin/distributions/new'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.receipt_long_rounded,
+                          title: context.tr('admin_nav_distribution_records'),
+                          subtitle: context.tr('action_disbursement_history'),
+                          color: AppTheme.accentRed,
+                          onTap: () => context.go('/admin/distributions'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.people_rounded,
+                          title: context.tr('admin_nav_citizen_accounts'),
+                          subtitle: context.tr('action_manage_citizens'),
+                          color: AppTheme.primaryGreenDark,
+                          onTap: () => context.go('/admin/citizens'),
+                        ),
+                        _ActionRow(
+                          icon: Icons.bar_chart_rounded,
+                          title: context.tr('admin_nav_analytics'),
+                          subtitle: context.tr('action_program_insights'),
+                          color: AppTheme.textPrimary,
+                          onTap: () => context.go('/admin/analytics'),
                         ),
                       ],
                     ),
@@ -265,143 +322,321 @@ class _HeroStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white.withValues(alpha: 0.75),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.icon, required this.color});
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: AppTheme.cardShadow,
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
             ),
-            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
   }
 }
 
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.label,
+    required this.value,
     required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.gradient,
+    required this.color,
     required this.onTap,
   });
+
+  final String label;
+  final String value;
   final IconData icon;
-  final String title;
-  final String subtitle;
-  final Gradient gradient;
+  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.divider),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 19),
               ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white.withValues(alpha: 0.75),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final String title;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
             ),
-          ],
+          ),
+        ),
+        TextButton(onPressed: onAction, child: Text(actionLabel)),
+      ],
+    );
+  }
+}
+
+class _RecentApplicationTile extends StatelessWidget {
+  const _RecentApplicationTile({
+    required this.application,
+    required this.statusLabel,
+    required this.onTap,
+  });
+
+  final Application application;
+  final String statusLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = statusColor(application.status);
+    final applicantName = application.applicantName?.trim().isNotEmpty == true
+        ? application.applicantName!.trim()
+        : context.tr('applicant_label');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: AppTheme.divider),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.assignment_rounded, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      applicantName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${application.cardTypeName} - ${DateFormat('dd MMM yyyy').format(application.submittedAt)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusBadge(label: statusLabel, color: color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: AppTheme.divider),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: color, size: 22),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyPanel extends StatelessWidget {
+  const _EmptyPanel({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.divider),
+      ),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: AppTheme.textSecondary,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

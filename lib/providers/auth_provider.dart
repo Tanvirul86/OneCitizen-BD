@@ -32,7 +32,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> register({
-    required String nid,
     required String firstName,
     required String lastName,
     required String email,
@@ -44,17 +43,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      user = await _authService.register(
-        nid: nid,
+      await _authService.register(
         firstName: firstName,
         lastName: lastName,
         email: email,
         phone: phone,
         password: password,
       );
-      // Stay signed in just long enough to complete the profile — the
-      // profile-completion screen logs the user out once it's done.
-      status = AuthStatus.authenticated;
+      // Account created but not signed in — the user must log in manually.
+      status = AuthStatus.unauthenticated;
       notifyListeners();
       return true;
     } catch (e) {

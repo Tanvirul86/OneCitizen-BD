@@ -22,6 +22,14 @@ void _sortByDate(List<Map<String, dynamic>> items, String field) {
   items.sort((a, b) => (b[field] as String? ?? '').compareTo(a[field] as String? ?? ''));
 }
 
+Future<void> _notifyAdmins(FirebaseDatabase database, String message) {
+  return database.ref('admin_notifications').push().set({
+    'message': message,
+    'created_at': ServerValue.timestamp,
+    'is_read': false,
+  });
+}
+
 class CardTypeService {
   CardTypeService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
@@ -95,6 +103,7 @@ class EligibilityService {
       'submitted_at': ServerValue.timestamp,
       ...data,
     });
+    await _notifyAdmins(_database, 'A citizen submitted a new eligibility request.');
     return {
       'status': 'pending_review',
       'message':
@@ -123,7 +132,10 @@ class ApplicationService {
     return Application.fromJson(withKey(id, snapshot.value));
   }
 
-  Future<Application> submitApplication({required String cardTypeId}) async {
+  Future<Application> submitApplication({
+    required String cardTypeId,
+    required Map<String, String> applicationData,
+  }) async {
     final uid = _requireUid();
 
     final cardTypeSnapshot = await _database.ref('card_types').child(cardTypeId).get();
@@ -133,7 +145,7 @@ class ApplicationService {
     final userSnapshot = await _database.ref('users').child(uid).get();
     final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
 
-    final applicationData = {
+    final record = {
       'citizen_id': uid,
       'card_type_id': cardTypeId,
       'card_type_name': cardTypeData['name'],
@@ -142,13 +154,18 @@ class ApplicationService {
           .join(' '),
       'applicant_nid': userData['nid'],
       'applicant_email': userData['email'],
+      'application_data': applicationData,
       'status': 'submitted',
       'submitted_at': ServerValue.timestamp,
       'updated_at': ServerValue.timestamp,
     };
 
     final ref = _applications.push();
-    await ref.set(applicationData);
+    await ref.set(record);
+    await _notifyAdmins(
+      _database,
+      'A citizen submitted a new ${cardTypeData['name']} application.',
+    );
     final snapshot = await ref.get();
     return Application.fromJson(withKey(ref.key!, snapshot.value));
   }
@@ -180,6 +197,7 @@ class DocumentService {
   Future<CitizenDocument> uploadDocument({
     required String docType,
     required String filePath,
+    String? applicationId,
   }) async {
     final uid = _requireUid();
     final file = File(filePath);
@@ -197,13 +215,14 @@ class DocumentService {
         .where((e) => e != null && (e as String).isNotEmpty)
         .join(' ');
 
-    final docId = '${uid}_$docType';
+    final docId = applicationId != null ? '${uid}_${applicationId}_$docType' : '${uid}_$docType';
     await _documents.child(docId).set({
       'citizen_id': uid,
       'doc_type': docType,
       'file_url': fileUrl,
       'uploaded_at': ServerValue.timestamp,
       'citizen_name': citizenName,
+      'application_id': applicationId,
     });
 
     final snapshot = await _documents.child(docId).get();

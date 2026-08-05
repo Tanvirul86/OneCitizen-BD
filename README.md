@@ -54,11 +54,19 @@ This generates `lib/firebase_options.dart`. Enable **Phone Authentication** in t
 
 ### 3. API base URL
 
-Update `lib/config/api_config.dart` if your backend URL differs:
+Without a backend URL, the app uses a local frontend workflow store. It starts
+empty and records only accounts, requests, document reviews, decisions, funds,
+and notifications created through the app on that device. This lets the
+citizen and admin panels exercise the full workflow without seeded demo data.
 
-```dart
-static const String baseUrl = 'https://api.onecitizen.bd/api';
+When your backend is ready, supply its URL (including `/api`) when building or
+running. The app then uses the backend instead of local storage:
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://your-api.example/api
 ```
+
+Use the corresponding staging or production URL in CI/release builds.
 
 ### 4. Run the app
 

@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/models/document.dart';
+import 'package:onecitizen/models/notification.dart';
 import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/auth_service.dart';
 import 'package:onecitizen/services/realtime_db.dart';
@@ -79,9 +80,21 @@ class AdminService {
   }
 
   // ── Document validation ─────────────────────────────────────────────────
-  Future<List<CitizenDocument>> getPendingDocuments() async {
+  Future<List<CitizenDocument>> getDocuments({
+    String? citizenId,
+    String? citizenEmail,
+  }) async {
     final snapshot = await _documents.get();
-    final items = mapChildren(snapshot);
+    var items = mapChildren(snapshot);
+    if (citizenId != null && citizenId.isNotEmpty) {
+      items = items.where((d) => d['citizen_id'] == citizenId).toList();
+    }
+    if (citizenEmail != null && citizenEmail.isNotEmpty) {
+      final query = citizenEmail.toLowerCase();
+      items = items
+          .where((d) => (d['citizen_name'] as String? ?? '').toLowerCase().contains(query))
+          .toList();
+    }
     _sortByDate(items, 'uploaded_at');
     return items.map(CitizenDocument.fromJson).toList();
   }
@@ -183,6 +196,18 @@ class AdminService {
     await _users.child(id).update({'is_active': false});
   }
 
+  Future<void> activateCitizen(String id) async {
+    await _users.child(id).update({'is_active': true});
+  }
+
+  Future<void> freezeCitizen(String id) async {
+    await _users.child(id).update({'is_frozen': true});
+  }
+
+  Future<void> unfreezeCitizen(String id) async {
+    await _users.child(id).update({'is_frozen': false});
+  }
+
   // ── Analytics ────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> getAnalytics() async {
     final applications = mapChildren(await _applications.get());
@@ -224,5 +249,23 @@ class AdminService {
       'pending_document_reviews': pendingDocumentReviews,
       'total_disbursed': totalDisbursed,
     };
+  }
+}
+
+class AdminNotificationService {
+  AdminNotificationService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  final FirebaseDatabase _database;
+
+  DatabaseReference get _adminNotifications => _database.ref('admin_notifications');
+
+  Future<List<AppNotification>> getNotifications() async {
+    final snapshot = await _adminNotifications.get();
+    final items = mapChildren(snapshot);
+    _sortByDate(items, 'created_at');
+    return items.map(AppNotification.fromJson).toList();
+  }
+
+  Future<void> markAsRead(String id) async {
+    await _adminNotifications.child(id).update({'is_read': true});
   }
 }

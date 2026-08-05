@@ -15,7 +15,10 @@ void main() {
   Future<void> openDrawerAndTap(WidgetTester tester, String label) async {
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
-    final finder = find.descendant(of: find.byType(Drawer), matching: find.text(label));
+    final finder = find.descendant(
+      of: find.byType(Drawer),
+      matching: find.text(label),
+    );
     await tester.tap(finder);
     await tester.pumpAndSettle(const Duration(milliseconds: 300));
   }
@@ -30,9 +33,15 @@ void main() {
     await settle(tester);
 
     debugPrint('--- STEP: public home ---');
-    expect(find.text('A Unified Welfare Card\nManagement Platform'), findsOneWidget);
+    expect(
+      find.text('A Unified Welfare Card\nManagement Platform'),
+      findsOneWidget,
+    );
     expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Create an Account'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Create an Account'),
+      findsOneWidget,
+    );
 
     debugPrint('--- STEP: about page ---');
     await tester.tap(find.text('About'));
@@ -46,12 +55,30 @@ void main() {
     await settle(tester);
     expect(find.text('Create Account'), findsOneWidget);
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'NID Number'), '1234567890');
-    await tester.enterText(find.widgetWithText(TextFormField, 'First Name'), 'Test');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Last Name'), 'Citizen');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'test.citizen@example.com');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Phone Number'), '01700000000');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'password123');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'NID Number'),
+      '1234567890',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'First Name'),
+      'Test',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Last Name'),
+      'Citizen',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'test.citizen@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Phone Number'),
+      '01700000000',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      'admin123',
+    );
     await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
     await settle(tester);
 
@@ -69,12 +96,19 @@ void main() {
     debugPrint('--- STEP: apply for card ---');
     await tester.tap(find.text('Apply for Card'));
     await settle(tester);
-    expect(find.text('Apply for a Card'), findsOneWidget);
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    expect(find.text('Apply for Card'), findsWidgets);
+    expect(find.text('Select Card'), findsOneWidget);
+    await tester.tap(find.text('Farmer Card').first);
     await settle(tester);
-    await tester.tap(find.text('Farmer Card').last);
+    expect(find.text('Farmer Card requirements'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Proceed'));
     await settle(tester);
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit Application'));
+    expect(find.text('Farmer Card application form'), findsOneWidget);
+    expect(find.text('Required documents'), findsOneWidget);
+    expect(find.text('Preview Application'), findsOneWidget);
+    await tester.tap(find.byType(BackButton).first);
+    await settle(tester);
+    await tester.tap(find.text('Applications'));
     await settle(tester);
 
     debugPrint('--- STEP: my applications ---');
@@ -106,8 +140,14 @@ void main() {
     expect(find.text('Welcome back'), findsOneWidget);
     await tester.tap(find.text('Admin'));
     await settle(tester);
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'admin@onecitizen.bd');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'password123');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'admin@onecitizen.bd',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Password'),
+      'password123',
+    );
     await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await settle(tester);
 

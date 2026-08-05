@@ -65,6 +65,13 @@
         ".read": "auth != null && (data.child('citizen_id').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.exists() && newData.child('citizen_id').val() === auth.uid))"
       }
+    },
+
+    "admin_notifications": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$id": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists())"
+      }
     }
   }
 }

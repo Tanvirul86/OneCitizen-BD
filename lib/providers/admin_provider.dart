@@ -6,7 +6,8 @@ import 'package:onecitizen/models/user.dart';
 import 'package:onecitizen/services/admin_services.dart';
 
 class AdminProvider extends ChangeNotifier {
-  AdminProvider({required AdminService adminService}) : _adminService = adminService;
+  AdminProvider({required AdminService adminService})
+    : _adminService = adminService;
 
   final AdminService _adminService;
 
@@ -16,12 +17,18 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingApplications = false;
   String? applicationsError;
 
-  Future<void> loadApplications({String? cardTypeId, ApplicationStatus? status}) async {
+  Future<void> loadApplications({
+    String? cardTypeId,
+    ApplicationStatus? status,
+  }) async {
     isLoadingApplications = true;
     applicationsError = null;
     notifyListeners();
     try {
-      applications = await _adminService.getApplications(cardTypeId: cardTypeId, status: status);
+      applications = await _adminService.getApplications(
+        cardTypeId: cardTypeId,
+        status: status,
+      );
     } catch (e) {
       applicationsError = e.toString();
     } finally {
@@ -58,7 +65,10 @@ class AdminProvider extends ChangeNotifier {
 
   Future<bool> rejectApplication(String id, {required String reason}) async {
     try {
-      selectedApplication = await _adminService.rejectApplication(id, reason: reason);
+      selectedApplication = await _adminService.rejectApplication(
+        id,
+        reason: reason,
+      );
       _replaceApplication(selectedApplication!);
       notifyListeners();
       return true;
@@ -75,16 +85,24 @@ class AdminProvider extends ChangeNotifier {
   }
 
   // Document validation
-  List<CitizenDocument> pendingDocuments = [];
+  List<CitizenDocument> documents = [];
   bool isLoadingDocuments = false;
   String? documentsError;
 
-  Future<void> loadPendingDocuments() async {
+  List<CitizenDocument> get pendingDocuments =>
+      documents.where((d) => d.isValid == null).toList();
+  List<CitizenDocument> get reviewedDocuments =>
+      documents.where((d) => d.isValid != null).toList();
+
+  Future<void> loadDocuments({String? citizenId, String? citizenEmail}) async {
     isLoadingDocuments = true;
     documentsError = null;
     notifyListeners();
     try {
-      pendingDocuments = await _adminService.getPendingDocuments();
+      documents = await _adminService.getDocuments(
+        citizenId: citizenId,
+        citizenEmail: citizenEmail,
+      );
     } catch (e) {
       documentsError = e.toString();
     } finally {
@@ -93,11 +111,19 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> validateDocument(String id, {required bool isValid, String? remark}) async {
+  Future<bool> validateDocument(
+    String id, {
+    required bool isValid,
+    String? remark,
+  }) async {
     try {
-      final doc = await _adminService.validateDocument(id, isValid: isValid, remark: remark);
-      final idx = pendingDocuments.indexWhere((d) => d.id == id);
-      if (idx >= 0) pendingDocuments[idx] = doc;
+      final doc = await _adminService.validateDocument(
+        id,
+        isValid: isValid,
+        remark: remark,
+      );
+      final idx = documents.indexWhere((d) => d.id == id);
+      if (idx >= 0) documents[idx] = doc;
       notifyListeners();
       return true;
     } catch (e) {
@@ -112,12 +138,42 @@ class AdminProvider extends ChangeNotifier {
   bool isLoadingDistributions = false;
   String? distributionsError;
 
-  Future<void> loadDistributions({String? cardTypeId, DistributionMethod? method}) async {
+  /// Once an application receives a distribution, it can't receive another
+  /// until this many days have passed.
+  static const distributionCooldownDays = 30;
+
+  DateTime? lastDistributionDateFor(String applicationId) {
+    final dates = distributions
+        .where((d) => d.applicationId == applicationId)
+        .map((d) => d.distributionDate);
+    if (dates.isEmpty) return null;
+    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
+  bool isEligibleForDistribution(String applicationId) {
+    final last = lastDistributionDateFor(applicationId);
+    if (last == null) return true;
+    return DateTime.now().difference(last).inDays >= distributionCooldownDays;
+  }
+
+  DateTime? eligibleAgainOn(String applicationId) {
+    return lastDistributionDateFor(
+      applicationId,
+    )?.add(const Duration(days: distributionCooldownDays));
+  }
+
+  Future<void> loadDistributions({
+    String? cardTypeId,
+    DistributionMethod? method,
+  }) async {
     isLoadingDistributions = true;
     distributionsError = null;
     notifyListeners();
     try {
-      distributions = await _adminService.getDistributions(cardTypeId: cardTypeId, method: method);
+      distributions = await _adminService.getDistributions(
+        cardTypeId: cardTypeId,
+        method: method,
+      );
     } catch (e) {
       distributionsError = e.toString();
     } finally {
@@ -132,6 +188,12 @@ class AdminProvider extends ChangeNotifier {
     required double amount,
     String? note,
   }) async {
+    if (!isEligibleForDistribution(applicationId)) {
+      distributionsError =
+          'This application is on a $distributionCooldownDays-day cooldown since its last distribution.';
+      notifyListeners();
+      return false;
+    }
     try {
       final dist = await _adminService.createDistribution(
         applicationId: applicationId,
@@ -147,6 +209,39 @@ class AdminProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  /// Pays the same fixed [amount] to every approved application of
+  /// [cardTypeId] in one action, instead of disbursing one holder at a time.
+  Future<({int success, int failed})> distributeToCardType({
+    required String cardTypeId,
+    required double amount,
+    required DistributionMethod method,
+    String? note,
+  }) async {
+    final targets = applications.where(
+      (a) =>
+          a.cardTypeId == cardTypeId &&
+          a.status == ApplicationStatus.approved &&
+          isEligibleForDistribution(a.id),
+    );
+
+    var success = 0;
+    var failed = 0;
+    for (final app in targets) {
+      final ok = await createDistribution(
+        applicationId: app.id,
+        method: method,
+        amount: amount,
+        note: note,
+      );
+      if (ok) {
+        success++;
+      } else {
+        failed++;
+      }
+    }
+    return (success: success, failed: failed);
   }
 
   // Citizen accounts
@@ -171,6 +266,42 @@ class AdminProvider extends ChangeNotifier {
   Future<bool> deactivateCitizen(String id) async {
     try {
       await _adminService.deactivateCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> activateCitizen(String id) async {
+    try {
+      await _adminService.activateCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> freezeCitizen(String id) async {
+    try {
+      await _adminService.freezeCitizen(id);
+      await loadCitizens();
+      return true;
+    } catch (e) {
+      citizensError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> unfreezeCitizen(String id) async {
+    try {
+      await _adminService.unfreezeCitizen(id);
       await loadCitizens();
       return true;
     } catch (e) {
