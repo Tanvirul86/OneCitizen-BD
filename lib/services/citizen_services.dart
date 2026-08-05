@@ -138,6 +138,17 @@ class ApplicationService {
   }) async {
     final uid = _requireUid();
 
+    final existingSnapshot = await _applications.orderByChild('citizen_id').equalTo(uid).get();
+    final hasActiveApplication = mapChildren(existingSnapshot).any(
+      (a) => a['card_type_id'] == cardTypeId && a['status'] != 'rejected',
+    );
+    if (hasActiveApplication) {
+      throw AuthException(
+        'You already have an application for this card type. '
+        'Wait for it to be reviewed before applying again.',
+      );
+    }
+
     final cardTypeSnapshot = await _database.ref('card_types').child(cardTypeId).get();
     if (!cardTypeSnapshot.exists) throw AuthException('Selected card type was not found.');
     final cardTypeData = Map<String, dynamic>.from(cardTypeSnapshot.value as Map);
