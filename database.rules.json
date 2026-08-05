@@ -13,6 +13,9 @@
         },
         "is_active": {
           ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val() || (!data.exists() && newData.val() === true)"
+        },
+        "is_frozen": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val() || (!data.exists() && newData.val() === false)"
         }
       }
     },
