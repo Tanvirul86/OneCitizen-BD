@@ -242,6 +242,14 @@ class DocumentService {
         .where((e) => e != null && (e as String).isNotEmpty)
         .join(' ');
 
+    String? cardTypeId;
+    if (applicationId != null) {
+      final applicationSnapshot = await _database.ref('applications').child(applicationId).get();
+      if (applicationSnapshot.exists) {
+        cardTypeId = (applicationSnapshot.value as Map)['card_type_id'] as String?;
+      }
+    }
+
     final docId = applicationId != null ? '${uid}_${applicationId}_$docType' : '${uid}_$docType';
     await _documents.child(docId).set({
       'citizen_id': uid,
@@ -249,7 +257,9 @@ class DocumentService {
       'file_url': fileUrl,
       'uploaded_at': ServerValue.timestamp,
       'citizen_name': citizenName,
+      'citizen_email': userData['email'],
       'application_id': applicationId,
+      'card_type_id': cardTypeId,
     });
 
     final snapshot = await _documents.child(docId).get();
