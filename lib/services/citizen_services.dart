@@ -173,6 +173,22 @@ class ApplicationService {
 
     final ref = _applications.push();
     await ref.set(record);
+
+    // Documents are uploaded one at a time during the apply wizard, before
+    // this application exists, so they aren't linked to it yet — attach
+    // whichever of the card type's required documents the citizen already
+    // has on file (keyed by `${uid}_$docType`, no application id) now that
+    // there's an application id to attach them to.
+    final requiredDocuments = (cardTypeData['required_documents'] as List?) ?? [];
+    final documentsRef = _database.ref('documents');
+    for (final docType in requiredDocuments) {
+      final docRef = documentsRef.child('${uid}_$docType');
+      final docSnapshot = await docRef.get();
+      if (docSnapshot.exists) {
+        await docRef.update({'application_id': ref.key, 'card_type_id': cardTypeId});
+      }
+    }
+
     await _notifyAdmins(
       _database,
       'A citizen submitted a new ${cardTypeData['name']} application.',
