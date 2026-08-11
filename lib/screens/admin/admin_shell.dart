@@ -4,7 +4,6 @@ import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/admin_notification_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
-import 'package:onecitizen/providers/locale_provider.dart';
 import 'package:onecitizen/widgets/admin_quick_search.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
@@ -16,14 +15,46 @@ class AdminShell extends StatelessWidget {
   final Widget child;
 
   static const _items = [
-    (path: '/admin', icon: Icons.dashboard_rounded, labelKey: 'admin_nav_dashboard'),
-    (path: '/admin/applications', icon: Icons.assignment_rounded, labelKey: 'admin_nav_new_applications'),
-    (path: '/admin/documents', icon: Icons.fact_check_rounded, labelKey: 'admin_nav_document_validation'),
-    (path: '/admin/approved-cards', icon: Icons.credit_card_rounded, labelKey: 'admin_nav_approved_cards'),
-    (path: '/admin/distributions/new', icon: Icons.payments_rounded, labelKey: 'admin_nav_fund_distribution'),
-    (path: '/admin/distributions', icon: Icons.receipt_long_rounded, labelKey: 'admin_nav_distribution_records'),
-    (path: '/admin/citizens', icon: Icons.people_rounded, labelKey: 'admin_nav_citizen_accounts'),
-    (path: '/admin/analytics', icon: Icons.bar_chart_rounded, labelKey: 'admin_nav_analytics'),
+    (
+      path: '/admin',
+      icon: Icons.dashboard_rounded,
+      labelKey: 'admin_nav_dashboard',
+    ),
+    (
+      path: '/admin/applications',
+      icon: Icons.assignment_rounded,
+      labelKey: 'admin_nav_new_applications',
+    ),
+    (
+      path: '/admin/documents',
+      icon: Icons.fact_check_rounded,
+      labelKey: 'admin_nav_document_validation',
+    ),
+    (
+      path: '/admin/approved-cards',
+      icon: Icons.credit_card_rounded,
+      labelKey: 'admin_nav_approved_cards',
+    ),
+    (
+      path: '/admin/distributions/new',
+      icon: Icons.payments_rounded,
+      labelKey: 'admin_nav_fund_distribution',
+    ),
+    (
+      path: '/admin/distributions',
+      icon: Icons.receipt_long_rounded,
+      labelKey: 'admin_nav_distribution_records',
+    ),
+    (
+      path: '/admin/citizens',
+      icon: Icons.people_rounded,
+      labelKey: 'admin_nav_citizen_accounts',
+    ),
+    (
+      path: '/admin/analytics',
+      icon: Icons.bar_chart_rounded,
+      labelKey: 'admin_nav_analytics',
+    ),
   ];
 
   @override
@@ -33,10 +64,14 @@ class AdminShell extends StatelessWidget {
     final user = context.watch<AuthProvider>().user;
     final notifProvider = context.watch<AdminNotificationProvider>();
 
-    final currentTitle = context.tr(_items.firstWhere(
-      (item) => item.path == location,
-      orElse: () => _items.first,
-    ).labelKey);
+    final currentTitle = context.tr(
+      _items
+          .firstWhere(
+            (item) => item.path == location,
+            orElse: () => _items.first,
+          )
+          .labelKey,
+    );
 
     return PopScope(
       canPop: location == '/admin',
@@ -44,124 +79,141 @@ class AdminShell extends StatelessWidget {
         if (!didPop) context.go('/admin');
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const AppLogo(size: 28, onDark: true, linkToLanding: true),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                currentTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        appBar: AppBar(
+          title: Row(
+            children: [
+              const AppLogo(size: 28, onDark: true, linkToLanding: true),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  currentTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: isCompact
-            ? [
-                const AdminQuickSearchButton(),
-                IconButton(
-                  icon: const Icon(Icons.translate_rounded),
-                  tooltip: 'Change language',
-                  onPressed: () => context.read<LocaleProvider>().toggle(),
-                ),
-                _CompactAdminMenu(unreadCount: notifProvider.unreadCount),
-              ]
-            : [
-                const LanguageToggle(onDark: true),
-                const SizedBox(width: 4),
-                const AdminQuickSearchButton(),
-                _NotificationsButton(unreadCount: notifProvider.unreadCount),
-                IconButton(
-                  icon: const Icon(Icons.logout_rounded),
-                  tooltip: context.tr('logout'),
-                  onPressed: () async {
-                    await context.read<AuthProvider>().logout();
-                    if (context.mounted) context.go('/login');
-                  },
-                ),
-              ],
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
-              padding: const EdgeInsets.fromLTRB(20, 52, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const AppLogo(size: 52, onDark: true, linkToLanding: true),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'OneCitizen BD',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName : context.tr('administrator'),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      context.tr('admin_badge'),
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
+            ],
+          ),
+          actions: isCompact
+              ? [
+                  const AdminQuickSearchButton(),
+                  const LanguageToggle(onDark: true),
+                  const SizedBox(width: 4),
+                  _NotificationsButton(unreadCount: notifProvider.unreadCount),
+                ]
+              : [
+                  const LanguageToggle(onDark: true),
+                  const SizedBox(width: 4),
+                  const AdminQuickSearchButton(),
+                  _NotificationsButton(unreadCount: notifProvider.unreadCount),
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded),
+                    tooltip: context.tr('logout'),
+                    onPressed: () async {
+                      await context.read<AuthProvider>().logout();
+                      if (context.mounted) context.go('/login');
+                    },
                   ),
                 ],
-              ),
-            ),
-            // Menu items
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                children: [
-                  for (final item in _items) ...[
-                    _DrawerItem(
-                      icon: item.icon,
-                      label: context.tr(item.labelKey),
-                      selected: location == item.path,
-                      onTap: () {
-                        Navigator.pop(context);
-                        context.go(item.path);
-                      },
+        ),
+        drawer: Drawer(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 52, 20, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppLogo(size: 52, onDark: true, linkToLanding: true),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'OneCitizen BD',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.fullName.isNotEmpty == true
+                          ? user!.fullName
+                          : context.tr('administrator'),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        context.tr('admin_badge'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-            // Footer
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: AppTheme.accentRed),
-              title: Text(context.tr('logout'), style: const TextStyle(color: AppTheme.accentRed)),
-              onTap: () async {
-                Navigator.pop(context);
-                await context.read<AuthProvider>().logout();
-                if (context.mounted) context.go('/login');
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
+              // Menu items
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    for (final item in _items) ...[
+                      _DrawerItem(
+                        icon: item.icon,
+                        label: context.tr(item.labelKey),
+                        selected: location == item.path,
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go(item.path);
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Footer
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(
+                  Icons.logout_rounded,
+                  color: AppTheme.accentRed,
+                ),
+                title: Text(
+                  context.tr('logout'),
+                  style: const TextStyle(color: AppTheme.accentRed),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await context.read<AuthProvider>().logout();
+                  if (context.mounted) context.go('/login');
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
-      ),
         body: child,
       ),
     );
@@ -208,56 +260,6 @@ class _NotificationsButton extends StatelessWidget {
     );
   }
 }
-
-class _CompactAdminMenu extends StatelessWidget {
-  const _CompactAdminMenu({required this.unreadCount});
-
-  final int unreadCount;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<_AdminMenuAction>(
-      tooltip: 'More actions',
-      icon: Badge(
-        isLabelVisible: unreadCount > 0,
-        label: Text('$unreadCount'),
-        child: const Icon(Icons.more_vert_rounded),
-      ),
-      onSelected: (action) async {
-        switch (action) {
-          case _AdminMenuAction.notifications:
-            context.go('/admin/notifications');
-          case _AdminMenuAction.logout:
-            await context.read<AuthProvider>().logout();
-            if (context.mounted) context.go('/login');
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: _AdminMenuAction.notifications,
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.notifications_outlined),
-            title: Text(context.tr('notifications_title')),
-          ),
-        ),
-        PopupMenuItem(
-          value: _AdminMenuAction.logout,
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.logout_rounded, color: AppTheme.accentRed),
-            title: Text(
-              context.tr('logout'),
-              style: const TextStyle(color: AppTheme.accentRed),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-enum _AdminMenuAction { notifications, logout }
 
 class _DrawerItem extends StatelessWidget {
   const _DrawerItem({

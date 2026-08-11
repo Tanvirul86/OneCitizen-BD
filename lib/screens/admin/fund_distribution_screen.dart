@@ -7,6 +7,7 @@ import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/utils/numeric_input.dart';
 import 'package:provider/provider.dart';
 
 class FundDistributionScreen extends StatefulWidget {
@@ -23,7 +24,6 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
   final _noteController = TextEditingController();
   String? _selectedApplicationId;
   String? _selectedCardTypeId;
-  DistributionMethod _method = DistributionMethod.online;
   bool _bulkMode = false;
   bool _isSubmitting = false;
   int _formResetCount = 0;
@@ -82,7 +82,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     setState(() => _isSubmitting = true);
     final success = await provider.createDistribution(
       applicationId: _selectedApplicationId!,
-      method: _method,
+      method: DistributionMethod.online,
       amount: double.parse(_amountController.text.trim()),
       note: _noteController.text.trim().isEmpty
           ? null
@@ -153,7 +153,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     final result = await provider.distributeToCardType(
       cardTypeId: cardType.id,
       amount: amount,
-      method: _method,
+      method: DistributionMethod.online,
       note: _noteController.text.trim().isEmpty
           ? null
           : _noteController.text.trim(),
@@ -256,11 +256,12 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
             onChanged: (v) => setState(() => _selectedApplicationId = v),
           ),
           const SizedBox(height: 16),
-          _methodSelector(),
+          _onlineMethodBadge(context),
           const SizedBox(height: 16),
           TextFormField(
             controller: _amountController,
             keyboardType: TextInputType.number,
+            inputFormatters: decimalInputFormatters,
             decoration: InputDecoration(
               labelText: context.tr('amount_bdt_label'),
               prefixIcon: const Icon(Icons.money),
@@ -346,11 +347,12 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
           },
         ),
         const SizedBox(height: 16),
-        _methodSelector(),
+        _onlineMethodBadge(context),
         const SizedBox(height: 16),
         TextFormField(
           controller: _bulkAmountController,
           keyboardType: TextInputType.number,
+          inputFormatters: decimalInputFormatters,
           decoration: InputDecoration(
             labelText: context.tr('amount_bdt_label'),
             prefixIcon: const Icon(Icons.money),
@@ -434,22 +436,33 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     );
   }
 
-  Widget _methodSelector() {
-    return SegmentedButton<DistributionMethod>(
-      segments: [
-        ButtonSegment(
-          value: DistributionMethod.online,
-          label: Text(context.tr('online_method_full')),
-          icon: const Icon(Icons.account_balance_wallet),
+  Widget _onlineMethodBadge(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppTheme.primaryGreen.withValues(alpha: 0.25),
         ),
-        ButtonSegment(
-          value: DistributionMethod.offline,
-          label: Text(context.tr('offline')),
-          icon: const Icon(Icons.storefront),
-        ),
-      ],
-      selected: {_method},
-      onSelectionChanged: (s) => setState(() => _method = s.first),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.account_balance_wallet,
+            color: AppTheme.primaryGreen,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Text(
+            context.tr('online_method_full'),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryGreen,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

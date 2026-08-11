@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/utils/numeric_input.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +59,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.errorMessage ?? context.trs('registration_failed')),
+          content: Text(
+            auth.errorMessage ?? context.trs('registration_failed'),
+          ),
           backgroundColor: AppTheme.errorRed,
         ),
       );
@@ -92,10 +95,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         IconButton(
                           onPressed: () => context.pop(),
-                          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Colors.white,
+                          ),
                         ),
                         const Spacer(),
-                        const AppLogo(size: 40, onDark: true, linkToLanding: true),
+                        const AppLogo(
+                          size: 40,
+                          onDark: true,
+                          linkToLanding: true,
+                        ),
                         const SizedBox(width: 10),
                         const LanguageToggle(onDark: true),
                       ],
@@ -135,16 +145,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Expanded(
                             child: TextFormField(
                               controller: _firstNameController,
-                              decoration: InputDecoration(labelText: context.tr('first_name_label'), prefixIcon: const Icon(Icons.person_outline_rounded)),
-                              validator: (v) => (v == null || v.isEmpty) ? context.trs('field_required') : null,
+                              decoration: InputDecoration(
+                                labelText: context.tr('first_name_label'),
+                                prefixIcon: const Icon(
+                                  Icons.person_outline_rounded,
+                                ),
+                              ),
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? context.trs('field_required')
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextFormField(
                               controller: _lastNameController,
-                              decoration: InputDecoration(labelText: context.tr('last_name_label')),
-                              validator: (v) => (v == null || v.isEmpty) ? context.trs('field_required') : null,
+                              decoration: InputDecoration(
+                                labelText: context.tr('last_name_label'),
+                              ),
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? context.trs('field_required')
+                                  : null,
                             ),
                           ),
                         ],
@@ -153,15 +174,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(labelText: context.tr('email_label'), prefixIcon: const Icon(Icons.email_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? context.trs('email_required_register') : null,
+                        decoration: InputDecoration(
+                          labelText: context.tr('email_label'),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                        ),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? context.trs('email_required_register')
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(labelText: context.tr('phone_label'), prefixIcon: const Icon(Icons.phone_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? context.trs('phone_required') : null,
+                        inputFormatters: integerInputFormatters,
+                        decoration: InputDecoration(
+                          labelText: context.tr('phone_label'),
+                          prefixIcon: const Icon(Icons.phone_outlined),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return context.trs('phone_required');
+                          }
+                          if (int.tryParse(v) == null) {
+                            return context.trs('numbers_only_error');
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -172,13 +210,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: const Icon(Icons.lock_outline_rounded),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _obscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: AppTheme.textSecondary,
                             ),
-                            onPressed: () => setState(() => _obscure = !_obscure),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
                           ),
                         ),
-                        validator: (v) => (v == null || v.length < 6) ? context.trs('password_min_length') : null,
+                        validator: (v) => (v == null || v.length < 6)
+                            ? context.trs('password_min_length')
+                            : null,
                       ),
                       const SizedBox(height: 28),
                       SizedBox(
@@ -186,17 +229,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _register,
                           style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                           child: _isLoading
                               ? const SizedBox(
                                   height: 22,
                                   width: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : Text(
                                   context.tr('create_account'),
-                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
                                 ),
                         ),
                       ),
@@ -206,7 +257,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           Text(
                             context.tr('already_have_account'),
-                            style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary, fontSize: 14),
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppTheme.textSecondary,
+                              fontSize: 14,
+                            ),
                           ),
                           GestureDetector(
                             onTap: () => context.pop(),
