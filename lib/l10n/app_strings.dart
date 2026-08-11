@@ -975,6 +975,10 @@ class AppStrings {
       AppLanguage.en: 'This field is required',
       AppLanguage.bn: 'এই ঘরটি পূরণ করা আবশ্যক',
     },
+    'numbers_only_error': {
+      AppLanguage.en: 'Numbers only',
+      AppLanguage.bn: 'শুধু সংখ্যা দিন',
+    },
     'loading_location_data': {
       AppLanguage.en: 'Loading Bangladesh location data...',
       AppLanguage.bn: 'বাংলাদেশের ঠিকানার তথ্য লোড হচ্ছে...',
