@@ -9,26 +9,24 @@ import 'package:onecitizen/providers/distribution_provider.dart';
 import 'package:onecitizen/providers/locale_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/services/admin_services.dart';
-import 'package:onecitizen/services/api_client.dart';
 import 'package:onecitizen/services/citizen_services.dart';
 import 'package:provider/provider.dart';
 
 class OneCitizenApp extends StatelessWidget {
-  const OneCitizenApp({super.key, required this.authProvider, required this.apiClient});
+  const OneCitizenApp({super.key, required this.authProvider});
 
   final AuthProvider authProvider;
-  final ApiClient apiClient;
 
   @override
   Widget build(BuildContext context) {
-    final cardTypeService = CardTypeService(apiClient: apiClient);
-    final applicationService = ApplicationService(apiClient: apiClient);
-    final eligibilityService = EligibilityService(apiClient: apiClient);
-    final documentService = DocumentService(apiClient: apiClient);
-    final distributionService = DistributionService(apiClient: apiClient);
-    final notificationService = NotificationService(apiClient: apiClient);
-    final adminService = AdminService(apiClient: apiClient);
-    final adminNotificationService = AdminNotificationService(apiClient: apiClient);
+    final cardTypeService = CardTypeService();
+    final applicationService = ApplicationService();
+    final eligibilityService = EligibilityService();
+    final documentService = DocumentService();
+    final distributionService = DistributionService();
+    final notificationService = NotificationService();
+    final adminService = AdminService();
+    final adminNotificationService = AdminNotificationService();
 
     return MultiProvider(
       providers: [

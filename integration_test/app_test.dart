@@ -3,10 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:onecitizen/app.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
-import 'package:onecitizen/services/api_client.dart';
 import 'package:onecitizen/services/auth_service.dart';
-import 'package:onecitizen/services/storage_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,19 +24,10 @@ void main() {
   }
 
   testWidgets('full citizen + admin walkthrough', (tester) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    final storageService = StorageService();
-    await storageService.clearTokens();
-    final apiClient = ApiClient(storageService: storageService);
-    final authService = AuthService(
-      apiClient: apiClient,
-      storageService: storageService,
-    );
-    final authProvider = AuthProvider(authService: authService);
+    final authProvider = AuthProvider(authService: AuthService());
     await authProvider.checkSession();
 
-    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider, apiClient: apiClient));
+    await tester.pumpWidget(OneCitizenApp(authProvider: authProvider));
     // Splash screen waits 2s before redirecting.
     await tester.pump(const Duration(seconds: 3));
     await settle(tester);

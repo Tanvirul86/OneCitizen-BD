@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "826851356915",
+    "firebase_url": "https://onecitizen-bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "onecitizen-bd",
+    "storage_bucket": "onecitizen-bd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:826851356915:android:13e07c84e4cf9c9c8bc786",
+        "android_client_info": {
+          "package_name": "bd.onecitizen.onecitizen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7nPSnkrDL4_H3wn3TfZU6-Am54826vo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

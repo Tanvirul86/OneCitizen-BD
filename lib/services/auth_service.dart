@@ -1,17 +1,26 @@
-import 'package:onecitizen/config/api_config.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:onecitizen/models/user.dart';
-import 'package:onecitizen/services/api_client.dart';
-import 'package:onecitizen/services/storage_service.dart';
+import 'package:onecitizen/services/realtime_db.dart';
+
+/// Thrown for any auth/profile failure so providers can show `message`
+/// directly without unwrapping a provider-specific exception type.
+class AuthException implements Exception {
+  AuthException(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
 
 class AuthService {
-  AuthService({
-    required ApiClient apiClient,
-    required StorageService storageService,
-  })  : _apiClient = apiClient,
-        _storageService = storageService;
+  AuthService({FirebaseAuth? firebaseAuth, FirebaseDatabase? database})
+      : _auth = firebaseAuth ?? FirebaseAuth.instance,
+        _database = database ?? appDatabase;
 
-  final ApiClient _apiClient;
-  final StorageService _storageService;
+  final FirebaseAuth _auth;
+  final FirebaseDatabase _database;
+
+  DatabaseReference get _users => _database.ref('users');
 
   /// Creates the account only — does not sign the user in. They must call
   /// [login] afterward with the credentials they just registered.
@@ -22,16 +31,26 @@ class AuthService {
     required String phone,
     required String password,
   }) async {
-    await _apiClient.dio.post(
-      ApiConfig.register,
-      data: {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = credential.user!.uid;
+      await _users.child(uid).set({
+        'email': email,
         'first_name': firstName,
         'last_name': lastName,
-        'email': email,
         'phone': phone,
-        'password': password,
-      },
-    );
+        'role': 'citizen',
+        'verified': false,
+        'is_active': true,
+        'created_at': ServerValue.timestamp,
+      });
+      await _auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_authErrorMessage(e));
+    }
   }
 
   Future<User> login({
@@ -39,53 +58,102 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final response = await _apiClient.dio.post(
-      ApiConfig.login,
-      data: {
-        'role': roleToString(role),
-        'email': email,
-        'password': password,
-      },
-    );
-    final data = response.data as Map<String, dynamic>;
-    await _storageService.saveToken(data['access'] as String);
-    return User.fromJson(data['user'] as Map<String, dynamic>);
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = credential.user!.uid;
+      final snapshot = await _users.child(uid).get();
+      if (!snapshot.exists) {
+        await _auth.signOut();
+        throw AuthException('Invalid email or password.');
+      }
+      final user = User.fromJson(withKey(uid, snapshot.value));
+      if (user.role != role) {
+        await _auth.signOut();
+        throw AuthException('Invalid email or password.');
+      }
+      if (!user.isActive) {
+        await _auth.signOut();
+        throw AuthException('This account has been deactivated.');
+      }
+      if (user.isFrozen) {
+        await _auth.signOut();
+        throw AuthException('This account has been frozen. Please contact support.');
+      }
+      return user;
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(_authErrorMessage(e));
+    }
   }
 
   Future<User> fetchProfile() async {
-    final response = await _apiClient.dio.get(ApiConfig.citizenProfile);
-    return User.fromJson(response.data as Map<String, dynamic>);
+    final uid = _requireUid();
+    final snapshot = await _users.child(uid).get();
+    if (!snapshot.exists) throw AuthException('Profile not found.');
+    return User.fromJson(withKey(uid, snapshot.value));
   }
 
   Future<User> updateProfile(Map<String, dynamic> data) async {
-    final response = await _apiClient.dio.patch(
-      ApiConfig.citizenProfile,
-      data: data,
-    );
-    return User.fromJson(response.data as Map<String, dynamic>);
+    final uid = _requireUid();
+    await _users.child(uid).update(data);
+    final snapshot = await _users.child(uid).get();
+    return User.fromJson(withKey(uid, snapshot.value));
   }
 
   Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
   }) async {
-    await _apiClient.dio.patch(
-      ApiConfig.changePassword,
-      data: {'old_password': oldPassword, 'new_password': newPassword},
-    );
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw AuthException('You must be signed in to change your password.');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: oldPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        e.code == 'wrong-password' || e.code == 'invalid-credential'
+            ? 'Current password is incorrect.'
+            : _authErrorMessage(e),
+      );
+    }
   }
 
   Future<void> logout() async {
-    try {
-      await _apiClient.dio.post(ApiConfig.logout);
-    } catch (_) {
-      // best-effort — clear local session regardless
-    }
-    await _storageService.clearTokens();
+    await _auth.signOut();
   }
 
   Future<bool> hasValidSession() async {
-    final token = await _storageService.getAccessToken();
-    return token != null && token.isNotEmpty;
+    return _auth.currentUser != null;
+  }
+
+  String _requireUid() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) throw AuthException('You must be signed in.');
+    return uid;
+  }
+
+  String _authErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Invalid email or password.';
+      case 'email-already-in-use':
+        return 'An account with this email already exists.';
+      case 'weak-password':
+        return 'Password is too weak.';
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      default:
+        return e.message ?? 'Something went wrong. Please try again.';
+    }
   }
 }
