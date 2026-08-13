@@ -4,6 +4,7 @@ import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:provider/provider.dart';
 
 class DocumentUploadScreen extends StatefulWidget {
@@ -342,14 +343,7 @@ class _DocumentCard extends StatelessWidget {
               children: [
                 if (isUploaded && document?.fileUrl != null) ...[
                   TextButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.trs('opening_document_preview')),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
+                    onPressed: () => _viewDocument(context, document!),
                     icon: const Icon(Icons.visibility_outlined, size: 16),
                     label: Text(context.tr('view_action'), style: const TextStyle(fontSize: 13)),
                     style: TextButton.styleFrom(
@@ -393,4 +387,36 @@ class _DocumentCard extends StatelessWidget {
       ),
     );
   }
+}
+
+void _viewDocument(BuildContext context, CitizenDocument document) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          title: Text(documentTypeLabel(document.docType)),
+        ),
+        body: SafeArea(
+          child: InteractiveViewer(
+            minScale: 0.8,
+            maxScale: 5,
+            child: Center(
+              child: documentImage(
+                document.fileUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image,
+                  color: Colors.white54,
+                  size: 64,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

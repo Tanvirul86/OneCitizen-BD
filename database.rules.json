@@ -57,7 +57,12 @@
       ".indexOn": "citizen_id",
       "$id": {
         ".read": "auth != null && (data.child('citizen_id').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (data.exists() && data.child('citizen_id').val() === auth.uid && newData.child('citizen_id').val() === data.child('citizen_id').val() && newData.child('message').val() === data.child('message').val()))"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (data.exists() && data.child('citizen_id').val() === auth.uid && newData.child('citizen_id').val() === data.child('citizen_id').val() && newData.child('message').val() === data.child('message').val() && newData.child('created_at').val() === data.child('created_at').val()))",
+        "citizen_id": { ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val()" },
+        "message": { ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val()" },
+        "created_at": { ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val()" },
+        "is_read": { ".validate": "newData.isBoolean()" },
+        "$other": { ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin'" }
       }
     },
 
