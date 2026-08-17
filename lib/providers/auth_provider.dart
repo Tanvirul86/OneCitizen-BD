@@ -72,7 +72,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      user = await _authService.login(role: role, email: email, password: password);
+      user = await _authService.login(
+        role: role,
+        email: email,
+        password: password,
+      );
       status = AuthStatus.authenticated;
       notifyListeners();
       return true;
@@ -107,6 +111,18 @@ class AuthProvider extends ChangeNotifier {
         oldPassword: oldPassword,
         newPassword: newPassword,
       );
+      return true;
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> sendPasswordResetEmail(String email) async {
+    errorMessage = null;
+    try {
+      await _authService.sendPasswordResetEmail(email);
       return true;
     } catch (e) {
       errorMessage = e.toString();

@@ -189,6 +189,30 @@ class AppStrings {
       AppLanguage.en: 'Please enter your password',
       AppLanguage.bn: 'অনুগ্রহ করে আপনার পাসওয়ার্ড দিন',
     },
+    'forgot_password_action': {
+      AppLanguage.en: 'Forgot password?',
+      AppLanguage.bn: 'পাসওয়ার্ড ভুলে গেছেন?',
+    },
+    'forgot_password_title': {
+      AppLanguage.en: 'Reset Password',
+      AppLanguage.bn: 'পাসওয়ার্ড রিসেট করুন',
+    },
+    'forgot_password_hint': {
+      AppLanguage.en: 'Enter your account email — we\'ll send you a link to reset your password.',
+      AppLanguage.bn: 'আপনার account এর ইমেইল দিন — আমরা পাসওয়ার্ড রিসেট করার একটি লিংক পাঠাবো।',
+    },
+    'send_reset_link_action': {
+      AppLanguage.en: 'Send Reset Link',
+      AppLanguage.bn: 'রিসেট লিংক পাঠান',
+    },
+    'password_reset_email_sent': {
+      AppLanguage.en: 'If an account exists for this email, a reset link has been sent.',
+      AppLanguage.bn: 'এই ইমেইলে কোনো account থাকলে, একটি রিসেট লিংক পাঠানো হয়েছে।',
+    },
+    'password_reset_failed': {
+      AppLanguage.en: 'Could not send reset email. Please try again.',
+      AppLanguage.bn: 'রিসেট ইমেইল পাঠানো যায়নি। আবার চেষ্টা করুন।',
+    },
     'login_failed': {
       AppLanguage.en: 'Login failed. Please try again.',
       AppLanguage.bn: 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
