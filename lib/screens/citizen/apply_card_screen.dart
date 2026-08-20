@@ -104,6 +104,12 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     );
   }
 
+  bool _isFamilyCardBlockedForGender(CardType cardType) {
+    if (cardType.code != CardTypeCode.family) return false;
+    final user = context.read<AuthProvider>().user;
+    return user?.gender?.toLowerCase() != 'female';
+  }
+
   bool _hasDocument(String docType) {
     return _pickedFilePaths[docType]?.isNotEmpty == true;
   }
@@ -445,6 +451,16 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
       return;
     }
 
+    if (_isFamilyCardBlockedForGender(selectedType)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.trs('family_card_women_only_snackbar')),
+          backgroundColor: AppTheme.errorRed,
+        ),
+      );
+      return;
+    }
+
     if (!_requirementsAccepted) {
       _showRequirements(selectedType);
       return;
@@ -565,17 +581,34 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                         cardType,
                         provider,
                       );
+                      final genderBlocked = _isFamilyCardBlockedForGender(
+                        cardType,
+                      );
+                      final lockedLabel = alreadyApplied
+                          ? context.trs('already_applied_label')
+                          : genderBlocked
+                          ? context.trs('family_card_women_only_label')
+                          : null;
                       return _CardTypeTile(
                         cardType: cardType,
                         icon: style.icon,
                         color: style.color,
                         selected: false,
-                        alreadyApplied: alreadyApplied,
+                        lockedLabel: lockedLabel,
                         onTap: alreadyApplied
                             ? () => ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     context.trs('already_applied_snackbar'),
+                                  ),
+                                  backgroundColor: AppTheme.errorRed,
+                                ),
+                              )
+                            : genderBlocked
+                            ? () => ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    context.trs('family_card_women_only_snackbar'),
                                   ),
                                   backgroundColor: AppTheme.errorRed,
                                 ),
@@ -1235,22 +1268,24 @@ class _CardTypeTile extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
-    this.alreadyApplied = false,
+    this.lockedLabel,
   });
 
   final CardType cardType;
   final IconData icon;
   final Color color;
   final bool selected;
-  final bool alreadyApplied;
+  final String? lockedLabel;
   final VoidCallback onTap;
+
+  bool get _locked => lockedLabel != null;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Opacity(
-        opacity: alreadyApplied ? 0.55 : 1,
+        opacity: _locked ? 0.55 : 1,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           margin: const EdgeInsets.only(bottom: 12),
@@ -1289,17 +1324,16 @@ class _CardTypeTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      alreadyApplied
-                          ? context.trs('already_applied_label')
-                          : context.trp('documents_required_count', {
-                              'count': '${cardType.requiredDocuments.length}',
-                            }),
+                      lockedLabel ??
+                          context.trp('documents_required_count', {
+                            'count': '${cardType.requiredDocuments.length}',
+                          }),
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: alreadyApplied
+                        fontWeight: _locked
                             ? FontWeight.w700
                             : FontWeight.normal,
-                        color: alreadyApplied
+                        color: _locked
                             ? AppTheme.errorRed
                             : AppTheme.textSecondary,
                       ),
@@ -1308,7 +1342,7 @@ class _CardTypeTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                alreadyApplied
+                _locked
                     ? Icons.lock_outline_rounded
                     : selected
                     ? Icons.check_circle_rounded

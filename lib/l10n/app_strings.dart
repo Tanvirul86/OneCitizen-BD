@@ -854,6 +854,14 @@ class AppStrings {
       AppLanguage.bn:
           'এই কার্ডের জন্য আপনার ইতিমধ্যে একটি আবেদন আছে। রিভিউ শেষ না হওয়া পর্যন্ত আবার আবেদন করা যাবে না।',
     },
+    'family_card_women_only_label': {
+      AppLanguage.en: 'For women applicants only',
+      AppLanguage.bn: 'শুধুমাত্র নারী আবেদনকারীদের জন্য',
+    },
+    'family_card_women_only_snackbar': {
+      AppLanguage.en: 'Family Card is only available for women applicants.',
+      AppLanguage.bn: 'ফ্যামিলি কার্ড শুধুমাত্র নারী আবেদনকারীদের জন্য প্রযোজ্য।',
+    },
     'documents_required_label': {
       AppLanguage.en: 'Documents required:',
       AppLanguage.bn: 'প্রয়োজনীয় ডকুমেন্ট:',

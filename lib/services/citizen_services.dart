@@ -70,13 +70,17 @@ class EligibilityService {
               : 'Occupation on file is not farmer.',
         );
       case CardTypeCode.family:
+        final isFemale = user.gender?.toLowerCase() == 'female';
         final land = user.landAcres;
         final income = user.income;
-        final eligible = land != null && income != null && land <= 0.5 && income <= 12000;
+        final eligible =
+            isFemale && land != null && income != null && land <= 0.5 && income <= 12000;
         return CardEligibility(
           cardType: cardType,
           eligible: eligible,
-          reason: eligible
+          reason: !isFemale
+              ? 'Family Card is only available for women applicants.'
+              : eligible
               ? 'Land holding and income are within the allowed limits.'
               : 'Land holding or monthly income exceeds the allowed limits.',
         );
@@ -160,6 +164,11 @@ class ApplicationService {
 
       final userSnapshot = await _database.ref('users').child(uid).get();
       final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
+
+      if (cardTypeData['code'] == 'family' &&
+          (userData['gender'] as String?)?.toLowerCase() != 'female') {
+        throw AuthException('Family Card is only available for women applicants.');
+      }
 
       final record = {
         'citizen_id': uid,
