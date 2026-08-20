@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
+import 'package:onecitizen/models/application.dart';
 import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
@@ -44,7 +45,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     super.initState();
     _selectedCardTypeId = widget.initialCardTypeId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ApplicationProvider>().loadCardTypes();
+      context.read<ApplicationProvider>()
+        ..loadCardTypes()
+        ..loadApplications();
     });
   }
 
@@ -89,6 +92,16 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
       if (cardType.id == _selectedCardTypeId) return cardType;
     }
     return null;
+  }
+
+  /// A rejected application releases its lock server-side, so only a
+  /// pending/approved application should block re-applying for this card.
+  bool _hasActiveApplication(CardType cardType, ApplicationProvider provider) {
+    return provider.applications.any(
+      (app) =>
+          app.cardTypeId == cardType.id &&
+          app.status != ApplicationStatus.rejected,
+    );
   }
 
   bool _hasDocument(String docType) {
@@ -548,12 +561,26 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                   if (selectedType == null)
                     ...provider.cardTypes.map((cardType) {
                       final style = _styleFor(cardType.code);
+                      final alreadyApplied = _hasActiveApplication(
+                        cardType,
+                        provider,
+                      );
                       return _CardTypeTile(
                         cardType: cardType,
                         icon: style.icon,
                         color: style.color,
                         selected: false,
-                        onTap: () => _showRequirements(cardType),
+                        alreadyApplied: alreadyApplied,
+                        onTap: alreadyApplied
+                            ? () => ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    context.trs('already_applied_snackbar'),
+                                  ),
+                                  backgroundColor: AppTheme.errorRed,
+                                ),
+                              )
+                            : () => _showRequirements(cardType),
                       );
                     })
                   else ...[
@@ -763,6 +790,7 @@ class _ApplicationFieldInput extends StatelessWidget {
     if (options.isNotEmpty) {
       return DropdownButtonFormField<String>(
         initialValue: value,
+        isExpanded: true,
         decoration: InputDecoration(
           labelText: field.label,
           prefixIcon: const Icon(Icons.touch_app_rounded),
@@ -1068,6 +1096,7 @@ class _AddressDropdown extends StatelessWidget {
 
     return DropdownButtonFormField<String>(
       initialValue: selectedValue,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.location_on_rounded),
@@ -1076,7 +1105,10 @@ class _AddressDropdown extends StatelessWidget {
           .map(
             (option) => DropdownMenuItem(
               value: option.id,
-              child: Text(option.displayName),
+              child: Text(
+                option.displayName,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           )
           .toList(),
@@ -1203,75 +1235,89 @@ class _CardTypeTile extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.alreadyApplied = false,
   });
 
   final CardType cardType;
   final IconData icon;
   final Color color;
   final bool selected;
+  final bool alreadyApplied;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.06) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? color : AppTheme.divider,
-            width: selected ? 1.5 : 1,
+      child: Opacity(
+        opacity: alreadyApplied ? 0.55 : 1,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: selected ? color.withValues(alpha: 0.06) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? color : AppTheme.divider,
+              width: selected ? 1.5 : 1,
+            ),
+            boxShadow: selected ? null : AppTheme.cardShadow,
           ),
-          boxShadow: selected ? null : AppTheme.cardShadow,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
               ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cardType.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      cardType.name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.trp('documents_required_count', {
-                      'count': '${cardType.requiredDocuments.length}',
-                    }),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
+                    const SizedBox(height: 4),
+                    Text(
+                      alreadyApplied
+                          ? context.trs('already_applied_label')
+                          : context.trp('documents_required_count', {
+                              'count': '${cardType.requiredDocuments.length}',
+                            }),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: alreadyApplied
+                            ? FontWeight.w700
+                            : FontWeight.normal,
+                        color: alreadyApplied
+                            ? AppTheme.errorRed
+                            : AppTheme.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Icon(
-              selected
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              color: selected ? color : AppTheme.textTertiary,
-              size: 22,
-            ),
-          ],
+              Icon(
+                alreadyApplied
+                    ? Icons.lock_outline_rounded
+                    : selected
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: selected ? color : AppTheme.textTertiary,
+                size: 22,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -31,25 +31,54 @@ class AuthService {
     required String phone,
     required String password,
   }) async {
+    final normalizedPhone = phone.trim();
+    dynamic credentialUser;
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      final uid = credential.user!.uid;
-      await _users.child(uid).set({
-        'email': email,
-        'first_name': firstName,
-        'last_name': lastName,
-        'phone': phone,
-        'role': 'citizen',
-        'verified': false,
-        'is_active': true,
-        'created_at': ServerValue.timestamp,
+      credentialUser = credential.user;
+      final uid = credentialUser!.uid;
+
+      // Firebase Auth only enforces unique email — claim the phone number
+      // atomically here so the same person can't spin up a second account
+      // (a different email, same phone) to get around the one-application
+      // per card-type limit.
+      final phoneLock = _database.ref('phone_index').child(normalizedPhone);
+      final claim = await phoneLock.runTransaction((current) {
+        if (current != null) return Transaction.abort();
+        return Transaction.success(uid);
       });
+      if (!claim.committed) {
+        throw AuthException('An account with this phone number already exists.');
+      }
+
+      try {
+        await _users.child(uid).set({
+          'email': email,
+          'first_name': firstName,
+          'last_name': lastName,
+          'phone': normalizedPhone,
+          'role': 'citizen',
+          'verified': false,
+          'is_active': true,
+          'created_at': ServerValue.timestamp,
+        });
+      } catch (e) {
+        await phoneLock.remove();
+        rethrow;
+      }
       await _auth.signOut();
     } on FirebaseAuthException catch (e) {
       throw AuthException(_authErrorMessage(e));
+    } catch (e) {
+      // Anything failing after the Auth account was created (phone claim,
+      // profile write) must not leave a dangling account the user can
+      // neither log into (no profile) nor register again (email taken).
+      await credentialUser?.delete();
+      if (e is AuthException) rethrow;
+      throw AuthException('Something went wrong while creating your account. Please try again.');
     }
   }
 

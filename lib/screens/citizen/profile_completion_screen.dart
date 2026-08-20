@@ -199,6 +199,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _gender,
+                isExpanded: true,
                 decoration: InputDecoration(
                   labelText: context.tr('gender_label'),
                   prefixIcon: const Icon(Icons.wc),
@@ -234,6 +235,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<Occupation>(
                 initialValue: _occupation,
+                isExpanded: true,
                 decoration: InputDecoration(
                   labelText: context.tr('occupation_label'),
                   prefixIcon: const Icon(Icons.work),

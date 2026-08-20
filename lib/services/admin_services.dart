@@ -72,6 +72,9 @@ class AdminService {
     });
     final application = await getApplication(id);
     final citizenId = (await _applications.child(id).child('citizen_id').get()).value as String;
+    // Release the application_locks slot so the citizen can re-apply for
+    // this card type instead of being stuck behind a rejected application.
+    await _database.ref('application_locks').child('${citizenId}_${application.cardTypeId}').remove();
     await _notify(
       citizenId,
       'Your ${application.cardTypeName} application was rejected: $reason',

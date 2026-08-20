@@ -844,6 +844,16 @@ class AppStrings {
       AppLanguage.en: '{name} requirements',
       AppLanguage.bn: '{name}-এর প্রয়োজনীয়তা',
     },
+    'already_applied_label': {
+      AppLanguage.en: 'Already applied',
+      AppLanguage.bn: 'ইতিমধ্যে আবেদন করা হয়েছে',
+    },
+    'already_applied_snackbar': {
+      AppLanguage.en:
+          'You already have an application for this card. Wait for it to be reviewed before applying again.',
+      AppLanguage.bn:
+          'এই কার্ডের জন্য আপনার ইতিমধ্যে একটি আবেদন আছে। রিভিউ শেষ না হওয়া পর্যন্ত আবার আবেদন করা যাবে না।',
+    },
     'documents_required_label': {
       AppLanguage.en: 'Documents required:',
       AppLanguage.bn: 'প্রয়োজনীয় ডকুমেন্ট:',

@@ -415,35 +415,37 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: () => _markInvalid(doc),
-                                      icon: const Icon(Icons.close, size: 18),
-                                      label: Text(context.tr('invalid_action')),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.red,
-                                        side: const BorderSide(
-                                          color: Colors.red,
+                              if (!_showReviewed) ...[
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _markInvalid(doc),
+                                        icon: const Icon(Icons.close, size: 18),
+                                        label: Text(context.tr('invalid_action')),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                          side: const BorderSide(
+                                            color: Colors.red,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => _markValid(doc),
-                                      icon: const Icon(Icons.check, size: 18),
-                                      label: Text(context.tr('valid_action')),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => _markValid(doc),
+                                        icon: const Icon(Icons.check, size: 18),
+                                        label: Text(context.tr('valid_action')),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),

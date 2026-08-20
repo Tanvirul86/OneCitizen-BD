@@ -20,8 +20,16 @@ class AuthProvider extends ChangeNotifier {
     try {
       final hasSession = await _authService.hasValidSession();
       if (hasSession) {
-        user = await _authService.fetchProfile();
-        status = AuthStatus.authenticated;
+        final restoredUser = await _authService.fetchProfile();
+        if (restoredUser.role == UserRole.admin) {
+          // Admin sessions must not survive an app restart — require the
+          // password again instead of silently restoring the last session.
+          await _authService.logout();
+          status = AuthStatus.unauthenticated;
+        } else {
+          user = restoredUser;
+          status = AuthStatus.authenticated;
+        }
       } else {
         status = AuthStatus.unauthenticated;
       }
