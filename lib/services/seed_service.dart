@@ -63,11 +63,7 @@ const _cardTypesData = {
     'disbursement_amount': 12000,
     'required_documents': [
       'nid_birth_certificate',
-      'ssc_registration_card',
-      'ssc_admit_card',
       'ssc_certificate',
-      'hsc_registration_card',
-      'hsc_admit_card',
       'hsc_certificate',
       'recent_photo',
     ],
