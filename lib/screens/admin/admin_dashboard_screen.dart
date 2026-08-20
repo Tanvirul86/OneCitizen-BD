@@ -33,6 +33,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       // application fields, disbursement amount) for databases seeded
       // before those existed. No-op once the data already matches.
       ensureCardTypesUpToDate().catchError((_) {});
+      // Best-effort: links any document uploaded after its application was
+      // already submitted, so it isn't stuck invisible to review.
+      relinkOrphanedDocuments().catchError((_) {});
     });
   }
 

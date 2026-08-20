@@ -243,10 +243,35 @@ class DocumentService {
         .join(' ');
 
     String? cardTypeId;
+    String? linkedApplicationId = applicationId;
     if (applicationId != null) {
       final applicationSnapshot = await _database.ref('applications').child(applicationId).get();
       if (applicationSnapshot.exists) {
         cardTypeId = (applicationSnapshot.value as Map)['card_type_id'] as String?;
+      }
+    } else {
+      // Uploaded without an application in progress — e.g. the citizen
+      // submitted first and added/replaced a document afterward. Attach it
+      // to their active application for a card type that requires this
+      // doc, so it doesn't stay invisible to admin review.
+      final applicationsSnapshot =
+          await _database.ref('applications').orderByChild('citizen_id').equalTo(uid).get();
+      for (final application in mapChildren(applicationsSnapshot)) {
+        if (application['status'] == 'rejected') continue;
+        final candidateCardTypeId = application['card_type_id'] as String?;
+        if (candidateCardTypeId == null) continue;
+        final cardTypeSnapshot =
+            await _database.ref('card_types').child(candidateCardTypeId).get();
+        if (!cardTypeSnapshot.exists) continue;
+        final requiredDocuments =
+            (Map<String, dynamic>.from(cardTypeSnapshot.value as Map)['required_documents']
+                    as List?) ??
+                [];
+        if (requiredDocuments.contains(docType)) {
+          linkedApplicationId = application['id'] as String?;
+          cardTypeId = candidateCardTypeId;
+          break;
+        }
       }
     }
 
@@ -258,7 +283,7 @@ class DocumentService {
       'uploaded_at': ServerValue.timestamp,
       'citizen_name': citizenName,
       'citizen_email': userData['email'],
-      'application_id': applicationId,
+      'application_id': linkedApplicationId,
       'card_type_id': cardTypeId,
     });
 

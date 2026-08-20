@@ -116,3 +116,41 @@ Future<void> ensureCardTypesUpToDate({FirebaseDatabase? database}) async {
   final db = database ?? appDatabase;
   await db.ref('card_types').update(_cardTypesData);
 }
+
+/// Attaches `application_id`/`card_type_id` to any `documents` record still
+/// missing them — e.g. a document uploaded after its application was
+/// already submitted, so the one-time linking step in `submitApplication`
+/// never saw it. Safe to call unconditionally on admin dashboard load.
+Future<void> relinkOrphanedDocuments({FirebaseDatabase? database}) async {
+  final db = database ?? appDatabase;
+
+  final documentsSnapshot = await db.ref('documents').get();
+  final applicationsSnapshot = await db.ref('applications').get();
+  final cardTypesSnapshot = await db.ref('card_types').get();
+
+  final applications = mapChildren(applicationsSnapshot);
+  final cardTypes = {
+    for (final cardType in mapChildren(cardTypesSnapshot)) cardType['id'] as String: cardType,
+  };
+
+  for (final document in mapChildren(documentsSnapshot)) {
+    if (document['application_id'] != null) continue;
+    final citizenId = document['citizen_id'] as String?;
+    final docType = document['doc_type'] as String?;
+    if (citizenId == null || docType == null) continue;
+
+    for (final application in applications) {
+      if (application['citizen_id'] != citizenId) continue;
+      if (application['status'] == 'rejected') continue;
+      final cardTypeId = application['card_type_id'] as String?;
+      final requiredDocuments = (cardTypes[cardTypeId]?['required_documents'] as List?) ?? [];
+      if (requiredDocuments.contains(docType)) {
+        await db.ref('documents').child(document['id'] as String).update({
+          'application_id': application['id'],
+          'card_type_id': cardTypeId,
+        });
+        break;
+      }
+    }
+  }
+}
