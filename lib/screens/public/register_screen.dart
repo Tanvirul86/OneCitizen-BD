@@ -5,6 +5,7 @@ import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/utils/numeric_input.dart';
+import 'package:onecitizen/utils/validators.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
 import 'package:provider/provider.dart';
@@ -178,9 +179,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: context.tr('email_label'),
                           prefixIcon: const Icon(Icons.email_outlined),
                         ),
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? context.trs('email_required_register')
-                            : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return context.trs('email_required_register');
+                          }
+                          if (!isValidEmail(v)) {
+                            return context.trs('invalid_email_error');
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -195,8 +202,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           if (v == null || v.isEmpty) {
                             return context.trs('phone_required');
                           }
-                          if (int.tryParse(v) == null) {
-                            return context.trs('numbers_only_error');
+                          if (!isValidBdPhone(v)) {
+                            return context.trs('invalid_phone_error');
                           }
                           return null;
                         },

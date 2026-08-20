@@ -6,6 +6,7 @@ import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/utils/numeric_input.dart';
+import 'package:onecitizen/utils/validators.dart';
 import 'package:provider/provider.dart';
 
 class ProfileCompletionScreen extends StatefulWidget {
@@ -73,11 +74,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   }
 
   Future<void> _selectDate() async {
+    final today = DateTime.now();
+    final adultCutoff = DateTime(today.year - 18, today.month, today.day);
     final date = await showDatePicker(
       context: context,
       initialDate: _dateOfBirth ?? DateTime(2000),
       firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
+      lastDate: adultCutoff,
     );
     if (date != null) setState(() => _dateOfBirth = date);
   }
@@ -88,6 +91,15 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.trs('please_select_dob')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (ageInYears(_dateOfBirth!) < 18) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.trs('must_be_18_error')),
           backgroundColor: Colors.red,
         ),
       );
