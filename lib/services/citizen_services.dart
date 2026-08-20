@@ -138,63 +138,75 @@ class ApplicationService {
   }) async {
     final uid = _requireUid();
 
-    final existingSnapshot = await _applications.orderByChild('citizen_id').equalTo(uid).get();
-    final hasActiveApplication = mapChildren(existingSnapshot).any(
-      (a) => a['card_type_id'] == cardTypeId && a['status'] != 'rejected',
-    );
-    if (hasActiveApplication) {
+    // Claiming this lock atomically (instead of the read-then-write check it
+    // replaces) closes the race where two concurrent submissions for the
+    // same card type both pass the "no active application" check.
+    final lockRef = _database.ref('application_locks').child('${uid}_$cardTypeId');
+    final lockResult = await lockRef.runTransaction((current) {
+      if (current != null) return Transaction.abort();
+      return Transaction.success({'citizen_id': uid, 'card_type_id': cardTypeId});
+    });
+    if (!lockResult.committed) {
       throw AuthException(
         'You already have an application for this card type. '
         'Wait for it to be reviewed before applying again.',
       );
     }
 
-    final cardTypeSnapshot = await _database.ref('card_types').child(cardTypeId).get();
-    if (!cardTypeSnapshot.exists) throw AuthException('Selected card type was not found.');
-    final cardTypeData = Map<String, dynamic>.from(cardTypeSnapshot.value as Map);
+    try {
+      final cardTypeSnapshot = await _database.ref('card_types').child(cardTypeId).get();
+      if (!cardTypeSnapshot.exists) throw AuthException('Selected card type was not found.');
+      final cardTypeData = Map<String, dynamic>.from(cardTypeSnapshot.value as Map);
 
-    final userSnapshot = await _database.ref('users').child(uid).get();
-    final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
+      final userSnapshot = await _database.ref('users').child(uid).get();
+      final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
 
-    final record = {
-      'citizen_id': uid,
-      'card_type_id': cardTypeId,
-      'card_type_name': cardTypeData['name'],
-      'applicant_name': [userData['first_name'], userData['last_name']]
-          .where((e) => e != null && (e as String).isNotEmpty)
-          .join(' '),
-      'applicant_nid': userData['nid'],
-      'applicant_email': userData['email'],
-      'application_data': applicationData,
-      'status': 'submitted',
-      'submitted_at': ServerValue.timestamp,
-      'updated_at': ServerValue.timestamp,
-    };
+      final record = {
+        'citizen_id': uid,
+        'card_type_id': cardTypeId,
+        'card_type_name': cardTypeData['name'],
+        'applicant_name': [userData['first_name'], userData['last_name']]
+            .where((e) => e != null && (e as String).isNotEmpty)
+            .join(' '),
+        'applicant_nid': userData['nid'],
+        'applicant_email': userData['email'],
+        'application_data': applicationData,
+        'status': 'submitted',
+        'submitted_at': ServerValue.timestamp,
+        'updated_at': ServerValue.timestamp,
+      };
 
-    final ref = _applications.push();
-    await ref.set(record);
+      final ref = _applications.push();
+      await ref.set(record);
+      await lockRef.update({'application_id': ref.key});
 
-    // Documents are uploaded one at a time during the apply wizard, before
-    // this application exists, so they aren't linked to it yet — attach
-    // whichever of the card type's required documents the citizen already
-    // has on file (keyed by `${uid}_$docType`, no application id) now that
-    // there's an application id to attach them to.
-    final requiredDocuments = (cardTypeData['required_documents'] as List?) ?? [];
-    final documentsRef = _database.ref('documents');
-    for (final docType in requiredDocuments) {
-      final docRef = documentsRef.child('${uid}_$docType');
-      final docSnapshot = await docRef.get();
-      if (docSnapshot.exists) {
-        await docRef.update({'application_id': ref.key, 'card_type_id': cardTypeId});
+      // Documents are uploaded one at a time during the apply wizard, before
+      // this application exists, so they aren't linked to it yet — attach
+      // whichever of the card type's required documents the citizen already
+      // has on file (keyed by `${uid}_$docType`, no application id) now that
+      // there's an application id to attach them to.
+      final requiredDocuments = (cardTypeData['required_documents'] as List?) ?? [];
+      final documentsRef = _database.ref('documents');
+      for (final docType in requiredDocuments) {
+        final docRef = documentsRef.child('${uid}_$docType');
+        final docSnapshot = await docRef.get();
+        if (docSnapshot.exists) {
+          await docRef.update({'application_id': ref.key, 'card_type_id': cardTypeId});
+        }
       }
-    }
 
-    await _notifyAdmins(
-      _database,
-      'A citizen submitted a new ${cardTypeData['name']} application.',
-    );
-    final snapshot = await ref.get();
-    return Application.fromJson(withKey(ref.key!, snapshot.value));
+      await _notifyAdmins(
+        _database,
+        'A citizen submitted a new ${cardTypeData['name']} application.',
+      );
+      final snapshot = await ref.get();
+      return Application.fromJson(withKey(ref.key!, snapshot.value));
+    } catch (e) {
+      // The application never got created (or we failed before recording
+      // it) — release the lock so the citizen isn't stuck unable to apply.
+      await lockRef.remove();
+      rethrow;
+    }
   }
 }
 

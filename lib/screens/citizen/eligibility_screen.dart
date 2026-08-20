@@ -264,6 +264,7 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
           const SizedBox(height: 12),
           DropdownButtonFormField<Occupation>(
             initialValue: _occupation,
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: context.tr('occupation_label'),
               prefixIcon: const Icon(Icons.work_outline),

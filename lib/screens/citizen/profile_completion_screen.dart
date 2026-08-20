@@ -153,6 +153,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _gender,
+                isExpanded: true,
                 decoration: InputDecoration(labelText: context.tr('gender_label'), prefixIcon: const Icon(Icons.wc)),
                 items: [
                   DropdownMenuItem(value: 'male', child: Text(context.tr('gender_male'))),
@@ -171,6 +172,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<Occupation>(
                 initialValue: _occupation,
+                isExpanded: true,
                 decoration: InputDecoration(labelText: context.tr('occupation_label'), prefixIcon: const Icon(Icons.work)),
                 items: Occupation.values
                     .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))

@@ -30,7 +30,14 @@
       ".indexOn": "citizen_id",
       "$id": {
         ".read": "auth != null && (data.child('citizen_id').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.exists() && newData.child('citizen_id').val() === auth.uid))"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.exists() && newData.child('citizen_id').val() === auth.uid && newData.child('status').val() === 'submitted'))"
+      }
+    },
+
+    "application_locks": {
+      "$id": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.child('citizen_id').val() === auth.uid && (!data.exists() || data.child('citizen_id').val() === auth.uid)))"
       }
     },
 
@@ -39,7 +46,16 @@
       ".indexOn": "citizen_id",
       "$id": {
         ".read": "auth != null && (data.child('citizen_id').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.child('citizen_id').val() === auth.uid && (!data.exists() || data.child('citizen_id').val() === auth.uid)))"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.child('citizen_id').val() === auth.uid && (!data.exists() || data.child('citizen_id').val() === auth.uid)))",
+        "is_valid": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val()"
+        },
+        "remark": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() === data.val()"
+        },
+        "application_id": {
+          ".validate": "!newData.exists() || root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('applications').child(newData.val()).child('citizen_id').val() === auth.uid"
+        }
       }
     },
 
@@ -78,7 +94,19 @@
     "admin_notifications": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
       "$id": {
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists())"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists())",
+        "message": { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "is_read": { ".validate": "newData.isBoolean()" },
+        "$other": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || $other === 'created_at'"
+        }
+      }
+    },
+
+    "phone_index": {
+      "$phone": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid) && newData.val() === auth.uid"
       }
     }
   }
