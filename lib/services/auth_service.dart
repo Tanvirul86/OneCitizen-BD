@@ -14,8 +14,8 @@ class AuthException implements Exception {
 
 class AuthService {
   AuthService({FirebaseAuth? firebaseAuth, FirebaseDatabase? database})
-      : _auth = firebaseAuth ?? FirebaseAuth.instance,
-        _database = database ?? appDatabase;
+    : _auth = firebaseAuth ?? FirebaseAuth.instance,
+      _database = database ?? appDatabase;
 
   final FirebaseAuth _auth;
   final FirebaseDatabase _database;
@@ -109,7 +109,9 @@ class AuthService {
       }
       if (user.isFrozen) {
         await _auth.signOut();
-        throw AuthException('This account has been frozen. Please contact support.');
+        throw AuthException(
+          'This account has been frozen. Please contact support.',
+        );
       }
       return user;
     } on FirebaseAuthException catch (e) {
@@ -152,6 +154,18 @@ class AuthService {
             ? 'Current password is incorrect.'
             : _authErrorMessage(e),
       );
+    }
+  }
+
+  /// Sends a Firebase password-reset email. Silently succeeds for an
+  /// unregistered address too, so the response can't be used to check
+  /// whether a given email has an account.
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') return;
+      throw AuthException(_authErrorMessage(e));
     }
   }
 

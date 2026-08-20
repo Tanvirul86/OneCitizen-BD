@@ -13,6 +13,7 @@ import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
+import 'package:onecitizen/utils/numeric_input.dart';
 import 'package:onecitizen/widgets/document_sample_preview.dart';
 import 'package:provider/provider.dart';
 
@@ -762,6 +763,12 @@ class _ApplicationField {
   final String? hintText;
   final List<String> options;
   final bool required;
+
+  List<TextInputFormatter> get inputFormatters {
+    if (keyboardType == TextInputType.number) return decimalInputFormatters;
+    if (keyboardType == TextInputType.phone) return integerInputFormatters;
+    return const [];
+  }
 }
 
 class _ApplicationFieldInput extends StatelessWidget {
@@ -810,6 +817,7 @@ class _ApplicationFieldInput extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: field.keyboardType,
+      inputFormatters: field.inputFormatters,
       decoration: InputDecoration(
         labelText: field.label,
         hintText: field.hintText,
@@ -818,6 +826,12 @@ class _ApplicationFieldInput extends StatelessWidget {
       validator: (value) {
         if (field.required && (value == null || value.trim().isEmpty)) {
           return context.trs('field_required_full');
+        }
+        if (value != null &&
+            value.isNotEmpty &&
+            field.keyboardType == TextInputType.number &&
+            double.tryParse(value) == null) {
+          return context.trs('numbers_only_error');
         }
         return null;
       },

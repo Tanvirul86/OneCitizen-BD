@@ -48,6 +48,79 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  Future<void> _forgotPassword() async {
+    final resetEmailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+    final formKey = GlobalKey<FormState>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.tr('forgot_password_title')),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                dialogContext.tr('forgot_password_hint'),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: resetEmailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: dialogContext.tr('email_label'),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? dialogContext.trs('email_required_login')
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(dialogContext.tr('cancel')),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: Text(dialogContext.tr('send_reset_link_action')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    final auth = context.read<AuthProvider>();
+    final success = await auth.sendPasswordResetEmail(
+      resetEmailController.text.trim(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? context.trs('password_reset_email_sent')
+              : auth.errorMessage ?? context.trs('password_reset_failed'),
+        ),
+        backgroundColor: success ? Colors.green : AppTheme.errorRed,
+      ),
+    );
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -101,7 +174,11 @@ class _LoginScreenState extends State<LoginScreen>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const AppLogo(size: 56, onDark: true, linkToLanding: true),
+                              const AppLogo(
+                                size: 56,
+                                onDark: true,
+                                linkToLanding: true,
+                              ),
                               const LanguageToggle(onDark: true),
                             ],
                           ),
@@ -147,13 +224,16 @@ class _LoginScreenState extends State<LoginScreen>
                                     icon: Icons.person_rounded,
                                     label: context.tr('role_citizen'),
                                     selected: _role == UserRole.citizen,
-                                    onTap: () => setState(() => _role = UserRole.citizen),
+                                    onTap: () => setState(
+                                      () => _role = UserRole.citizen,
+                                    ),
                                   ),
                                   _RoleButton(
                                     icon: Icons.admin_panel_settings_rounded,
                                     label: context.tr('role_admin'),
                                     selected: _role == UserRole.admin,
-                                    onTap: () => setState(() => _role = UserRole.admin),
+                                    onTap: () =>
+                                        setState(() => _role = UserRole.admin),
                                   ),
                                 ],
                               ),
@@ -169,10 +249,13 @@ class _LoginScreenState extends State<LoginScreen>
                                     keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
                                       labelText: context.tr('email_label'),
-                                      prefixIcon: const Icon(Icons.email_outlined),
+                                      prefixIcon: const Icon(
+                                        Icons.email_outlined,
+                                      ),
                                     ),
-                                    validator: (v) =>
-                                        (v == null || v.isEmpty) ? context.trs('email_required_login') : null,
+                                    validator: (v) => (v == null || v.isEmpty)
+                                        ? context.trs('email_required_login')
+                                        : null,
                                   ),
                                   const SizedBox(height: 16),
                                   TextFormField(
@@ -180,7 +263,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     obscureText: _obscure,
                                     decoration: InputDecoration(
                                       labelText: context.tr('password_label'),
-                                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                                      prefixIcon: const Icon(
+                                        Icons.lock_outline_rounded,
+                                      ),
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscure
@@ -188,17 +273,34 @@ class _LoginScreenState extends State<LoginScreen>
                                               : Icons.visibility_outlined,
                                           color: AppTheme.textSecondary,
                                         ),
-                                        onPressed: () => setState(() => _obscure = !_obscure),
+                                        onPressed: () => setState(
+                                          () => _obscure = !_obscure,
+                                        ),
                                       ),
                                     ),
-                                    validator: (v) =>
-                                        (v == null || v.isEmpty) ? context.trs('password_required') : null,
+                                    validator: (v) => (v == null || v.isEmpty)
+                                        ? context.trs('password_required')
+                                        : null,
+                                  ),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: _forgotPassword,
+                                      child: Text(
+                                        context.tr('forgot_password_action'),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: AppTheme.primaryGreen,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
 
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
                               height: 52,

@@ -5,6 +5,7 @@ import 'package:onecitizen/models/occupation.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/utils/apply_card_navigation.dart';
+import 'package:onecitizen/utils/numeric_input.dart';
 import 'package:provider/provider.dart';
 
 class EligibilityScreen extends StatefulWidget {
@@ -187,7 +188,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                   Expanded(
                     child: Text(
                       context.tr('eligibility_notify_hint'),
-                      style: const TextStyle(fontSize: 13, color: Colors.orange),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange,
+                      ),
                     ),
                   ),
                 ],
@@ -270,15 +274,22 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               prefixIcon: const Icon(Icons.work_outline),
             ),
             items: Occupation.values
-                .map((o) => DropdownMenuItem(value: o, child: Text(occupationLabel(o))))
+                .map(
+                  (o) => DropdownMenuItem(
+                    value: o,
+                    child: Text(occupationLabel(o)),
+                  ),
+                )
                 .toList(),
             onChanged: _onOccupationChanged,
-            validator: (v) => v == null ? context.trs('occupation_required') : null,
+            validator: (v) =>
+                v == null ? context.trs('occupation_required') : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _incomeController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: decimalInputFormatters,
             decoration: InputDecoration(
               labelText: context.tr('monthly_income_label'),
               hintText: context.tr('income_hint_example'),
@@ -286,8 +297,12 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               suffixText: 'BDT',
             ),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return context.trs('income_required');
-              if (double.tryParse(v) == null) return context.trs('amount_invalid');
+              if (v == null || v.trim().isEmpty) {
+                return context.trs('income_required');
+              }
+              if (double.tryParse(v) == null) {
+                return context.trs('amount_invalid');
+              }
               return null;
             },
           ),
@@ -303,7 +318,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _landController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: decimalInputFormatters,
               decoration: InputDecoration(
                 labelText: context.tr('land_owned_label'),
                 hintText: context.tr('land_hint_example'),
@@ -311,8 +329,12 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                 suffixText: 'acres',
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return context.trs('land_required');
-                if (double.tryParse(v) == null) return context.trs('enter_valid_number');
+                if (v == null || v.trim().isEmpty) {
+                  return context.trs('land_required');
+                }
+                if (double.tryParse(v) == null) {
+                  return context.trs('enter_valid_number');
+                }
                 return null;
               },
             ),
@@ -343,7 +365,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _sscController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: decimalInputFormatters,
               decoration: InputDecoration(
                 labelText: context.tr('ssc_gpa_optional_label'),
                 hintText: context.tr('gpa_hint_example'),
@@ -352,7 +377,9 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               validator: (v) {
                 if (v != null && v.isNotEmpty) {
                   final gpa = double.tryParse(v);
-                  if (gpa == null || gpa < 0 || gpa > 5) return context.trs('gpa_range_error');
+                  if (gpa == null || gpa < 0 || gpa > 5) {
+                    return context.trs('gpa_range_error');
+                  }
                 }
                 return null;
               },
@@ -360,7 +387,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _hscController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: decimalInputFormatters,
               decoration: InputDecoration(
                 labelText: context.tr('hsc_gpa_optional_label'),
                 hintText: context.tr('gpa_hint_example'),
@@ -369,7 +399,9 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
               validator: (v) {
                 if (v != null && v.isNotEmpty) {
                   final gpa = double.tryParse(v);
-                  if (gpa == null || gpa < 0 || gpa > 5) return context.trs('gpa_range_error');
+                  if (gpa == null || gpa < 0 || gpa > 5) {
+                    return context.trs('gpa_range_error');
+                  }
                 }
                 return null;
               },
@@ -385,7 +417,10 @@ class _EligibilityScreenState extends State<EligibilityScreen> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.send_rounded),
             label: Text(

@@ -11,6 +11,7 @@ import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/screens/admin/new_applications_screen.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart'
     show statusColor;
+import 'package:onecitizen/services/seed_service.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
@@ -28,6 +29,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refresh();
       context.read<AdminNotificationProvider>().loadNotifications();
+      // Best-effort: brings card_types up to the current schema (dynamic
+      // application fields, disbursement amount) for databases seeded
+      // before those existed. No-op once the data already matches.
+      ensureCardTypesUpToDate().catchError((_) {});
     });
   }
 
