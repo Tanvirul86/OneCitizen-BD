@@ -1021,6 +1021,22 @@ class AppStrings {
       AppLanguage.en: 'Numbers only',
       AppLanguage.bn: 'শুধু সংখ্যা দিন',
     },
+    'invalid_email_error': {
+      AppLanguage.en: 'Enter a valid email address',
+      AppLanguage.bn: 'সঠিক ইমেইল ঠিকানা দিন',
+    },
+    'invalid_phone_error': {
+      AppLanguage.en: 'Enter a valid 11-digit phone number (e.g. 017XXXXXXXX)',
+      AppLanguage.bn: 'সঠিক ১১ ডিজিটের ফোন নম্বর দিন (যেমন 017XXXXXXXX)',
+    },
+    'invalid_date_format': {
+      AppLanguage.en: 'Enter a valid date',
+      AppLanguage.bn: 'সঠিক তারিখ দিন',
+    },
+    'must_be_18_error': {
+      AppLanguage.en: 'You must be at least 18 years old to apply',
+      AppLanguage.bn: 'আবেদন করতে হলে বয়স কমপক্ষে ১৮ বছর হতে হবে',
+    },
     'loading_location_data': {
       AppLanguage.en: 'Loading Bangladesh location data...',
       AppLanguage.bn: 'বাংলাদেশের ঠিকানার তথ্য লোড হচ্ছে...',

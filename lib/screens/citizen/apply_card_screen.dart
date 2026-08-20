@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -14,6 +15,7 @@ import 'package:onecitizen/models/document.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/utils/numeric_input.dart';
+import 'package:onecitizen/utils/validators.dart';
 import 'package:onecitizen/widgets/document_sample_preview.dart';
 import 'package:provider/provider.dart';
 
@@ -531,6 +533,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
     setState(() => _isSubmitting = false);
 
     if (success) {
+      // The application may have back-filled the profile's NID — pick that
+      // up so the Profile screen doesn't keep showing the stale value.
+      unawaited(context.read<AuthProvider>().refreshProfile());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.trs('application_submitted_success')),
@@ -847,6 +852,48 @@ class _ApplicationFieldInput extends StatelessWidget {
       );
     }
 
+    if (field.keyboardType == TextInputType.datetime) {
+      return TextFormField(
+        controller: controller,
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: field.label,
+          hintText: field.hintText,
+          prefixIcon: const Icon(Icons.calendar_today_rounded),
+        ),
+        onTap: () async {
+          final today = DateTime.now();
+          final adultCutoff = DateTime(today.year - 18, today.month, today.day);
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: adultCutoff,
+            firstDate: DateTime(today.year - 100),
+            lastDate: adultCutoff,
+          );
+          if (picked != null) {
+            final formatted = DateFormat('dd/MM/yyyy').format(picked);
+            controller.text = formatted;
+            onChanged(formatted);
+          }
+        },
+        validator: (value) {
+          if (field.required && (value == null || value.trim().isEmpty)) {
+            return context.trs('field_required_full');
+          }
+          if (value != null && value.trim().isNotEmpty) {
+            final date = parseDdMmYyyy(value);
+            if (date == null || date.isAfter(DateTime.now())) {
+              return context.trs('invalid_date_format');
+            }
+            if (ageInYears(date) < 18) {
+              return context.trs('must_be_18_error');
+            }
+          }
+          return null;
+        },
+      );
+    }
+
     return TextFormField(
       controller: controller,
       keyboardType: field.keyboardType,
@@ -860,11 +907,19 @@ class _ApplicationFieldInput extends StatelessWidget {
         if (field.required && (value == null || value.trim().isEmpty)) {
           return context.trs('field_required_full');
         }
-        if (value != null &&
-            value.isNotEmpty &&
-            field.keyboardType == TextInputType.number &&
-            double.tryParse(value) == null) {
-          return context.trs('numbers_only_error');
+        if (value != null && value.isNotEmpty) {
+          if (field.keyboardType == TextInputType.number &&
+              double.tryParse(value) == null) {
+            return context.trs('numbers_only_error');
+          }
+          if (field.keyboardType == TextInputType.phone &&
+              !isValidBdPhone(value)) {
+            return context.trs('invalid_phone_error');
+          }
+          if (field.keyboardType == TextInputType.emailAddress &&
+              !isValidEmail(value)) {
+            return context.trs('invalid_email_error');
+          }
         }
         return null;
       },

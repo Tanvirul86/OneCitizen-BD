@@ -96,6 +96,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Re-fetches the profile without touching [status] — unlike
+  /// [checkSession], safe to call mid-flow (e.g. after an application
+  /// submission back-fills the NID) without risking a route redirect from
+  /// a transient [AuthStatus.loading].
+  Future<void> refreshProfile() async {
+    try {
+      user = await _authService.fetchProfile();
+      notifyListeners();
+    } catch (_) {
+      // Best-effort — keep the existing cached profile on failure.
+    }
+  }
+
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     errorMessage = null;
     try {

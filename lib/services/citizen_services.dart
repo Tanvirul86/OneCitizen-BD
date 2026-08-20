@@ -170,6 +170,24 @@ class ApplicationService {
         throw AuthException('Family Card is only available for women applicants.');
       }
 
+      // The apply wizard collects the NID/birth-certificate number as part
+      // of the card-specific form — if the profile doesn't have one on
+      // file yet, back-fill it from whichever of the application's NID
+      // fields the citizen filled in.
+      const nidFieldKeys = ['nid_card_number', 'nid_birth_certificate_number'];
+      final submittedNid = nidFieldKeys
+          .map((key) => applicationData[key])
+          .firstWhere(
+            (value) => value != null && value.trim().isNotEmpty,
+            orElse: () => null,
+          )
+          ?.trim();
+      final existingNid = (userData['nid'] as String?)?.trim();
+      if (submittedNid != null && (existingNid == null || existingNid.isEmpty)) {
+        await _database.ref('users').child(uid).update({'nid': submittedNid});
+        userData['nid'] = submittedNid;
+      }
+
       final record = {
         'citizen_id': uid,
         'card_type_id': cardTypeId,
