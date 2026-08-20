@@ -16,7 +16,9 @@ ImageProvider? avatarImageFor(String? profilePicture) {
       : FileImage(File(profilePicture));
 }
 
-const _documentPreviewChannel = MethodChannel('bd.onecitizen.onecitizen/document_preview');
+const _documentPreviewChannel = MethodChannel(
+  'bd.onecitizen.onecitizen/document_preview',
+);
 
 /// Renders the first page of a locally-saved PDF to PNG bytes via the same
 /// native channel the apply-for-card flow uses to preview a picked file
@@ -57,12 +59,22 @@ Widget documentImage(
     if (bytes == null) {
       return Builder(
         builder: (context) =>
-            errorBuilder?.call(context, StateError('Invalid document data.'), null) ??
+            errorBuilder?.call(
+              context,
+              StateError('Invalid document data.'),
+              null,
+            ) ??
             const Icon(Icons.broken_image),
       );
     }
     if (!isPdf) {
-      return Image.memory(bytes, height: height, width: width, fit: fit, errorBuilder: errorBuilder);
+      return Image.memory(
+        bytes,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: errorBuilder,
+      );
     }
     return FutureBuilder<Uint8List>(
       future: () async {
@@ -80,7 +92,11 @@ Widget documentImage(
           );
         }
         if (snapshot.hasError || snapshot.data == null) {
-          return errorBuilder?.call(context, snapshot.error ?? StateError('No preview'), null) ??
+          return errorBuilder?.call(
+                context,
+                snapshot.error ?? StateError('No preview'),
+                null,
+              ) ??
               const Icon(Icons.picture_as_pdf_rounded);
         }
         return Image.memory(
@@ -99,6 +115,44 @@ Widget documentImage(
     width: width,
     fit: fit,
     errorBuilder: errorBuilder,
+  );
+}
+
+/// Opens a full-screen, pinch-to-zoom preview of a document — shared by
+/// every screen that lets a citizen or admin tap a document to view it.
+void viewDocument(
+  BuildContext context, {
+  required String fileUrl,
+  required String title,
+}) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          title: Text(title),
+        ),
+        body: SafeArea(
+          child: InteractiveViewer(
+            minScale: 0.8,
+            maxScale: 5,
+            child: Center(
+              child: documentImage(
+                fileUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image,
+                  color: Colors.white54,
+                  size: 64,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 

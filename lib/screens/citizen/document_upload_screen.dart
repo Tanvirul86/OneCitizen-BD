@@ -37,10 +37,10 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
     final appProvider = context.read<ApplicationProvider>();
     setState(() => _uploading.add(docType));
-      final success = await appProvider.uploadDocument(
-        docType: docType,
-        filePath: result.files.single.path!,
-        applicationId: widget.args?.applicationId,
+    final success = await appProvider.uploadDocument(
+      docType: docType,
+      filePath: result.files.single.path!,
+      applicationId: widget.args?.applicationId,
     );
     if (!mounted) return;
     setState(() => _uploading.remove(docType));
@@ -61,10 +61,13 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   Widget build(BuildContext context) {
     final appProvider = context.watch<ApplicationProvider>();
     final scopedDocuments = appProvider.documents
-        .where((document) => document.applicationId == widget.args?.applicationId)
+        .where(
+          (document) => document.applicationId == widget.args?.applicationId,
+        )
         .toList();
     final byType = {for (final d in scopedDocuments) d.docType: d};
-    final documentTypes = widget.args?.requiredDocuments ?? requiredDocumentTypes;
+    final documentTypes =
+        widget.args?.requiredDocuments ?? requiredDocumentTypes;
     final uploaded = scopedDocuments.length;
     final total = documentTypes.length;
     final valid = scopedDocuments.where((d) => d.isValid == true).length;
@@ -92,7 +95,10 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppTheme.primaryGreen, AppTheme.primaryGreenLight],
+                        colors: [
+                          AppTheme.primaryGreen,
+                          AppTheme.primaryGreenLight,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -103,14 +109,24 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                       children: [
                         Text(
                           context.tr('document_progress_title'),
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            _ProgressStat(value: '$uploaded/$total', label: context.tr('uploaded_label')),
+                            _ProgressStat(
+                              value: '$uploaded/$total',
+                              label: context.tr('uploaded_label'),
+                            ),
                             const SizedBox(width: 24),
-                            _ProgressStat(value: '$valid', label: context.tr('verified_label')),
+                            _ProgressStat(
+                              value: '$valid',
+                              label: context.tr('verified_label'),
+                            ),
                             const SizedBox(width: 24),
                             _ProgressStat(
                               value: '${total - uploaded}',
@@ -124,7 +140,9 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: total > 0 ? uploaded / total : 0,
-                            backgroundColor: Colors.white.withValues(alpha: 0.3),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.3,
+                            ),
                             color: Colors.white,
                             minHeight: 6,
                           ),
@@ -138,16 +156,25 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline, color: Colors.blue, size: 18),
+                        const Icon(
+                          Icons.info_outline,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             context.tr('accepted_formats_hint'),
-                            style: const TextStyle(fontSize: 12, color: Colors.blue),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue,
+                            ),
                           ),
                         ),
                       ],
@@ -184,7 +211,11 @@ class DocumentUploadArgs {
 }
 
 class _ProgressStat extends StatelessWidget {
-  const _ProgressStat({required this.value, required this.label, this.highlight = false});
+  const _ProgressStat({
+    required this.value,
+    required this.label,
+    this.highlight = false,
+  });
   final String value;
   final String label;
   final bool highlight;
@@ -320,7 +351,10 @@ class _DocumentCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           statusSubtext,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ],
@@ -343,12 +377,22 @@ class _DocumentCard extends StatelessWidget {
               children: [
                 if (isUploaded && document?.fileUrl != null) ...[
                   TextButton.icon(
-                    onPressed: () => _viewDocument(context, document!),
+                    onPressed: () => viewDocument(
+                      context,
+                      fileUrl: document!.fileUrl,
+                      title: documentTypeLabel(document!.docType),
+                    ),
                     icon: const Icon(Icons.visibility_outlined, size: 16),
-                    label: Text(context.tr('view_action'), style: const TextStyle(fontSize: 13)),
+                    label: Text(
+                      context.tr('view_action'),
+                      style: const TextStyle(fontSize: 13),
+                    ),
                     style: TextButton.styleFrom(
                       foregroundColor: AppTheme.primaryGreen,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -363,21 +407,31 @@ class _DocumentCard extends StatelessWidget {
                 else
                   FilledButton.icon(
                     onPressed: onUpload,
-                    icon: Icon(isUploaded ? Icons.upload_rounded : Icons.add_rounded, size: 16),
+                    icon: Icon(
+                      isUploaded ? Icons.upload_rounded : Icons.add_rounded,
+                      size: 16,
+                    ),
                     label: Text(
                       isInvalid
                           ? context.tr('reupload_action')
                           : isUploaded
-                              ? context.tr('replace_action')
-                              : context.tr('upload_action'),
+                          ? context.tr('replace_action')
+                          : context.tr('upload_action'),
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: isInvalid ? Colors.red : AppTheme.primaryGreen,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      backgroundColor: isInvalid
+                          ? Colors.red
+                          : AppTheme.primaryGreen,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
               ],
@@ -387,36 +441,4 @@ class _DocumentCard extends StatelessWidget {
       ),
     );
   }
-}
-
-void _viewDocument(BuildContext context, CitizenDocument document) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          title: Text(documentTypeLabel(document.docType)),
-        ),
-        body: SafeArea(
-          child: InteractiveViewer(
-            minScale: 0.8,
-            maxScale: 5,
-            child: Center(
-              child: documentImage(
-                document.fileUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.broken_image,
-                  color: Colors.white54,
-                  size: 64,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }
