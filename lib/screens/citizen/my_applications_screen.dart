@@ -272,7 +272,8 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
     List<CitizenDocument> documents,
   ) {
     for (final document in documents) {
-      if (document.applicationId == applicationId && document.docType == docType) {
+      if (document.applicationId == applicationId &&
+          document.docType == docType) {
         return document;
       }
     }
@@ -499,74 +500,85 @@ class _DocumentValidationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = _state(context);
+    final canPreview = document != null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: state.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: canPreview
+            ? () => viewDocument(
+                context,
+                fileUrl: document!.fileUrl,
+                title: documentTypeLabel(docType),
+              )
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: state.color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(state.icon, color: state.color, size: 20),
               ),
-              child: Icon(state.icon, color: state.color, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    documentTypeLabel(docType),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  if (state.helperText != null) ...[
-                    const SizedBox(height: 3),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      state.helperText!,
+                      documentTypeLabel(docType),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (state.helperText != null) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        state.helperText!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
                       ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 110),
+                    child: StatusBadge(label: state.label, color: state.color),
+                  ),
+                  if (document?.isValid == false) ...[
+                    const SizedBox(height: 4),
+                    TextButton.icon(
+                      onPressed: () => context.push(
+                        '/citizen/documents',
+                        extra: DocumentUploadArgs(
+                          applicationId: applicationId,
+                          cardTypeName: cardTypeName,
+                          requiredDocuments: requiredDocuments,
+                        ),
+                      ),
+                      icon: const Icon(Icons.upload_file_rounded, size: 16),
+                      label: Text(context.tr('reupload_action')),
                     ),
                   ],
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 110),
-                  child: StatusBadge(label: state.label, color: state.color),
-                ),
-                if (document?.isValid == false) ...[
-                  const SizedBox(height: 4),
-                  TextButton.icon(
-                    onPressed: () => context.push(
-                      '/citizen/documents',
-                      extra: DocumentUploadArgs(
-                        applicationId: applicationId,
-                        cardTypeName: cardTypeName,
-                        requiredDocuments: requiredDocuments,
-                      ),
-                    ),
-                    icon: const Icon(Icons.upload_file_rounded, size: 16),
-                    label: Text(context.tr('reupload_action')),
-                  ),
-                ],
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
