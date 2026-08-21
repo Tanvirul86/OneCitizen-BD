@@ -613,7 +613,9 @@ class _ApplyCardScreenState extends State<ApplyCardScreen> {
                             ? () => ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    context.trs('family_card_women_only_snackbar'),
+                                    context.trs(
+                                      'family_card_women_only_snackbar',
+                                    ),
                                   ),
                                   backgroundColor: AppTheme.errorRed,
                                 ),
@@ -863,17 +865,23 @@ class _ApplicationFieldInput extends StatelessWidget {
         ),
         onTap: () async {
           final today = DateTime.now();
-          final adultCutoff = DateTime(today.year - 18, today.month, today.day);
           final picked = await showDatePicker(
             context: context,
-            initialDate: adultCutoff,
+            initialDate: DateTime(today.year - 18, today.month, today.day),
             firstDate: DateTime(today.year - 100),
-            lastDate: adultCutoff,
+            lastDate: today,
           );
-          if (picked != null) {
-            final formatted = DateFormat('dd/MM/yyyy').format(picked);
-            controller.text = formatted;
-            onChanged(formatted);
+          if (picked == null) return;
+          final formatted = DateFormat('dd/MM/yyyy').format(picked);
+          controller.text = formatted;
+          onChanged(formatted);
+          if (ageInYears(picked) < 18 && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.trs('must_be_18_error')),
+                backgroundColor: AppTheme.errorRed,
+              ),
+            );
           }
         },
         validator: (value) {
@@ -1193,10 +1201,7 @@ class _AddressDropdown extends StatelessWidget {
           .map(
             (option) => DropdownMenuItem(
               value: option.id,
-              child: Text(
-                option.displayName,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: Text(option.displayName, overflow: TextOverflow.ellipsis),
             ),
           )
           .toList(),
