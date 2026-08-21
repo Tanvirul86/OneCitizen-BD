@@ -74,15 +74,22 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   }
 
   Future<void> _selectDate() async {
-    final today = DateTime.now();
-    final adultCutoff = DateTime(today.year - 18, today.month, today.day);
     final date = await showDatePicker(
       context: context,
       initialDate: _dateOfBirth ?? DateTime(2000),
       firstDate: DateTime(1950),
-      lastDate: adultCutoff,
+      lastDate: DateTime.now(),
     );
-    if (date != null) setState(() => _dateOfBirth = date);
+    if (date == null) return;
+    setState(() => _dateOfBirth = date);
+    if (ageInYears(date) < 18 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.trs('must_be_18_error')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _save() async {
