@@ -130,28 +130,35 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                 onClear: () => setState(() => _statusScope = null),
               ),
             ),
-          SizedBox(
-            height: 52,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: [
-                _Chip(
-                  label: context.tr('filter_all'),
-                  selected: _filter == null,
-                  onTap: () => setState(() => _filter = null),
+          // Arriving scoped to one status (from a dashboard stat tile) should
+          // only ever show that status — hide the other filter chips rather
+          // than let the admin tap into a status outside the scope.
+          if (_statusScope == null)
+            SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                ..._visibleStatusFilters.map(
-                  (status) => _Chip(
-                    label: _statusLabel(context, status),
-                    selected: _filter == status,
-                    color: statusColor(status),
-                    onTap: () => setState(() => _filter = status),
+                children: [
+                  _Chip(
+                    label: context.tr('filter_all'),
+                    selected: _filter == null,
+                    onTap: () => setState(() => _filter = null),
                   ),
-                ),
-              ],
+                  ..._visibleStatusFilters.map(
+                    (status) => _Chip(
+                      label: _statusLabel(context, status),
+                      selected: _filter == status,
+                      color: statusColor(status),
+                      onTap: () => setState(() => _filter = status),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => provider.loadApplications(),
