@@ -423,7 +423,9 @@ class _DocumentValidationScreenState extends State<DocumentValidationScreen> {
                                       child: OutlinedButton.icon(
                                         onPressed: () => _markInvalid(doc),
                                         icon: const Icon(Icons.close, size: 18),
-                                        label: Text(context.tr('invalid_action')),
+                                        label: Text(
+                                          context.tr('invalid_action'),
+                                        ),
                                         style: OutlinedButton.styleFrom(
                                           foregroundColor: Colors.red,
                                           side: const BorderSide(
@@ -545,42 +547,46 @@ class _DocumentViewerScreenState extends State<_DocumentViewerScreen> {
               ),
             ),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _submitting
-                          ? null
-                          : () => _handle(widget.onMarkInvalid),
-                      icon: const Icon(Icons.close, size: 18),
-                      label: Text(context.tr('invalid_action')),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+          // A document that's already been reviewed (valid or invalid) is
+          // a decision that's already been made — this view is read-only
+          // for it. Only a still-pending document gets the action row.
+          if (doc.isValid == null)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _submitting
+                            ? null
+                            : () => _handle(widget.onMarkInvalid),
+                        icon: const Icon(Icons.close, size: 18),
+                        label: Text(context.tr('invalid_action')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _submitting
-                          ? null
-                          : () => _handle(widget.onMarkValid),
-                      icon: const Icon(Icons.check, size: 18),
-                      label: Text(context.tr('valid_action')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _submitting
+                            ? null
+                            : () => _handle(widget.onMarkValid),
+                        icon: const Icon(Icons.check, size: 18),
+                        label: Text(context.tr('valid_action')),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
