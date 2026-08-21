@@ -291,6 +291,10 @@ class AppStrings {
       AppLanguage.en: 'Dashboard',
       AppLanguage.bn: 'ড্যাশবোর্ড',
     },
+    'dashboard_new_applications_title': {
+      AppLanguage.en: 'New Applications',
+      AppLanguage.bn: 'নতুন আবেদন',
+    },
     'admin_nav_new_applications': {
       AppLanguage.en: 'Applications',
       AppLanguage.bn: 'আবেদনসমূহ',

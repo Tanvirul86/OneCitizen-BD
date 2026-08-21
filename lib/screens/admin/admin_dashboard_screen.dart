@@ -68,7 +68,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final provider = context.watch<AdminProvider>();
     final user = context.watch<AuthProvider>().user;
     final analytics = provider.analytics ?? {};
-    final recentApplications = provider.applications.take(4).toList();
+    final recentApplications = provider.applications
+        .where(
+          (a) =>
+              a.status == ApplicationStatus.submitted ||
+              a.status == ApplicationStatus.underReview,
+        )
+        .take(4)
+        .toList();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
@@ -223,7 +230,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         const SizedBox(height: 18),
                         _SectionHeader(
-                          title: context.tr('admin_nav_new_applications'),
+                          title: context.tr('dashboard_new_applications_title'),
                           actionLabel: context.tr('filter_all'),
                           onAction: () => context.go('/admin/applications'),
                         ),
