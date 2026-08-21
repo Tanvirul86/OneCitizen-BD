@@ -471,6 +471,28 @@ class _DocumentValidationTile extends StatelessWidget {
     switch (applicationStatus) {
       case ApplicationStatus.submitted:
       case ApplicationStatus.underReview:
+        // The application as a whole hasn't been decided yet, but admins
+        // review documents individually — reflect each document's own
+        // isValid rather than showing every document as "Under Review"
+        // regardless of what's already been approved/rejected for it.
+        if (document?.isValid == true) {
+          return _DocumentValidationState(
+            label: context.tr('stat_approved'),
+            helperText: null,
+            icon: Icons.check_circle_rounded,
+            color: AppTheme.successGreen,
+          );
+        }
+        if (document?.isValid == false) {
+          return _DocumentValidationState(
+            label: context.tr('status_resubmit'),
+            helperText: document?.remark?.trim().isNotEmpty == true
+                ? document!.remark
+                : context.tr('please_resubmit_document'),
+            icon: Icons.refresh_rounded,
+            color: AppTheme.errorRed,
+          );
+        }
         return _DocumentValidationState(
           label: context.tr('status_under_review'),
           helperText: null,

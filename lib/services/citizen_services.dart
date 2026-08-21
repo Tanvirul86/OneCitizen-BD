@@ -19,7 +19,9 @@ String _requireUid() {
 }
 
 void _sortByDate(List<Map<String, dynamic>> items, String field) {
-  items.sort((a, b) => (b[field] as String? ?? '').compareTo(a[field] as String? ?? ''));
+  items.sort(
+    (a, b) => (b[field] as String? ?? '').compareTo(a[field] as String? ?? ''),
+  );
 }
 
 Future<void> _notifyAdmins(FirebaseDatabase database, String message) {
@@ -31,7 +33,8 @@ Future<void> _notifyAdmins(FirebaseDatabase database, String message) {
 }
 
 class CardTypeService {
-  CardTypeService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  CardTypeService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   Future<List<CardType>> getCardTypes() async {
@@ -41,7 +44,8 @@ class CardTypeService {
 }
 
 class EligibilityService {
-  EligibilityService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  EligibilityService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   Future<EligibilityResult> checkEligibility() async {
@@ -51,7 +55,9 @@ class EligibilityService {
     final user = User.fromJson(withKey(uid, userSnapshot.value));
 
     final cardTypesSnapshot = await _database.ref('card_types').get();
-    final cardTypes = mapChildren(cardTypesSnapshot).map(CardType.fromJson).toList();
+    final cardTypes = mapChildren(
+      cardTypesSnapshot,
+    ).map(CardType.fromJson).toList();
 
     return EligibilityResult(
       results: cardTypes.map((cardType) => _evaluate(cardType, user)).toList(),
@@ -74,7 +80,11 @@ class EligibilityService {
         final land = user.landAcres;
         final income = user.income;
         final eligible =
-            isFemale && land != null && income != null && land <= 0.5 && income <= 12000;
+            isFemale &&
+            land != null &&
+            income != null &&
+            land <= 0.5 &&
+            income <= 12000;
         return CardEligibility(
           cardType: cardType,
           eligible: eligible,
@@ -98,7 +108,9 @@ class EligibilityService {
     }
   }
 
-  Future<Map<String, dynamic>> submitEligibilityRequest(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> submitEligibilityRequest(
+    Map<String, dynamic> data,
+  ) async {
     final uid = _requireUid();
     final ref = _database.ref('eligibility_requests').push();
     await ref.set({
@@ -107,7 +119,10 @@ class EligibilityService {
       'submitted_at': ServerValue.timestamp,
       ...data,
     });
-    await _notifyAdmins(_database, 'A citizen submitted a new eligibility request.');
+    await _notifyAdmins(
+      _database,
+      'A citizen submitted a new eligibility request.',
+    );
     return {
       'status': 'pending_review',
       'message':
@@ -117,14 +132,18 @@ class EligibilityService {
 }
 
 class ApplicationService {
-  ApplicationService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  ApplicationService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   DatabaseReference get _applications => _database.ref('applications');
 
   Future<List<Application>> getApplications() async {
     final uid = _requireUid();
-    final snapshot = await _applications.orderByChild('citizen_id').equalTo(uid).get();
+    final snapshot = await _applications
+        .orderByChild('citizen_id')
+        .equalTo(uid)
+        .get();
     final items = mapChildren(snapshot);
     _sortByDate(items, 'submitted_at');
     return items.map(Application.fromJson).toList();
@@ -145,10 +164,15 @@ class ApplicationService {
     // Claiming this lock atomically (instead of the read-then-write check it
     // replaces) closes the race where two concurrent submissions for the
     // same card type both pass the "no active application" check.
-    final lockRef = _database.ref('application_locks').child('${uid}_$cardTypeId');
+    final lockRef = _database
+        .ref('application_locks')
+        .child('${uid}_$cardTypeId');
     final lockResult = await lockRef.runTransaction((current) {
       if (current != null) return Transaction.abort();
-      return Transaction.success({'citizen_id': uid, 'card_type_id': cardTypeId});
+      return Transaction.success({
+        'citizen_id': uid,
+        'card_type_id': cardTypeId,
+      });
     });
     if (!lockResult.committed) {
       throw AuthException(
@@ -158,16 +182,27 @@ class ApplicationService {
     }
 
     try {
-      final cardTypeSnapshot = await _database.ref('card_types').child(cardTypeId).get();
-      if (!cardTypeSnapshot.exists) throw AuthException('Selected card type was not found.');
-      final cardTypeData = Map<String, dynamic>.from(cardTypeSnapshot.value as Map);
+      final cardTypeSnapshot = await _database
+          .ref('card_types')
+          .child(cardTypeId)
+          .get();
+      if (!cardTypeSnapshot.exists) {
+        throw AuthException('Selected card type was not found.');
+      }
+      final cardTypeData = Map<String, dynamic>.from(
+        cardTypeSnapshot.value as Map,
+      );
 
       final userSnapshot = await _database.ref('users').child(uid).get();
-      final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
+      final userData = Map<String, dynamic>.from(
+        userSnapshot.value as Map? ?? {},
+      );
 
       if (cardTypeData['code'] == 'family' &&
           (userData['gender'] as String?)?.toLowerCase() != 'female') {
-        throw AuthException('Family Card is only available for women applicants.');
+        throw AuthException(
+          'Family Card is only available for women applicants.',
+        );
       }
 
       // The apply wizard collects the NID/birth-certificate number as part
@@ -183,7 +218,8 @@ class ApplicationService {
           )
           ?.trim();
       final existingNid = (userData['nid'] as String?)?.trim();
-      if (submittedNid != null && (existingNid == null || existingNid.isEmpty)) {
+      if (submittedNid != null &&
+          (existingNid == null || existingNid.isEmpty)) {
         await _database.ref('users').child(uid).update({'nid': submittedNid});
         userData['nid'] = submittedNid;
       }
@@ -192,9 +228,10 @@ class ApplicationService {
         'citizen_id': uid,
         'card_type_id': cardTypeId,
         'card_type_name': cardTypeData['name'],
-        'applicant_name': [userData['first_name'], userData['last_name']]
-            .where((e) => e != null && (e as String).isNotEmpty)
-            .join(' '),
+        'applicant_name': [
+          userData['first_name'],
+          userData['last_name'],
+        ].where((e) => e != null && (e as String).isNotEmpty).join(' '),
         'applicant_nid': userData['nid'],
         'applicant_email': userData['email'],
         'application_data': applicationData,
@@ -212,13 +249,17 @@ class ApplicationService {
       // whichever of the card type's required documents the citizen already
       // has on file (keyed by `${uid}_$docType`, no application id) now that
       // there's an application id to attach them to.
-      final requiredDocuments = (cardTypeData['required_documents'] as List?) ?? [];
+      final requiredDocuments =
+          (cardTypeData['required_documents'] as List?) ?? [];
       final documentsRef = _database.ref('documents');
       for (final docType in requiredDocuments) {
         final docRef = documentsRef.child('${uid}_$docType');
         final docSnapshot = await docRef.get();
         if (docSnapshot.exists) {
-          await docRef.update({'application_id': ref.key, 'card_type_id': cardTypeId});
+          await docRef.update({
+            'application_id': ref.key,
+            'card_type_id': cardTypeId,
+          });
         }
       }
 
@@ -237,7 +278,10 @@ class ApplicationService {
   }
 }
 
-const _maxDocumentBytes = 5 * 1024 * 1024; // 5MB raw — keeps the base64 node well under RTDB's 10MB cap.
+const _maxDocumentBytes =
+    5 *
+    1024 *
+    1024; // 5MB raw — keeps the base64 node well under RTDB's 10MB cap.
 
 const _mimeTypesByExtension = {
   'jpg': 'image/jpeg',
@@ -245,18 +289,23 @@ const _mimeTypesByExtension = {
   'png': 'image/png',
   'pdf': 'application/pdf',
   'doc': 'application/msword',
-  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'docx':
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 };
 
 class DocumentService {
-  DocumentService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  DocumentService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   DatabaseReference get _documents => _database.ref('documents');
 
   Future<List<CitizenDocument>> getDocuments() async {
     final uid = _requireUid();
-    final snapshot = await _documents.orderByChild('citizen_id').equalTo(uid).get();
+    final snapshot = await _documents
+        .orderByChild('citizen_id')
+        .equalTo(uid)
+        .get();
     return mapChildren(snapshot).map(CitizenDocument.fromJson).toList();
   }
 
@@ -269,43 +318,62 @@ class DocumentService {
     final file = File(filePath);
     final bytes = await file.readAsBytes();
     if (bytes.length > _maxDocumentBytes) {
-      throw AuthException('File is too large — please upload something under 5MB.');
+      throw AuthException(
+        'File is too large — please upload something under 5MB.',
+      );
     }
-    final extension = filePath.contains('.') ? filePath.split('.').last.toLowerCase() : '';
-    final mimeType = _mimeTypesByExtension[extension] ?? 'application/octet-stream';
+    final extension = filePath.contains('.')
+        ? filePath.split('.').last.toLowerCase()
+        : '';
+    final mimeType =
+        _mimeTypesByExtension[extension] ?? 'application/octet-stream';
     final fileUrl = 'data:$mimeType;base64,${base64Encode(bytes)}';
 
     final userSnapshot = await _database.ref('users').child(uid).get();
-    final userData = Map<String, dynamic>.from(userSnapshot.value as Map? ?? {});
-    final citizenName = [userData['first_name'], userData['last_name']]
-        .where((e) => e != null && (e as String).isNotEmpty)
-        .join(' ');
+    final userData = Map<String, dynamic>.from(
+      userSnapshot.value as Map? ?? {},
+    );
+    final citizenName = [
+      userData['first_name'],
+      userData['last_name'],
+    ].where((e) => e != null && (e as String).isNotEmpty).join(' ');
 
     String? cardTypeId;
     String? linkedApplicationId = applicationId;
     if (applicationId != null) {
-      final applicationSnapshot = await _database.ref('applications').child(applicationId).get();
+      final applicationSnapshot = await _database
+          .ref('applications')
+          .child(applicationId)
+          .get();
       if (applicationSnapshot.exists) {
-        cardTypeId = (applicationSnapshot.value as Map)['card_type_id'] as String?;
+        cardTypeId =
+            (applicationSnapshot.value as Map)['card_type_id'] as String?;
       }
     } else {
       // Uploaded without an application in progress — e.g. the citizen
       // submitted first and added/replaced a document afterward. Attach it
       // to their active application for a card type that requires this
       // doc, so it doesn't stay invisible to admin review.
-      final applicationsSnapshot =
-          await _database.ref('applications').orderByChild('citizen_id').equalTo(uid).get();
+      final applicationsSnapshot = await _database
+          .ref('applications')
+          .orderByChild('citizen_id')
+          .equalTo(uid)
+          .get();
       for (final application in mapChildren(applicationsSnapshot)) {
         if (application['status'] == 'rejected') continue;
         final candidateCardTypeId = application['card_type_id'] as String?;
         if (candidateCardTypeId == null) continue;
-        final cardTypeSnapshot =
-            await _database.ref('card_types').child(candidateCardTypeId).get();
+        final cardTypeSnapshot = await _database
+            .ref('card_types')
+            .child(candidateCardTypeId)
+            .get();
         if (!cardTypeSnapshot.exists) continue;
         final requiredDocuments =
-            (Map<String, dynamic>.from(cardTypeSnapshot.value as Map)['required_documents']
-                    as List?) ??
-                [];
+            (Map<String, dynamic>.from(
+                  cardTypeSnapshot.value as Map,
+                )['required_documents']
+                as List?) ??
+            [];
         if (requiredDocuments.contains(docType)) {
           linkedApplicationId = application['id'] as String?;
           cardTypeId = candidateCardTypeId;
@@ -314,7 +382,14 @@ class DocumentService {
       }
     }
 
-    final docId = applicationId != null ? '${uid}_${applicationId}_$docType' : '${uid}_$docType';
+    // Always the same key regardless of whether an application was already
+    // in progress at upload time — a citizen only ever has one active
+    // (non-rejected) application per card type, so this is already a
+    // unique slot. Keying a reupload differently (e.g. by application id)
+    // would create a second record instead of overwriting the rejected
+    // one, leaving a stale invalid document the admin gate and the
+    // citizen's "needs reupload" banner would never clear.
+    final docId = '${uid}_$docType';
     await _documents.child(docId).set({
       'citizen_id': uid,
       'doc_type': docType,
@@ -332,13 +407,17 @@ class DocumentService {
 }
 
 class DistributionService {
-  DistributionService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  DistributionService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   Future<List<Distribution>> getDistributions() async {
     final uid = _requireUid();
-    final snapshot =
-        await _database.ref('distributions').orderByChild('citizen_id').equalTo(uid).get();
+    final snapshot = await _database
+        .ref('distributions')
+        .orderByChild('citizen_id')
+        .equalTo(uid)
+        .get();
     final items = mapChildren(snapshot);
     _sortByDate(items, 'dist_date');
     return items.map(Distribution.fromJson).toList();
@@ -346,14 +425,18 @@ class DistributionService {
 }
 
 class NotificationService {
-  NotificationService({FirebaseDatabase? database}) : _database = database ?? appDatabase;
+  NotificationService({FirebaseDatabase? database})
+    : _database = database ?? appDatabase;
   final FirebaseDatabase _database;
 
   DatabaseReference get _notifications => _database.ref('notifications');
 
   Future<List<AppNotification>> getNotifications() async {
     final uid = _requireUid();
-    final snapshot = await _notifications.orderByChild('citizen_id').equalTo(uid).get();
+    final snapshot = await _notifications
+        .orderByChild('citizen_id')
+        .equalTo(uid)
+        .get();
     final items = mapChildren(snapshot);
     _sortByDate(items, 'created_at');
     return items.map(AppNotification.fromJson).toList();
