@@ -19,9 +19,8 @@ Color statusColor(ApplicationStatus status) {
     case ApplicationStatus.rejected:
       return Colors.red;
     case ApplicationStatus.underReview:
-      return Colors.blue;
     case ApplicationStatus.submitted:
-      return AppTheme.primaryGreen;
+      return Colors.blue;
   }
 }
 
@@ -34,8 +33,11 @@ class MyApplicationsScreen extends StatefulWidget {
 
 String _statusLabel(BuildContext context, ApplicationStatus status) {
   switch (status) {
+    // A submitted application hasn't been reviewed yet either, so it's
+    // shown as "Under Review" too — there's no citizen-visible difference
+    // between the two, and having both as separate labels/filters was
+    // just confusing.
     case ApplicationStatus.submitted:
-      return context.tr('status_submitted');
     case ApplicationStatus.underReview:
       return context.tr('status_under_review');
     case ApplicationStatus.approved:
@@ -43,6 +45,25 @@ String _statusLabel(BuildContext context, ApplicationStatus status) {
     case ApplicationStatus.rejected:
       return context.tr('stat_rejected');
   }
+}
+
+/// Filter chips shown to the citizen — `submitted` is deliberately left out
+/// since [_statusLabel] displays it identically to `underReview`; matching
+/// either status against the "Under Review" chip via [_matchesStatusFilter]
+/// keeps both kinds of not-yet-decided applications visible under one option.
+const _visibleStatusFilters = [
+  ApplicationStatus.underReview,
+  ApplicationStatus.approved,
+  ApplicationStatus.rejected,
+];
+
+bool _matchesStatusFilter(ApplicationStatus status, ApplicationStatus? filter) {
+  if (filter == null) return true;
+  if (filter == ApplicationStatus.underReview) {
+    return status == ApplicationStatus.underReview ||
+        status == ApplicationStatus.submitted;
+  }
+  return status == filter;
 }
 
 class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
@@ -59,9 +80,9 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   @override
   Widget build(BuildContext context) {
     final appProvider = context.watch<ApplicationProvider>();
-    final filtered = _filter == null
-        ? appProvider.applications
-        : appProvider.applications.where((a) => a.status == _filter).toList();
+    final filtered = appProvider.applications
+        .where((a) => _matchesStatusFilter(a.status, _filter))
+        .toList();
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
@@ -79,7 +100,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                   selected: _filter == null,
                   onTap: () => setState(() => _filter = null),
                 ),
-                ...ApplicationStatus.values.map(
+                ..._visibleStatusFilters.map(
                   (s) => _FilterChip(
                     label: _statusLabel(context, s),
                     selected: _filter == s,
@@ -449,15 +470,9 @@ class _DocumentValidationTile extends StatelessWidget {
   _DocumentValidationState _state(BuildContext context) {
     switch (applicationStatus) {
       case ApplicationStatus.submitted:
-        return _DocumentValidationState(
-          label: context.tr('status_submitted'),
-          helperText: null,
-          icon: Icons.upload_file_rounded,
-          color: AppTheme.infoBlue,
-        );
       case ApplicationStatus.underReview:
         return _DocumentValidationState(
-          label: context.tr('status_pending'),
+          label: context.tr('status_under_review'),
           helperText: null,
           icon: Icons.hourglass_top_rounded,
           color: AppTheme.warningAmber,

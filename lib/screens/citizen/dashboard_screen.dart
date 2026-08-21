@@ -39,16 +39,14 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
       case ApplicationStatus.rejected:
         return AppTheme.errorRed;
       case ApplicationStatus.underReview:
-        return AppTheme.infoBlue;
       case ApplicationStatus.submitted:
-        return AppTheme.warningAmber;
+        return AppTheme.infoBlue;
     }
   }
 
   String _statusLabel(BuildContext context, ApplicationStatus s) {
     switch (s) {
       case ApplicationStatus.submitted:
-        return context.tr('status_submitted');
       case ApplicationStatus.underReview:
         return context.tr('status_under_review');
       case ApplicationStatus.approved:

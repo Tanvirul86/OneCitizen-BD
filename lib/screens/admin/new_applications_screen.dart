@@ -13,8 +13,10 @@ import 'package:provider/provider.dart';
 
 String _statusLabel(BuildContext context, ApplicationStatus status) {
   switch (status) {
+    // No admin action ever actually sets `underReview` — applications go
+    // straight from `submitted` to approved/rejected — so the two are
+    // shown identically instead of as confusing separate options.
     case ApplicationStatus.submitted:
-      return context.tr('status_request');
     case ApplicationStatus.underReview:
       return context.tr('status_under_review');
     case ApplicationStatus.approved:
@@ -22,6 +24,21 @@ String _statusLabel(BuildContext context, ApplicationStatus status) {
     case ApplicationStatus.rejected:
       return context.tr('stat_rejected');
   }
+}
+
+const _visibleStatusFilters = [
+  ApplicationStatus.underReview,
+  ApplicationStatus.approved,
+  ApplicationStatus.rejected,
+];
+
+bool _matchesStatusFilter(ApplicationStatus status, ApplicationStatus? filter) {
+  if (filter == null) return true;
+  if (filter == ApplicationStatus.underReview) {
+    return status == ApplicationStatus.underReview ||
+        status == ApplicationStatus.submitted;
+  }
+  return status == filter;
 }
 
 /// Navigation payload for `/admin/applications`. Callers can scope the list to
@@ -81,7 +98,7 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
     final filtered = provider.applications
-        .where((a) => _filter == null || a.status == _filter)
+        .where((a) => _matchesStatusFilter(a.status, _filter))
         .where(
           (a) => _cardTypeFilter == null || a.cardTypeName == _cardTypeFilter,
         )
@@ -124,7 +141,7 @@ class _NewApplicationsScreenState extends State<NewApplicationsScreen> {
                   selected: _filter == null,
                   onTap: () => setState(() => _filter = null),
                 ),
-                ...ApplicationStatus.values.map(
+                ..._visibleStatusFilters.map(
                   (status) => _Chip(
                     label: _statusLabel(context, status),
                     selected: _filter == status,
