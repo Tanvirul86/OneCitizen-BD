@@ -292,8 +292,8 @@ class AppStrings {
       AppLanguage.bn: 'ড্যাশবোর্ড',
     },
     'admin_nav_new_applications': {
-      AppLanguage.en: 'New Applications',
-      AppLanguage.bn: 'নতুন আবেদন',
+      AppLanguage.en: 'Applications',
+      AppLanguage.bn: 'আবেদনসমূহ',
     },
     'admin_nav_document_validation': {
       AppLanguage.en: 'Document Validation',
