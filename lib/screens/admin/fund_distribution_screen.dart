@@ -27,6 +27,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
   bool _bulkMode = false;
   bool _isSubmitting = false;
   int _formResetCount = 0;
+  final Set<String> _deselectedRecipientIds = {};
 
   @override
   void initState() {
@@ -117,10 +118,13 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     }
   }
 
-  Future<void> _submitBulk(CardType cardType, int recipientCount) async {
+  Future<void> _submitBulk(
+    CardType cardType,
+    List<Application> recipients,
+  ) async {
     final amount = double.tryParse(_bulkAmountController.text.trim());
-    if (amount == null) return;
-    final total = amount * recipientCount;
+    if (amount == null || recipients.isEmpty) return;
+    final total = amount * recipients.length;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -129,7 +133,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
         content: Text(
           context.trsp('bulk_distribute_confirm_body', {
             'amount': amount.toStringAsFixed(0),
-            'count': '$recipientCount',
+            'count': '${recipients.length}',
             'name': cardType.name,
             'total': total.toStringAsFixed(0),
           }),
@@ -151,7 +155,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     setState(() => _isSubmitting = true);
     final provider = context.read<AdminProvider>();
     final result = await provider.distributeToCardType(
-      cardTypeId: cardType.id,
+      applicationIds: recipients.map((a) => a.id).toList(),
       amount: amount,
       method: DistributionMethod.online,
       note: _noteController.text.trim().isEmpty
@@ -316,6 +320,9 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
         .where((a) => provider.isEligibleForDistribution(a.id))
         .toList();
     final onCooldownCount = approvedForCard.length - recipients.length;
+    final selectedRecipients = recipients
+        .where((a) => !_deselectedRecipientIds.contains(a.id))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -339,6 +346,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
             final selected = cardTypes.where((c) => c.id == v).firstOrNull;
             setState(() {
               _selectedCardTypeId = v;
+              _deselectedRecipientIds.clear();
               _bulkAmountController.text =
                   selected == null || selected.disbursementAmount == 0
                   ? ''
@@ -404,15 +412,75 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
               ),
             ),
           ),
+        if (recipients.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.trp('recipients_selected_count', {
+                  'selected': '${selectedRecipients.length}',
+                  'total': '${recipients.length}',
+                }),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() {
+                  if (_deselectedRecipientIds.isEmpty) {
+                    _deselectedRecipientIds.addAll(recipients.map((a) => a.id));
+                  } else {
+                    _deselectedRecipientIds.clear();
+                  }
+                }),
+                child: Text(
+                  context.tr(
+                    _deselectedRecipientIds.isEmpty
+                        ? 'deselect_all_action'
+                        : 'select_all_action',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: recipients.map((application) {
+                final selected = !_deselectedRecipientIds.contains(
+                  application.id,
+                );
+                return CheckboxListTile(
+                  value: selected,
+                  dense: true,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(
+                    application.applicantName ?? application.id,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onChanged: (value) => setState(() {
+                    if (value == true) {
+                      _deselectedRecipientIds.remove(application.id);
+                    } else {
+                      _deselectedRecipientIds.add(application.id);
+                    }
+                  }),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed:
               (_isSubmitting ||
                   cardType == null ||
-                  recipients.isEmpty ||
+                  selectedRecipients.isEmpty ||
                   double.tryParse(_bulkAmountController.text.trim()) == null)
               ? null
-              : () => _submitBulk(cardType, recipients.length),
+              : () => _submitBulk(cardType, selectedRecipients),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -427,7 +495,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
                 )
               : Text(
                   context.trp('bulk_distribute_action', {
-                    'count': '${recipients.length}',
+                    'count': '${selectedRecipients.length}',
                   }),
                   style: const TextStyle(fontSize: 16),
                 ),

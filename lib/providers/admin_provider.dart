@@ -211,26 +211,20 @@ class AdminProvider extends ChangeNotifier {
     }
   }
 
-  /// Pays the same fixed [amount] to every approved application of
-  /// [cardTypeId] in one action, instead of disbursing one holder at a time.
+  /// Pays the same fixed [amount] to each of [applicationIds] in one action
+  /// — the caller (e.g. a by-card-type distribution the admin has trimmed
+  /// down with checkboxes) decides exactly who's included.
   Future<({int success, int failed})> distributeToCardType({
-    required String cardTypeId,
+    required List<String> applicationIds,
     required double amount,
     required DistributionMethod method,
     String? note,
   }) async {
-    final targets = applications.where(
-      (a) =>
-          a.cardTypeId == cardTypeId &&
-          a.status == ApplicationStatus.approved &&
-          isEligibleForDistribution(a.id),
-    );
-
     var success = 0;
     var failed = 0;
-    for (final app in targets) {
+    for (final id in applicationIds) {
       final ok = await createDistribution(
-        applicationId: app.id,
+        applicationId: id,
         method: method,
         amount: amount,
         note: note,
