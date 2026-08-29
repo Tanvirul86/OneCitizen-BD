@@ -11,7 +11,8 @@ class DistributionHistoryScreen extends StatefulWidget {
   const DistributionHistoryScreen({super.key});
 
   @override
-  State<DistributionHistoryScreen> createState() => _DistributionHistoryScreenState();
+  State<DistributionHistoryScreen> createState() =>
+      _DistributionHistoryScreenState();
 }
 
 class _DistributionHistoryScreenState extends State<DistributionHistoryScreen> {
@@ -35,35 +36,47 @@ class _DistributionHistoryScreenState extends State<DistributionHistoryScreen> {
         child: provider.isLoading
             ? const Center(child: CircularProgressIndicator())
             : provider.error != null
-                ? ErrorMessage(message: provider.error!, onRetry: () => provider.loadDistributions())
-                : provider.distributions.isEmpty
-                    ? EmptyListMessage(message: context.tr('no_fund_disbursements_yet'), icon: Icons.payments_outlined)
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: provider.distributions.length,
-                        itemBuilder: (context, index) {
-                          final dist = provider.distributions[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                                child: Icon(
-                                  dist.method == DistributionMethod.online ? Icons.account_balance_wallet : Icons.storefront,
-                                  color: AppTheme.primaryGreen,
-                                ),
-                              ),
-                              title: Text('৳${dist.amount.toStringAsFixed(0)} — ${dist.cardTypeName ?? ''}'),
-                              subtitle: Text(
-                                '${distributionMethodToString(dist.method).toUpperCase()} • '
-                                '${DateFormat('dd MMM yyyy').format(dist.distributionDate)}'
-                                '${dist.note != null ? '\n${dist.note}' : ''}',
-                              ),
-                              isThreeLine: dist.note != null,
-                            ),
-                          );
-                        },
+            ? ErrorMessage(
+                message: provider.error!,
+                onRetry: () => provider.loadDistributions(),
+              )
+            : provider.distributions.isEmpty
+            ? EmptyListMessage(
+                message: context.tr('no_fund_disbursements_yet'),
+                icon: Icons.payments_outlined,
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: provider.distributions.length,
+                itemBuilder: (context, index) {
+                  final dist = provider.distributions[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: AppTheme.primaryGreen.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Icon(
+                          dist.method == DistributionMethod.online
+                              ? Icons.account_balance_wallet
+                              : Icons.storefront,
+                          color: AppTheme.primaryGreen,
+                        ),
                       ),
+                      title: Text(
+                        '৳${dist.amount.toStringAsFixed(0)} — ${dist.cardTypeName ?? ''}',
+                      ),
+                      subtitle: Text(
+                        '${distributionMethodToString(dist.method).toUpperCase()} • '
+                        '${DateFormat('dd MMM yyyy, HH:mm').format(dist.distributionDate)}'
+                        '${dist.note != null ? '\n${dist.note}' : ''}',
+                      ),
+                      isThreeLine: dist.note != null,
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

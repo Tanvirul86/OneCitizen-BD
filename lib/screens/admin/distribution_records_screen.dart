@@ -216,7 +216,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                         ),
                         subtitle: Text(
                           DateFormat(
-                            'dd MMM yyyy',
+                            'dd MMM yyyy, HH:mm',
                           ).format(dist.distributionDate),
                         ),
                       ),

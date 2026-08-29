@@ -9,6 +9,7 @@ import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/providers/auth_provider.dart';
 import 'package:onecitizen/providers/notification_provider.dart';
 import 'package:onecitizen/utils/apply_card_navigation.dart';
+import 'package:onecitizen/utils/greeting.dart';
 import 'package:onecitizen/widgets/app_logo.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
 import 'package:onecitizen/widgets/language_toggle.dart';
@@ -92,7 +93,7 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
             // ── App Bar ─────────────────────────────────────────────────
             SliverAppBar(
               pinned: true,
-              expandedHeight: 128,
+              expandedHeight: 152,
               backgroundColor: AppTheme.primaryGreenDark,
               foregroundColor: Colors.white,
               elevation: 0,
@@ -124,6 +125,15 @@ class _CitizenDashboardScreenState extends State<CitizenDashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              Text(
+                                greetingFor(context),
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white.withValues(alpha: 0.78),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
                               InkWell(
                                 onTap: () => context.push('/citizen/profile'),
                                 borderRadius: BorderRadius.circular(24),
@@ -588,7 +598,7 @@ class _AppCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    DateFormat('dd MMM yyyy').format(app.submittedAt),
+                    DateFormat('dd MMM yyyy, HH:mm').format(app.submittedAt),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: AppTheme.textSecondary,

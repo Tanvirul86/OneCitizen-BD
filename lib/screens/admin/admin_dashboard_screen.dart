@@ -12,6 +12,7 @@ import 'package:onecitizen/screens/admin/new_applications_screen.dart';
 import 'package:onecitizen/screens/citizen/my_applications_screen.dart'
     show statusColor;
 import 'package:onecitizen/services/seed_service.dart';
+import 'package:onecitizen/utils/greeting.dart';
 import 'package:onecitizen/widgets/status_badge.dart';
 import 'package:provider/provider.dart';
 
@@ -46,13 +47,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Future<void> _refresh() async {
     final provider = context.read<AdminProvider>();
     await Future.wait([provider.loadAnalytics(), provider.loadApplications()]);
-  }
-
-  String _greeting(BuildContext context) {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return context.tr('greeting_morning');
-    if (hour < 17) return context.tr('greeting_afternoon');
-    return context.tr('greeting_evening');
   }
 
   String _statusLabel(BuildContext context, ApplicationStatus status) {
@@ -101,7 +95,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _greeting(context),
+                          greetingFor(context),
                           style: GoogleFonts.plusJakartaSans(
                             color: Colors.white.withValues(alpha: 0.78),
                             fontSize: 13,
@@ -536,7 +530,7 @@ class _RecentApplicationTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${application.cardTypeName} - ${DateFormat('dd MMM yyyy').format(application.submittedAt)}',
+                      '${application.cardTypeName} - ${DateFormat('dd MMM yyyy, HH:mm').format(application.submittedAt)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
