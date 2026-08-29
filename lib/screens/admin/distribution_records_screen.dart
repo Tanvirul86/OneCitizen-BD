@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/card_type.dart';
-import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
@@ -18,7 +17,6 @@ class DistributionRecordsScreen extends StatefulWidget {
 }
 
 class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
-  DistributionMethod? _methodFilter;
   String? _selectedCardTypeName;
 
   @override
@@ -163,11 +161,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
   Widget _buildCardTypeDetail(AdminProvider provider) {
     final cardTypeName = _selectedCardTypeName!;
     final records = provider.distributions
-        .where(
-          (d) =>
-              d.cardTypeName == cardTypeName &&
-              (_methodFilter == null || d.method == _methodFilter),
-        )
+        .where((d) => d.cardTypeName == cardTypeName)
         .toList();
 
     return Column(
@@ -193,24 +187,6 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SegmentedButton<DistributionMethod?>(
-            segments: [
-              ButtonSegment(value: null, label: Text(context.tr('filter_all'))),
-              ButtonSegment(
-                value: DistributionMethod.online,
-                label: Text(context.tr('online')),
-              ),
-              ButtonSegment(
-                value: DistributionMethod.offline,
-                label: Text(context.tr('offline')),
-              ),
-            ],
-            selected: {_methodFilter},
-            onSelectionChanged: (s) => setState(() => _methodFilter = s.first),
-          ),
-        ),
         Expanded(
           child: records.isEmpty
               ? EmptyListMessage(
@@ -229,10 +205,8 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                           backgroundColor: AppTheme.primaryGreen.withValues(
                             alpha: 0.1,
                           ),
-                          child: Icon(
-                            dist.method == DistributionMethod.online
-                                ? Icons.account_balance_wallet
-                                : Icons.storefront,
+                          child: const Icon(
+                            Icons.account_balance_wallet,
                             color: AppTheme.primaryGreen,
                           ),
                         ),
@@ -241,8 +215,9 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                         subtitle: Text(
-                          '${(dist.method == DistributionMethod.online ? context.tr('online') : context.tr('offline')).toUpperCase()} • '
-                          '${DateFormat('dd MMM yyyy').format(dist.distributionDate)}',
+                          DateFormat(
+                            'dd MMM yyyy',
+                          ).format(dist.distributionDate),
                         ),
                       ),
                     );
