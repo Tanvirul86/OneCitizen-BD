@@ -16,8 +16,13 @@ class DistributionRecordsScreen extends StatefulWidget {
       _DistributionRecordsScreenState();
 }
 
+enum _PeriodType { weekly, monthly, yearly }
+
 class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
   String? _selectedCardTypeName;
+  bool _viewByPeriod = false;
+  _PeriodType _periodType = _PeriodType.monthly;
+  int _periodOffset = 0;
 
   @override
   void initState() {
@@ -45,6 +50,43 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
     }
   }
 
+  ({DateTime start, DateTime end, String label}) _periodRange(int offset) {
+    final now = DateTime.now();
+    switch (_periodType) {
+      case _PeriodType.weekly:
+        final startOfThisWeek = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: now.weekday - 1));
+        final start = startOfThisWeek.add(Duration(days: 7 * offset));
+        final end = start.add(const Duration(days: 7));
+        return (
+          start: start,
+          end: end,
+          label:
+              '${DateFormat('dd MMM').format(start)} – '
+              '${DateFormat('dd MMM yyyy').format(end.subtract(const Duration(days: 1)))}',
+        );
+      case _PeriodType.monthly:
+        final start = DateTime(now.year, now.month + offset, 1);
+        final end = DateTime(now.year, now.month + offset + 1, 1);
+        return (
+          start: start,
+          end: end,
+          label: DateFormat('MMMM yyyy').format(start),
+        );
+      case _PeriodType.yearly:
+        final start = DateTime(now.year + offset, 1, 1);
+        final end = DateTime(now.year + offset + 1, 1, 1);
+        return (
+          start: start,
+          end: end,
+          label: DateFormat('yyyy').format(start),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AdminProvider>();
@@ -52,16 +94,244 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.surfaceLight,
-      body: provider.isLoadingDistributions
-          ? const Center(child: CircularProgressIndicator())
-          : provider.distributionsError != null
-          ? ErrorMessage(
-              message: provider.distributionsError!,
-              onRetry: () => provider.loadDistributions(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(context.tr('report_by_card_type')),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(context.tr('report_by_period')),
+                ),
+              ],
+              selected: {_viewByPeriod},
+              onSelectionChanged: (s) => setState(() {
+                _viewByPeriod = s.first;
+                _selectedCardTypeName = null;
+              }),
+            ),
+          ),
+          Expanded(
+            child: provider.isLoadingDistributions
+                ? const Center(child: CircularProgressIndicator())
+                : provider.distributionsError != null
+                ? ErrorMessage(
+                    message: provider.distributionsError!,
+                    onRetry: () => provider.loadDistributions(),
+                  )
+                : _viewByPeriod
+                ? _buildPeriodReport(provider)
+                : _selectedCardTypeName == null
+                ? _buildCardTypeSummary(provider, cardTypes)
+                : _buildCardTypeDetail(provider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodReport(AdminProvider provider) {
+    final range = _periodRange(_periodOffset);
+    final records =
+        provider.distributions
+            .where(
+              (d) =>
+                  !d.distributionDate.isBefore(range.start) &&
+                  d.distributionDate.isBefore(range.end),
             )
-          : _selectedCardTypeName == null
-          ? _buildCardTypeSummary(provider, cardTypes)
-          : _buildCardTypeDetail(provider),
+            .toList()
+          ..sort((a, b) => b.distributionDate.compareTo(a.distributionDate));
+    final total = records.fold<double>(0, (sum, d) => sum + d.amount);
+
+    final byCardType = <String, ({int count, double total})>{};
+    for (final dist in records) {
+      final key = dist.cardTypeName ?? '-';
+      final existing = byCardType[key] ?? (count: 0, total: 0.0);
+      byCardType[key] = (
+        count: existing.count + 1,
+        total: existing.total + dist.amount,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => provider.loadDistributions(),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          SegmentedButton<_PeriodType>(
+            segments: [
+              ButtonSegment(
+                value: _PeriodType.weekly,
+                label: Text(context.tr('period_weekly')),
+              ),
+              ButtonSegment(
+                value: _PeriodType.monthly,
+                label: Text(context.tr('period_monthly')),
+              ),
+              ButtonSegment(
+                value: _PeriodType.yearly,
+                label: Text(context.tr('period_yearly')),
+              ),
+            ],
+            selected: {_periodType},
+            onSelectionChanged: (s) => setState(() {
+              _periodType = s.first;
+              _periodOffset = 0;
+            }),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded),
+                onPressed: () => setState(() => _periodOffset -= 1),
+              ),
+              Text(
+                range.label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded),
+                onPressed: _periodOffset >= 0
+                    ? null
+                    : () => setState(() => _periodOffset += 1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Card(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.06),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '৳${total.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                        Text(
+                          context.tr('stat_total_disbursed'),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${records.length}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        context.tr('recipients_label'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (byCardType.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              context.tr('breakdown_by_card_type_label'),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: Column(
+                children: byCardType.entries
+                    .map(
+                      (entry) => ListTile(
+                        dense: true,
+                        title: Text(entry.key),
+                        trailing: Text(
+                          '৳${entry.value.total.toStringAsFixed(0)} (${entry.value.count})',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Text(
+            context.tr('details_label'),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (records.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: EmptyListMessage(
+                message: context.tr('no_distribution_records'),
+                icon: Icons.receipt_long,
+              ),
+            )
+          else
+            ...records.map(
+              (dist) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppTheme.primaryGreen.withValues(
+                      alpha: 0.1,
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      color: AppTheme.primaryGreen,
+                    ),
+                  ),
+                  title: Text(
+                    '${dist.citizenName ?? 'Citizen'} — ৳${dist.amount.toStringAsFixed(0)}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text(
+                    '${dist.cardTypeName ?? ''} • '
+                    '${DateFormat('dd MMM yyyy, HH:mm').format(dist.distributionDate)}',
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
