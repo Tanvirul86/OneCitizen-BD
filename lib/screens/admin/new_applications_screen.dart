@@ -345,7 +345,7 @@ class _ApplicationCard extends StatelessWidget {
                   _MetaChip(
                     icon: Icons.event_outlined,
                     text: DateFormat(
-                      'dd MMM yyyy',
+                      'dd MMM yyyy, HH:mm',
                     ).format(application.submittedAt),
                   ),
                   _MetaChip(icon: Icons.numbers_rounded, text: application.id),

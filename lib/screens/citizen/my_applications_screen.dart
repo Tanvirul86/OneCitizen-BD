@@ -186,7 +186,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                             subtitle: Text(
                               context.trp('submitted_date_prefix', {
                                 'date': DateFormat(
-                                  'dd MMM yyyy',
+                                  'dd MMM yyyy, HH:mm',
                                 ).format(application.submittedAt),
                               }),
                             ),
@@ -369,7 +369,7 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                   Text(
                     context.trp('submitted_on_prefix', {
                       'date': DateFormat(
-                        'dd MMM yyyy',
+                        'dd MMM yyyy, HH:mm',
                       ).format(application.submittedAt),
                     }),
                     style: const TextStyle(color: AppTheme.textSecondary),
@@ -378,7 +378,7 @@ class _ApplicationDetailScreenState extends State<ApplicationDetailScreen> {
                     Text(
                       context.trp('last_updated_prefix', {
                         'date': DateFormat(
-                          'dd MMM yyyy',
+                          'dd MMM yyyy, HH:mm',
                         ).format(application.updatedAt!),
                       }),
                     ),

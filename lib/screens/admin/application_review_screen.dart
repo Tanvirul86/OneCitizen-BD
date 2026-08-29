@@ -230,7 +230,9 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                   _DetailRow(
                     icon: Icons.event_outlined,
                     label: context.tr('request_received_label'),
-                    value: DateFormat('dd MMM yyyy').format(app.submittedAt),
+                    value: DateFormat(
+                      'dd MMM yyyy, HH:mm',
+                    ).format(app.submittedAt),
                   ),
                   if (app.adminRemark != null) ...[
                     const SizedBox(height: 14),
