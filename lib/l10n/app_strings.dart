@@ -666,6 +666,38 @@ class AppStrings {
       AppLanguage.en: '{count} recipients',
       AppLanguage.bn: '{count} জন পেয়েছেন',
     },
+    'report_by_card_type': {
+      AppLanguage.en: 'By Card Type',
+      AppLanguage.bn: 'কার্ড অনুযায়ী',
+    },
+    'report_by_period': {
+      AppLanguage.en: 'By Period',
+      AppLanguage.bn: 'সময়কাল অনুযায়ী',
+    },
+    'period_weekly': {AppLanguage.en: 'Weekly', AppLanguage.bn: 'সাপ্তাহিক'},
+    'period_monthly': {AppLanguage.en: 'Monthly', AppLanguage.bn: 'মাসিক'},
+    'period_yearly': {AppLanguage.en: 'Yearly', AppLanguage.bn: 'বাৎসরিক'},
+    'recipients_label': {
+      AppLanguage.en: 'Recipients',
+      AppLanguage.bn: 'প্রাপক',
+    },
+    'breakdown_by_card_type_label': {
+      AppLanguage.en: 'Breakdown by card type',
+      AppLanguage.bn: 'কার্ড অনুযায়ী বিভাজন',
+    },
+    'details_label': {AppLanguage.en: 'Details', AppLanguage.bn: 'বিস্তারিত'},
+    'download_pdf_action': {
+      AppLanguage.en: 'Download PDF',
+      AppLanguage.bn: 'পিডিএফ ডাউনলোড করুন',
+    },
+    'pdf_share_cancelled': {
+      AppLanguage.en: 'PDF share was cancelled.',
+      AppLanguage.bn: 'পিডিএফ শেয়ার বাতিল হয়েছে।',
+    },
+    'pdf_generation_failed': {
+      AppLanguage.en: 'Could not generate PDF: {error}',
+      AppLanguage.bn: 'পিডিএফ তৈরি করা যায়নি: {error}',
+    },
     'citizens_count_label': {
       AppLanguage.en: '{count} citizens',
       AppLanguage.bn: '{count} জন নাগরিক',
