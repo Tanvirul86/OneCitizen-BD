@@ -3,9 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:onecitizen/config/app_theme.dart';
 import 'package:onecitizen/l10n/app_strings.dart';
 import 'package:onecitizen/models/card_type.dart';
+import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
+import 'package:onecitizen/utils/distribution_report_pdf.dart';
 import 'package:onecitizen/widgets/common_widgets.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
 class DistributionRecordsScreen extends StatefulWidget {
@@ -23,6 +26,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
   bool _viewByPeriod = false;
   _PeriodType _periodType = _PeriodType.monthly;
   int _periodOffset = 0;
+  bool _isGeneratingPdf = false;
 
   @override
   void initState() {
@@ -84,6 +88,59 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
           end: end,
           label: DateFormat('yyyy').format(start),
         );
+    }
+  }
+
+  // Called from _downloadPdf, an event handler — must use the non-reactive
+  // trs() (build()-only context.tr() would hit Provider's "listen from
+  // outside the widget tree" assertion here).
+  String _periodTypeLabel(BuildContext context) {
+    switch (_periodType) {
+      case _PeriodType.weekly:
+        return context.trs('period_weekly');
+      case _PeriodType.monthly:
+        return context.trs('period_monthly');
+      case _PeriodType.yearly:
+        return context.trs('period_yearly');
+    }
+  }
+
+  Future<void> _downloadPdf({
+    required String periodLabel,
+    required double total,
+    required int recipientCount,
+    required Map<String, ({int count, double total})> byCardType,
+    required Map<String, List<Distribution>> recordsByCardType,
+  }) async {
+    setState(() => _isGeneratingPdf = true);
+    try {
+      final bytes = await buildDistributionReportPdf(
+        periodTypeLabel: _periodTypeLabel(context),
+        periodLabel: periodLabel,
+        total: total,
+        recipientCount: recipientCount,
+        byCardType: byCardType,
+        recordsByCardType: recordsByCardType,
+      );
+      final fileName =
+          'distribution_report_${DateFormat('yyyyMMdd_HHmm').format(DateTime.now())}.pdf';
+      final saved = await Printing.sharePdf(bytes: bytes, filename: fileName);
+      if (!mounted) return;
+      if (!saved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.trs('pdf_share_cancelled'))),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.trsp('pdf_generation_failed', {'error': '$e'})),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 
@@ -149,6 +206,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
     final total = records.fold<double>(0, (sum, d) => sum + d.amount);
 
     final byCardType = <String, ({int count, double total})>{};
+    final recordsByCardType = <String, List<Distribution>>{};
     for (final dist in records) {
       final key = dist.cardTypeName ?? '-';
       final existing = byCardType[key] ?? (count: 0, total: 0.0);
@@ -156,6 +214,7 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
         count: existing.count + 1,
         total: existing.total + dist.amount,
       );
+      recordsByCardType.putIfAbsent(key, () => []).add(dist);
     }
 
     return RefreshIndicator(
@@ -207,6 +266,28 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
                     : () => setState(() => _periodOffset += 1),
               ),
             ],
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: (_isGeneratingPdf || records.isEmpty)
+                  ? null
+                  : () => _downloadPdf(
+                      periodLabel: range.label,
+                      total: total,
+                      recipientCount: records.length,
+                      byCardType: byCardType,
+                      recordsByCardType: recordsByCardType,
+                    ),
+              icon: _isGeneratingPdf
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.picture_as_pdf_rounded),
+              label: Text(context.tr('download_pdf_action')),
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -306,30 +387,43 @@ class _DistributionRecordsScreenState extends State<DistributionRecordsScreen> {
               ),
             )
           else
-            ...records.map(
-              (dist) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryGreen.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: AppTheme.primaryGreen,
-                    ),
-                  ),
-                  title: Text(
-                    '${dist.citizenName ?? 'Citizen'} — ৳${dist.amount.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  subtitle: Text(
-                    '${dist.cardTypeName ?? ''} • '
-                    '${DateFormat('dd MMM yyyy, HH:mm').format(dist.distributionDate)}',
+            for (final entry in recordsByCardType.entries) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 6),
+                child: Text(
+                  entry.key,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ),
-            ),
+              ...entry.value.map(
+                (dist) => Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.primaryGreen.withValues(
+                        alpha: 0.1,
+                      ),
+                      child: const Icon(
+                        Icons.account_balance_wallet,
+                        color: AppTheme.primaryGreen,
+                      ),
+                    ),
+                    title: Text(
+                      '${dist.citizenName ?? 'Citizen'} — ৳${dist.amount.toStringAsFixed(0)}',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      DateFormat(
+                        'dd MMM yyyy, HH:mm',
+                      ).format(dist.distributionDate),
+                    ),
+                  ),
+                ),
+              ),
+            ],
         ],
       ),
     );

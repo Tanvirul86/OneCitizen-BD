@@ -686,6 +686,18 @@ class AppStrings {
       AppLanguage.bn: 'কার্ড অনুযায়ী বিভাজন',
     },
     'details_label': {AppLanguage.en: 'Details', AppLanguage.bn: 'বিস্তারিত'},
+    'download_pdf_action': {
+      AppLanguage.en: 'Download PDF',
+      AppLanguage.bn: 'পিডিএফ ডাউনলোড করুন',
+    },
+    'pdf_share_cancelled': {
+      AppLanguage.en: 'PDF share was cancelled.',
+      AppLanguage.bn: 'পিডিএফ শেয়ার বাতিল হয়েছে।',
+    },
+    'pdf_generation_failed': {
+      AppLanguage.en: 'Could not generate PDF: {error}',
+      AppLanguage.bn: 'পিডিএফ তৈরি করা যায়নি: {error}',
+    },
     'citizens_count_label': {
       AppLanguage.en: '{count} citizens',
       AppLanguage.bn: '{count} জন নাগরিক',
