@@ -611,8 +611,20 @@ class AppStrings {
           '{count} জন অনুমোদিত {name} হোল্ডার প্রত্যেকে ৳{amount} পাবেন।',
     },
     'bulk_distribute_action': {
-      AppLanguage.en: 'Distribute to All ({count})',
-      AppLanguage.bn: 'সবাইকে পাঠান ({count})',
+      AppLanguage.en: 'Distribute ({count})',
+      AppLanguage.bn: 'পাঠান ({count})',
+    },
+    'recipients_selected_count': {
+      AppLanguage.en: '{selected} of {total} selected',
+      AppLanguage.bn: '{total} জনের মধ্যে {selected} জন নির্বাচিত',
+    },
+    'select_all_action': {
+      AppLanguage.en: 'Select all',
+      AppLanguage.bn: 'সবাইকে নির্বাচন করুন',
+    },
+    'deselect_all_action': {
+      AppLanguage.en: 'Deselect all',
+      AppLanguage.bn: 'নির্বাচন বাতিল করুন',
     },
     'bulk_distribute_confirm_title': {
       AppLanguage.en: 'Confirm Bulk Distribution',
