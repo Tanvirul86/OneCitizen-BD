@@ -7,7 +7,6 @@ import 'package:onecitizen/models/card_type.dart';
 import 'package:onecitizen/models/distribution.dart';
 import 'package:onecitizen/providers/admin_provider.dart';
 import 'package:onecitizen/providers/application_provider.dart';
-import 'package:onecitizen/utils/numeric_input.dart';
 import 'package:provider/provider.dart';
 
 class FundDistributionScreen extends StatefulWidget {
@@ -26,7 +25,6 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
   String? _selectedCardTypeId;
   bool _bulkMode = false;
   bool _isSubmitting = false;
-  int _formResetCount = 0;
   final Set<String> _deselectedRecipientIds = {};
 
   @override
@@ -102,10 +100,7 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
       _formKey.currentState!.reset();
       _amountController.clear();
       _noteController.clear();
-      setState(() {
-        _selectedApplicationId = null;
-        _formResetCount++;
-      });
+      setState(() => _selectedApplicationId = null);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -217,58 +212,78 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
     );
   }
 
+  Future<void> _pickCardHolder(
+    AdminProvider provider,
+    List<Application> approved,
+    List<CardType> cardTypes,
+  ) async {
+    final selected = await showModalBottomSheet<Application>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          _CardHolderSearchSheet(applications: approved, provider: provider),
+    );
+    if (selected == null || !mounted) return;
+    final cardType = cardTypes
+        .where((c) => c.id == selected.cardTypeId)
+        .firstOrNull;
+    setState(() {
+      _selectedApplicationId = selected.id;
+      _amountController.text =
+          cardType == null || cardType.disbursementAmount == 0
+          ? ''
+          : cardType.disbursementAmount.toStringAsFixed(0);
+    });
+  }
+
   Widget _buildIndividualForm(
     BuildContext context,
     AdminProvider provider,
     List<Application> approved,
   ) {
+    final cardTypes = context.watch<ApplicationProvider>().cardTypes;
+    final selectedApplication = approved
+        .where((a) => a.id == _selectedApplicationId)
+        .firstOrNull;
+
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DropdownButtonFormField<String>(
-            key: ValueKey(_formResetCount),
-            initialValue: _selectedApplicationId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: context.tr('approved_card_holder_label'),
-              prefixIcon: const Icon(Icons.person),
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _pickCardHolder(provider, approved, cardTypes),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: context.tr('approved_card_holder_label'),
+                prefixIcon: const Icon(Icons.person),
+                suffixIcon: const Icon(Icons.search_rounded),
+              ),
+              child: Text(
+                selectedApplication == null
+                    ? context.trs('select_card_holder_hint')
+                    : '${selectedApplication.applicantName ?? selectedApplication.id} — ${selectedApplication.cardTypeName}',
+                overflow: TextOverflow.ellipsis,
+                style: selectedApplication == null
+                    ? const TextStyle(color: AppTheme.textTertiary)
+                    : null,
+              ),
             ),
-            items: approved.map((a) {
-              final eligible = provider.isEligibleForDistribution(a.id);
-              final baseLabel =
-                  '${a.applicantName ?? a.id} — ${a.cardTypeName}';
-              final eligibleOn = eligible
-                  ? null
-                  : provider.eligibleAgainOn(a.id);
-              final label = eligible || eligibleOn == null
-                  ? baseLabel
-                  : '$baseLabel (${context.trsp('on_cooldown_until_label', {'date': DateFormat('dd MMM').format(eligibleOn)})})';
-              return DropdownMenuItem(
-                value: a.id,
-                enabled: eligible,
-                child: Text(
-                  label,
-                  overflow: TextOverflow.ellipsis,
-                  style: eligible
-                      ? null
-                      : const TextStyle(color: AppTheme.textTertiary),
-                ),
-              );
-            }).toList(),
-            onChanged: (v) => setState(() => _selectedApplicationId = v),
           ),
           const SizedBox(height: 16),
           _onlineMethodBadge(context),
           const SizedBox(height: 16),
           TextFormField(
             controller: _amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: decimalInputFormatters,
+            readOnly: true,
             decoration: InputDecoration(
               labelText: context.tr('amount_bdt_label'),
               prefixIcon: const Icon(Icons.money),
+              suffixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+              filled: true,
+              fillColor: AppTheme.surfaceLight,
             ),
             validator: (v) => (v == null || double.tryParse(v) == null)
                 ? context.trs('amount_invalid')
@@ -359,13 +374,14 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _bulkAmountController,
-          keyboardType: TextInputType.number,
-          inputFormatters: decimalInputFormatters,
+          readOnly: true,
           decoration: InputDecoration(
             labelText: context.tr('amount_bdt_label'),
             prefixIcon: const Icon(Icons.money),
+            suffixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+            filled: true,
+            fillColor: AppTheme.surfaceLight,
           ),
-          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 16),
         _noteField(),
@@ -542,6 +558,179 @@ class _FundDistributionScreenState extends State<FundDistributionScreen> {
         prefixIcon: const Icon(Icons.note),
       ),
       maxLines: 2,
+    );
+  }
+}
+
+/// Search sheet for picking the individual-distribution recipient — lets
+/// the admin filter by name, card type, or NID instead of scrolling a long
+/// dropdown once there are many approved holders.
+class _CardHolderSearchSheet extends StatefulWidget {
+  const _CardHolderSearchSheet({
+    required this.applications,
+    required this.provider,
+  });
+
+  final List<Application> applications;
+  final AdminProvider provider;
+
+  @override
+  State<_CardHolderSearchSheet> createState() => _CardHolderSearchSheetState();
+}
+
+class _CardHolderSearchSheetState extends State<_CardHolderSearchSheet> {
+  final _controller = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _query.trim().toLowerCase();
+    final results = query.isEmpty
+        ? widget.applications
+        : widget.applications
+              .where(
+                (a) =>
+                    (a.applicantName ?? '').toLowerCase().contains(query) ||
+                    a.cardTypeName.toLowerCase().contains(query) ||
+                    (a.applicantNid ?? '').toLowerCase().contains(query),
+              )
+              .toList();
+
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 150),
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: FractionallySizedBox(
+        heightFactor: 0.75,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        context.tr('approved_card_holder_label'),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: context.tr('search_card_holder_hint'),
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear_rounded),
+                            onPressed: () => setState(() {
+                              _controller.clear();
+                              _query = '';
+                            }),
+                          ),
+                    filled: true,
+                    fillColor: AppTheme.surfaceLight,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: results.isEmpty
+                    ? Center(
+                        child: Text(
+                          context.tr('no_matching_applications'),
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        itemCount: results.length,
+                        itemBuilder: (context, index) {
+                          final app = results[index];
+                          final eligible = widget.provider
+                              .isEligibleForDistribution(app.id);
+                          final eligibleOn = eligible
+                              ? null
+                              : widget.provider.eligibleAgainOn(app.id);
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              enabled: eligible,
+                              leading: CircleAvatar(
+                                backgroundColor: AppTheme.primaryGreen
+                                    .withValues(alpha: 0.1),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              ),
+                              title: Text(
+                                '${app.applicantName ?? app.id} — ${app.cardTypeName}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              subtitle: eligible || eligibleOn == null
+                                  ? null
+                                  : Text(
+                                      context.trp('on_cooldown_until_label', {
+                                        'date': DateFormat(
+                                          'dd MMM',
+                                        ).format(eligibleOn),
+                                      }),
+                                      style: const TextStyle(
+                                        color: AppTheme.warningAmber,
+                                      ),
+                                    ),
+                              onTap: eligible
+                                  ? () => Navigator.of(context).pop(app)
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -558,6 +558,14 @@ class AppStrings {
       AppLanguage.en: 'Approved Card Holder',
       AppLanguage.bn: 'অনুমোদিত কার্ডধারী',
     },
+    'select_card_holder_hint': {
+      AppLanguage.en: 'Tap to search and select',
+      AppLanguage.bn: 'খুঁজতে ও নির্বাচন করতে ট্যাপ করুন',
+    },
+    'search_card_holder_hint': {
+      AppLanguage.en: 'Search by name, card type, or NID',
+      AppLanguage.bn: 'নাম, কার্ড টাইপ বা NID দিয়ে খুঁজুন',
+    },
     'online_method_full': {
       AppLanguage.en: 'Online (bKash/Nagad/Bank)',
       AppLanguage.bn: 'অনলাইন (বিকাশ/নগদ/ব্যাংক)',
